@@ -1,0 +1,81 @@
+# ==========================================
+# Environment & Sensitive Credentials
+# ==========================================
+.env
+.env.*
+!.env.example
+config.local.php
+config.php
+credentials.json
+*.pem
+*.key
+*.cert
+*.pfx
+secrets/
+
+# ==========================================
+# Dependencies & Package Managers
+# ==========================================
+node_modules/
+vendor/
+
+# ==========================================
+# Build Artifacts & Caches
+# ==========================================
+dist/
+dist-ssr/
+frontend/dist/
+frontend/node_modules/
+*.tsbuildinfo
+.cache/
+.parcel-cache/
+
+# ==========================================
+# Temporary, Scratch & Backup Files
+# ==========================================
+scratch/
+*.bak
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# Python cache & helper scripts output
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# ==========================================
+# Operating System & IDE Files
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VS Code / Cursor / JetBrains
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ==========================================
+# Logs & Database Dumps
+# ==========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.sql
+*.sqlite
+*.db

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#241309"/>
+      <stop offset="100%" stop-color="#0a0502"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="480" fill="url(#bg4)"/>
+  <path d="M0 380h400M0 420h400M0 460h400M100 360v120M200 360v120M300 360v120" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="2"/>
+
+  <!-- Badan / Jaket -->
+  <path d="M110 320 L290 320 L320 480 L80 480 Z" fill="#181c24"/>
+  <polygon points="175,320 225,320 215,410 185,410" fill="#f8fafc"/>
+  <rect x="110" y="325" width="55" height="14" fill="#00d2ff" rx="3"/>
+  <rect x="235" y="325" width="55" height="14" fill="#00d2ff" rx="3"/>
+
+  <!-- Kepala & Rambut Layer Coklat -->
+  <rect x="175" y="270" width="50" height="55" fill="#fcd5b5"/>
+  <rect x="135" y="130" width="130" height="145" fill="#fcd5b5" rx="14"/>
+  <rect x="120" y="115" width="160" height="65" fill="#3d271d" rx="8"/>
+  <rect x="115" y="150" width="28" height="115" fill="#3d271d" rx="4"/>
+  <rect x="257" y="150" width="28" height="115" fill="#3d271d" rx="4"/>
+  <!-- Jepit Rambut Cyan -->
+  <rect x="122" y="145" width="16" height="8" fill="#00d2ff" rx="2"/>
+
+  <!-- Wajah Cantik Energik -->
+  <rect x="160" y="192" width="18" height="22" fill="#0f172a" rx="3"/>
+  <rect x="220" y="192" width="18" height="22" fill="#0f172a" rx="3"/>
+  <path d="M185 238 Q200 252 215 238" stroke="#be123c" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Props: Smart Megaphone & Ring Light Gimbal -->
+  <g transform="translate(240, 370)">
+    <polygon points="0,15 50,0 50,50 0,35" fill="#0f172a" stroke="#00d2ff" stroke-width="2"/>
+    <circle cx="50" cy="25" r="28" fill="none" stroke="#00d2ff" stroke-width="4"/>
+    <rect x="-15" y="20" width="20" height="35" fill="#181c24" rx="3"/>
+  </g>
+</svg>
