@@ -24,8 +24,6 @@ vendor/
 # ==========================================
 dist/
 dist-ssr/
-frontend/dist/
-frontend/node_modules/
 *.tsbuildinfo
 .cache/
 .parcel-cache/
