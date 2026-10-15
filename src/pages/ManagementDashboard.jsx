@@ -37,7 +37,7 @@ import { INITIAL_ARCHIVES, INITIAL_SUBMISSIONS, INITIAL_KANBAN, INITIAL_TIMELINE
 import { AGENTS } from '../data/agents';
 import '../styles/donezoExact.css';
 
-export default function ManagementDashboard({ onLogout }) {
+export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
   // Navigation: 'dashboard' | 'tasks' | 'calendar' | 'analytics' | 'team' | 'cabinet' | 'settings' | 'help'
   const [activeMenu, setActiveMenu] = useState('dashboard');
   
@@ -170,14 +170,17 @@ export default function ManagementDashboard({ onLogout }) {
             1. LEFT SIDEBAR (1:1 DONEZO CLEAN)
             ============================================================== */}
         <aside className="dz-sidebar">
-          {/* Logo Donezo */}
+          {/* Brand Logo Website */}
           <div className="dz-brand-row">
-            <div className="dz-brand-logo">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
-              </svg>
-            </div>
-            <span className="dz-brand-title">Donezo</span>
+            <img 
+              src="/logo.webp" 
+              alt="Logo" 
+              style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '8px' }} 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/favicon.svg';
+              }}
+            />
           </div>
 
           {/* Section: MENU */}
@@ -245,6 +248,17 @@ export default function ManagementDashboard({ onLogout }) {
               <HelpCircle size={17} />
               Help
             </button>
+            {onSwitchTo3D && (
+              <button 
+                className="dz-nav-item" 
+                onClick={onSwitchTo3D} 
+                style={{ color: '#0284c7', fontWeight: 700 }}
+                title="Kembali ke Denah Kantor 3D Interaktif"
+              >
+                <Layers size={17} />
+                Kembali ke Kantor 3D
+              </button>
+            )}
             <button className="dz-nav-item" onClick={onLogout} style={{ color: '#ef4444' }}>
               <LogOut size={17} />
               Logout
@@ -289,10 +303,9 @@ export default function ManagementDashboard({ onLogout }) {
                 <Bell size={16} />
               </div>
               <div className="dz-user-profile">
-                <div className="dz-user-avatar">TM</div>
+                <div className="dz-user-avatar">RS</div>
                 <div className="dz-user-meta">
-                  <span className="dz-user-name">Totok Michael</span>
-                  <span className="dz-user-email">tmichael20@mail.com</span>
+                  <span className="dz-user-name">Robin Syaifuddin</span>
                 </div>
               </div>
             </div>

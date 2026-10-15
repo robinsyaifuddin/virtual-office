@@ -53,17 +53,11 @@ export default function Office3D() {
 
       {/* WhatsApp Command Simulator (Collapsible & Compact) */}
       <div
-        className="glassmorphism"
+        className="glassmorphism wa-command-box"
         style={{
-          position: 'absolute',
-          zIndex: 15,
-          pointerEvents: 'auto',
-          bottom: '64px',
-          left: '20px',
           width: isWaOpen ? '320px' : 'auto',
-          padding: isWaOpen ? '12px' : '6px 12px',
-          borderRadius: '12px',
-          transition: 'all 0.25s ease'
+          maxWidth: 'calc(100vw - 20px)',
+          padding: isWaOpen ? '12px' : '6px 12px'
         }}
       >
         <div

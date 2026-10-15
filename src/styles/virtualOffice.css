@@ -543,3 +543,23 @@
     transform: translateX(0);
   }
 }
+
+/* Responsive Mobile Support */
+.wa-command-box {
+  position: absolute;
+  z-index: 15;
+  pointer-events: auto;
+  bottom: 64px;
+  left: 20px;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+@media (max-width: 768px) {
+  .wa-command-box {
+    bottom: 38px !important;
+    left: 8px !important;
+    border-radius: 9px !important;
+  }
+}
+

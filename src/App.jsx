@@ -20,6 +20,17 @@ function App() {
     }
   }, [isAuthenticated]);
 
+  // Dengarkan pesan dari 3D Office iframe saat tombol manajemen diklik
+  useEffect(() => {
+    const handleMessage = (e) => {
+      if (e.data && e.data.type === 'OPEN_MANAGEMENT') {
+        handleSwitchToManagement();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [isAuthenticated]);
+
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
     setCurrentRoute('management');
@@ -53,33 +64,6 @@ function App() {
       {currentRoute === 'office3d' && (
         <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
           <Office3D />
-          
-          {/* Tombol Akses Ruang Manajemen di Pojok Atas */}
-          <button
-            onClick={handleSwitchToManagement}
-            className="btn-switch-management"
-            style={{
-              position: 'fixed',
-              top: '12px',
-              right: '12px',
-              zIndex: 100,
-              backgroundColor: '#0284c7',
-              color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.4)',
-              padding: '8px 14px',
-              borderRadius: '10px',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            🏢 <span className="btn-switch-text">Ruang Manajemen</span>
-          </button>
         </div>
       )}
 
