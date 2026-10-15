@@ -53,24 +53,28 @@ export default function SasaranKpi() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+        <h2 className="ws-page-title">
           Sasaran & KPI (OKR Perusahaan)
         </h2>
       </div>
 
       <div className="ws-metric-grid">
-        <MetricCard
-          title="Total Sasaran Aktif (Q4)"
-          value={okrGoals.length}
-          subtitle="Lintas 3 Departemen"
-          icon={Target}
-        />
-        <ProgressBarWidget
-          title="Rata-rata Kelulusan Key Results"
-          percentage={78}
-          statusLabel="On Track"
-          targetText="Target Kuartal >= 75%"
-        />
+        <div className="ws-col-span-full">
+          <MetricCard
+            title="Total Sasaran Aktif (Q4)"
+            value={okrGoals.length}
+            subtitle="Lintas 3 Departemen"
+            icon={Target}
+          />
+        </div>
+        <div className="ws-col-span-full">
+          <ProgressBarWidget
+            title="Rata-rata Kelulusan Key Results"
+            percentage={78}
+            statusLabel="On Track"
+            targetText="Target Kuartal >= 75%"
+          />
+        </div>
       </div>
 
       <NotionTable

@@ -122,7 +122,8 @@
 
 /* Responsive utilities */
 @media (max-width: 768px) {
-  .ws-mobile-hidden {
+  .ws-mobile-hidden,
+  .ws-desktop-only {
     display: none !important;
   }
   .ws-mobile-full {
@@ -130,6 +131,12 @@
   }
   .ws-mobile-column {
     flex-direction: column !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .ws-mobile-only {
+    display: none !important;
   }
 }
 
@@ -188,36 +195,75 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
   gap: 16px;
 }
 
+/* Responsive Module Title */
+.ws-page-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
 @media (max-width: 768px) {
+  .ws-page-title {
+    font-size: 1.15rem !important;
+  }
+
   .ws-metric-grid {
     display: grid !important;
-    grid-auto-flow: column !important;
-    grid-auto-columns: minmax(135px, 1fr) !important;
-    overflow-x: auto !important;
-    padding-bottom: 8px !important;
-    scroll-snap-type: x mandatory;
-    gap: 10px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    width: 100% !important;
+    gap: 8px !important;
+    overflow-x: visible !important;
+  }
+
+  .ws-metric-grid > * {
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .ws-metric-card {
-    padding: 12px 10px !important;
-    min-width: 130px !important;
-    scroll-snap-align: start;
-    border-radius: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 10px 8px !important;
+    border-radius: 10px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
   }
 
   .ws-metric-title {
-    font-size: 0.72rem !important;
-    line-height: 1.2 !important;
+    font-size: 0.68rem !important;
+    line-height: 1.25 !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   .ws-metric-val {
-    font-size: 1.05rem !important;
+    font-size: 0.95rem !important;
     letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
   }
 
   .ws-metric-sub {
-    font-size: 0.68rem !important;
-    margin-top: 4px !important;
+    font-size: 0.62rem !important;
+    margin-top: 2px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  /* Full width for single widget or progress bar on mobile */
+  .ws-col-span-full {
+    grid-column: 1 / -1 !important;
+  }
+
+  .ws-widget-mobile-compact {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
   }
 }

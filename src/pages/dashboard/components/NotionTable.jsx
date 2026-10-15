@@ -456,13 +456,58 @@ export default function NotionTable({
             </button>
           )}
 
+          {/* Mobile-Only Action Icons disamping tombol Tandai */}
+          <div className="ws-mobile-only" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={handleExportCSV}
+              className="ws-btn-transition"
+              title="Ekspor CSV"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '34px',
+                height: '34px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+                cursor: 'pointer'
+              }}
+            >
+              <Download size={14} />
+            </button>
+
+            {onAddRow && (
+              <button
+                onClick={handleTriggerAdd}
+                className="ws-btn-transition"
+                title="Tambah Baru"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  cursor: 'pointer'
+                }}
+              >
+                <Plus size={16} />
+              </button>
+            )}
+          </div>
+
           <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, paddingLeft: '4px' }}>
             {sortedData.length} baris
           </span>
         </div>
 
-        {/* Right Toolbar: Export & Add Row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Right Toolbar: Export & Add Row (Desktop Only) */}
+        <div className="ws-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={handleExportCSV}
             className="ws-btn-transition"

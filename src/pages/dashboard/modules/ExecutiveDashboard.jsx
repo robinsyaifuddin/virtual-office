@@ -20,7 +20,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Page Header (Clean tanpa subtitle) */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
+        <h2 className="ws-page-title">
           Executive Dashboard
         </h2>
 

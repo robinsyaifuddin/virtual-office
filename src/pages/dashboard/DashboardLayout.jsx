@@ -336,7 +336,7 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
               </button>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div className="ws-mobile-hidden" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '0.82rem', color: '#64748b' }}>Workspace</span>
               <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>/</span>
               <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>{currentMenu.label}</span>

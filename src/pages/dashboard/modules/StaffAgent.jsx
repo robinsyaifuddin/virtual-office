@@ -83,7 +83,7 @@ export default function StaffAgent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+        <h2 className="ws-page-title">
           Staff & AI Agents (Direktori SDM)
         </h2>
       </div>

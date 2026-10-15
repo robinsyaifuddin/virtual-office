@@ -50,7 +50,7 @@ export default function RapatCatatan() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+        <h2 className="ws-page-title">
           Rapat & Notulensi Catatan
         </h2>
       </div>

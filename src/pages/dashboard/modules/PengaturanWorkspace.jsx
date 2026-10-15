@@ -18,7 +18,7 @@ export default function PengaturanWorkspace() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '880px' }}>
       <div>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800, color: '#0f172a' }}>
+        <h2 className="ws-page-title">
           Pengaturan Workspace
         </h2>
       </div>

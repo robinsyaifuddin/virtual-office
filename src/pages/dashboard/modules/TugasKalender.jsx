@@ -301,8 +301,8 @@ export default function TugasKalender() {
             <span>/</span>
             <span style={{ fontWeight: 600, color: '#0f172a' }}>Tugas Operasional</span>
           </div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Icon3DClipboard size={24} />
+          <h2 className="ws-page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Icon3DClipboard size={22} />
             <span>Tugas Operasional</span>
           </h2>
         </div>
