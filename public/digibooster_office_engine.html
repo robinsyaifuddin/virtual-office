@@ -131,16 +131,37 @@ html, body {
   padding: 6px 12px;
   border-radius: 9px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   transition: all .15s;
+  white-space: nowrap;
 }
 .btn:hover { background: rgba(255, 255, 255, 0.18); }
 .btn[aria-pressed="true"] {
   background: #0284c7;
   color: #fff;
   border-color: #38bdf8;
+}
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.btn-text {
+  display: inline;
+}
+.btn-mgmt {
+  background: rgba(2, 132, 199, 0.25);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #bae6fd;
+}
+.btn-mgmt:hover {
+  background: #0284c7;
+  border-color: #38bdf8;
+  color: #fff;
 }
 
 /* BOTTOM BAR */
@@ -335,9 +356,160 @@ dialog#agentDlg::backdrop {
 }
 
 @media (max-width: 900px) {
-  .brand-watermark .brand-name { font-size: 16px; }
-  .brand-watermark .brand-tagline { font-size: 11px; }
-  .bottom-footer { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .brand-watermark {
+    top: 10px;
+    left: 12px;
+    gap: 8px;
+  }
+  .brand-watermark .logo-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .brand-watermark .logo-icon img {
+    width: 34px;
+    height: 34px;
+  }
+  .brand-watermark .brand-name {
+    font-size: 15px;
+  }
+  .brand-watermark .brand-tagline {
+    font-size: 10px;
+  }
+  .hud-right {
+    top: 10px;
+    right: 12px;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* NAVBAR / BRAND WATERMARK LEBIH KECIL */
+  .brand-watermark {
+    top: 8px;
+    left: 8px;
+    gap: 6px;
+  }
+  .brand-watermark .logo-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+  .brand-watermark .logo-icon img {
+    width: 28px;
+    height: 28px;
+  }
+  .brand-watermark .brand-name {
+    font-size: 12.5px;
+    line-height: 1.1;
+  }
+  .brand-watermark .brand-tagline {
+    display: none; /* Sembunyikan tagline agar navbar atas lapang */
+  }
+
+  /* HUD ATAS (ROOM SELECT, KETERANGAN, DEMO & BUKA MANAJEMEN SEJAJAR) */
+  .hud-right {
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+  }
+  .hud-box-select {
+    padding: 2px 4px !important;
+  }
+  .room-select {
+    padding: 4px 6px;
+    font-size: 11px;
+    max-width: 115px;
+    border-radius: 7px;
+  }
+  .hud-box-actions {
+    padding: 2px 4px !important;
+    gap: 4px !important;
+  }
+  /* KETERANGAN & DEMO JADI ICON SAJA SEJAJAR DENGAN ICON BUKA MANAJEMEN */
+  .btn {
+    padding: 5px 7px;
+    font-size: 13px;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    gap: 0;
+  }
+  .btn .btn-text {
+    display: none; /* Hilangkan teks di tampilan mobile, icon saja */
+  }
+  .btn .btn-icon {
+    font-size: 14px;
+  }
+
+  /* FOOTER LEBIH KECIL & RAMPING */
+  .bottom-footer {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    padding: 4px 10px;
+    font-size: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    border-radius: 9px;
+  }
+  .footer-hints {
+    display: none; /* Sembunyikan hint mouse desktop di layar sentuh */
+  }
+  .footer-status {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .footer-right {
+    font-size: 9.5px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  /* Modal Agent Responsif */
+  dialog#agentDlg {
+    top: 52px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 90px);
+    border-radius: 14px;
+  }
+  .agent-portrait-box {
+    height: 180px;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand-watermark .brand-name {
+    font-size: 11px;
+  }
+  .room-select {
+    max-width: 90px;
+    font-size: 10px;
+    padding: 3px 4px;
+  }
+  .btn {
+    padding: 4px 6px;
+    min-width: 27px;
+    height: 27px;
+  }
+  .btn .btn-icon {
+    font-size: 12.5px;
+  }
+  .bottom-footer {
+    padding: 3px 8px;
+    font-size: 9.5px;
+  }
+  .footer-status {
+    font-size: 9px;
+  }
+  .footer-right {
+    font-size: 8.5px;
+  }
 }
 </style>
 <script type="importmap">
@@ -366,7 +538,7 @@ dialog#agentDlg::backdrop {
 
 <!-- TOP CONTROLS -->
 <div class="hud-right">
-  <div class="box" style="padding: 3px 6px;">
+  <div class="box hud-box-select" style="padding: 3px 6px;">
     <select id="roomSelect" class="room-select" title="Pilih Ruangan">
       <option value="all">🏢 Semua Kantor (Overview)</option>
       <option value="server">🖥️ Ruang Server & Infrastruktur</option>
@@ -379,9 +551,8 @@ dialog#agentDlg::backdrop {
       <option value="kreatif">🎨 Ruang Kreatif</option>
       <option value="finance_hr">💰 Ruang Finance & HR</option>
       <option value="layanan_klien">🎧 Ruang Layanan Klien</option>
-            <option value="lobby">🏛️ Lobby & Resepsionis</option>
+      <option value="lobby">🏛️ Lobby & Resepsionis</option>
       <option value="gerbang_utama">🚪 Pintu Gerbang Masuk Depan (2 Pintu)</option>
-      
       <option value="koridor_utama">🏛️ Koridor Utama (Grand Avenue)</option>
       <option value="koridor_depan">🚶 Jalan Sepetak Fasilitas (Garden, Pantry, Mushola, Toilet)</option>
       <option value="manajemen">👑 Kantor Manajemen</option>
@@ -390,25 +561,34 @@ dialog#agentDlg::backdrop {
       <option value="workshop">🎓 Ruang Workshop & Training</option>
       <option value="eco_garden">🌱 Eco Garden & Pergola</option>
       <option value="pantry">☕ Pantry (Outdoor Dining)</option>
-      
       <option value="mushola">🕌 Mushola</option>
       <option value="toilet">🚻 Toilet</option>
       <option value="gerbang">🚗 Pos Satpam & Parkir</option>
     </select>
   </div>
-  <div class="box" style="padding: 3px 6px; display: flex; gap: 6px;">
-    <button class="btn" id="toggleLabels" aria-pressed="true">🏷️ Keterangan</button>
-    <button class="btn" id="demoBtn" aria-pressed="false">🎬 Demo</button>
+  <div class="box hud-box-actions" style="padding: 3px 6px; display: flex; gap: 6px; align-items: center;">
+    <button class="btn" id="toggleLabels" aria-pressed="true" title="Tampilkan / Sembunyikan Keterangan">
+      <span class="btn-icon">🏷️</span>
+      <span class="btn-text">Keterangan</span>
+    </button>
+    <button class="btn" id="demoBtn" aria-pressed="false" title="Demo Sinematik Kantor">
+      <span class="btn-icon">🎬</span>
+      <span class="btn-text">Demo</span>
+    </button>
+    <button class="btn btn-mgmt" id="managementBtn" title="Buka Ruang Manajemen (/manajemen)">
+      <span class="btn-icon">🏢</span>
+      <span class="btn-text">Manajemen</span>
+    </button>
   </div>
 </div>
 
 <!-- BOTTOM BAR -->
 <div class="box bottom-footer">
   <div class="footer-left">
-    <span><i class="dot"></i> 24/7 AI Multi-Agent Office Live</span>
-    <span style="color:var(--muted)">• Seret: geser • Klik kanan: putar • Scroll: zoom • Klik agen: info tugas</span>
+    <span class="footer-status"><i class="dot"></i> 24/7 AI Multi-Agent Live</span>
+    <span class="footer-hints" style="color:var(--muted)">• Seret: geser • Klik kanan: putar • Scroll: zoom • Klik agen: info tugas</span>
   </div>
-  <div style="color:var(--cyan); font-weight: 800;">
+  <div class="footer-right" style="color:var(--cyan); font-weight: 800;">
     Autonomous Operations Floor
   </div>
 </div>
@@ -2863,6 +3043,18 @@ demoBtn.addEventListener("click", () => {
   isDemo = !isDemo;
   demoBtn.setAttribute("aria-pressed", isDemo);
 });
+
+// Buka Ruang Manajemen
+const mgmtBtn = document.getElementById("managementBtn");
+if (mgmtBtn) {
+  mgmtBtn.addEventListener("click", () => {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: "OPEN_MANAGEMENT" }, "*");
+    } else {
+      window.location.href = "/manajemen";
+    }
+  });
+}
 
 /* ================= 14. ANIMATION LOOP ================= */
 let clock = new THREE.Clock();
