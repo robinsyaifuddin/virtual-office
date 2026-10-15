@@ -1,7 +1,7 @@
 import Groq from 'groq-sdk';
 import { GoogleGenAI } from '@google/genai';
 
-// Inisialisasi Klien AI (Groq & Gemini)
+// Inisialisasi Klien AI (Menggunakan Environment Variables agar aman dari Secret Scanning)
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || '';
 
@@ -33,9 +33,10 @@ Tugas Anda:
 
 Format respon dengan gaya markdown rapi untuk WhatsApp (gunakan tanda *bold*, _italic_, bullet points, dan emoji), tanpa format HTML.`;
 
-  // 1. Coba eksekusi dengan GROQ (Ultra Cepat)
+  // --- 1. ENGINE UTAMA: GROQ (Llama 3.3 70B - Ultra Fast) ---
   if (groq) {
     try {
+      console.log('⚡ Menjalankan tugas dengan Groq Llama 3.3 70B (Primary)...');
       const completion = await groq.chat.completions.create({
         model: 'llama-3.3-70b-versatile',
         messages: [
@@ -45,27 +46,36 @@ Format respon dengan gaya markdown rapi untuk WhatsApp (gunakan tanda *bold*, _i
         temperature: 0.7,
         max_tokens: 2048
       });
-      return completion.choices[0]?.message?.content || 'Maaf, respon Groq kosong.';
+
+      const output = completion.choices[0]?.message?.content;
+      if (output && output.trim()) {
+        return output;
+      }
     } catch (groqErr) {
-      console.warn('Groq Error, mencoba fallback ke Gemini:', groqErr.message);
+      console.warn('⚠️ Groq mengalami limit/error, otomatis beralih ke Backup (Gemini):', groqErr.message);
     }
   }
 
-  // 2. Fallback ke GEMINI jika Groq tidak tersedia atau error
+  // --- 2. ENGINE BACKUP: GEMINI (Gemini 2.5 Flash) ---
   if (gemini) {
     try {
+      console.log('🛡️ Menjalankan tugas dengan Gemini 2.5 Flash (Backup Engine)...');
       const response = await gemini.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: systemPrompt
       });
-      return response.text || 'Maaf, respon Gemini kosong.';
+
+      const output = response.text;
+      if (output && output.trim()) {
+        return `${output}\n\n_(🛡️ Diproses via Backup Engine: Gemini)_`;
+      }
     } catch (geminiErr) {
-      console.error('Gemini Error:', geminiErr.message);
-      return `❌ Kendala sistem AI: ${geminiErr.message}`;
+      console.error('❌ Gemini Backup juga mengalami kendala:', geminiErr.message);
+      return `❌ Maaf Boss, kedua engine AI (Groq & Gemini) sedang mengalami limit/gangguan: ${geminiErr.message}`;
     }
   }
 
-  return '⚠️ Kunci API (GROQ_API_KEY atau GEMINI_API_KEY) belum disetel di Vercel Environment Variables.';
+  return '⚠️ Kunci API (GROQ_API_KEY / GEMINI_API_KEY) belum disetel di Vercel Environment Variables.';
 }
 
 // Fungsi mengirim pesan via Green API
@@ -97,7 +107,7 @@ async function sendGreenApiMessage(idInstance, apiTokenInstance, chatId, textMes
 // Vercel Serverless Webhook Handler
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(200).json({ status: 'active', service: 'DigiBooster Multi-Agent Webhook (Groq + Gemini)' });
+    return res.status(200).json({ status: 'active', service: 'DigiBooster Multi-Agent Webhook (Groq Primary + Gemini Backup)' });
   }
 
   const idInstance = process.env.GREEN_API_ID_INSTANCE;
@@ -130,19 +140,19 @@ export default async function handler(req, res) {
     if (shouldReply && messageText && idInstance && apiTokenInstance) {
       const cleanInstruction = messageText.replace(/^!/, '').trim();
 
-      // Konfirmasi cepat
+      // 1. Konfirmasi cepat penerimaan tugas
       await sendGreenApiMessage(
         idInstance,
         apiTokenInstance,
         chatId,
-        `⚡ *[DigiBooster Agent Office]*\nSiap, tugas dari *${senderName}* diterima. Multi-Agent AI (Groq Engine) sedang bekerja...`,
+        `⚡ *[DigiBooster Agent Office]*\nSiap, tugas dari *${senderName}* diterima. Multi-Agent AI (Groq Llama 3.3 Engine) sedang bekerja...`,
         messageId
       );
 
-      // Proses tugas
+      // 2. Proses tugas (Groq -> Fallback Gemini)
       const agentResult = await processTaskWithAgents(cleanInstruction, senderName);
 
-      // Kirim hasil akhir ke grup WA
+      // 3. Kirim hasil kerja lengkap ke grup WhatsApp
       await sendGreenApiMessage(
         idInstance,
         apiTokenInstance,
