@@ -57,27 +57,28 @@ function App() {
           {/* Tombol Akses Ruang Manajemen di Pojok Atas */}
           <button
             onClick={handleSwitchToManagement}
+            className="btn-switch-management"
             style={{
               position: 'fixed',
-              top: '16px',
-              right: '16px',
+              top: '12px',
+              right: '12px',
               zIndex: 100,
               backgroundColor: '#0284c7',
               color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.3)',
-              padding: '10px 18px',
-              borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.4)',
+              padding: '8px 14px',
+              borderRadius: '10px',
               fontWeight: 700,
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 15px rgba(2, 132, 199, 0.4)',
+              gap: '6px',
+              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
               transition: 'all 0.2s ease'
             }}
           >
-            🏢 Masuk Ruang Manajemen (/manajemen)
+            🏢 <span className="btn-switch-text">Ruang Manajemen</span>
           </button>
         </div>
       )}

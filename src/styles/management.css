@@ -35,7 +35,7 @@
 .mgmt-navbar {
   background: #ffffff;
   border-bottom: 1px solid var(--border-color);
-  padding: 0.75rem 2rem;
+  padding: 0.65rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -51,8 +51,8 @@
 }
 
 .brand-icon-box {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 9px;
   background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
   display: flex;
@@ -60,7 +60,7 @@
   justify-content: center;
   color: #ffffff;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
 }
 
@@ -77,16 +77,17 @@
 .nav-tab-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.95rem;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
   border: none;
   background: transparent;
   color: #475569;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
 .nav-tab-btn:hover {
@@ -103,9 +104,9 @@
 .badge-notification {
   background: #0284c7;
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 10px;
 }
 
@@ -118,12 +119,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 0.9rem;
+  padding: 0.45rem 0.85rem;
   background: #f8fafc;
   color: #475569;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -138,33 +139,33 @@
 /* --- Main Content Container --- */
 .mgmt-content {
   flex: 1;
-  max-width: 1320px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
+  padding: 1.25rem 1.25rem 3rem;
 }
 
 /* Subheader Banner */
 .view-header-banner {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
-  padding: 1.5rem 1.75rem;
+  padding: 1.35rem 1.5rem;
   border-radius: 14px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.14);
 }
 
 .view-header-banner h2 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
 }
 
 .view-header-banner p {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   opacity: 0.9;
   max-width: 650px;
   line-height: 1.45;
@@ -172,26 +173,26 @@
 
 .quick-stats-row {
   display: flex;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .quick-stat-box {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
-  padding: 0.65rem 1.15rem;
-  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   text-align: right;
 }
 
 .quick-stat-box .num {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
   display: block;
 }
 
 .quick-stat-box .label {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   opacity: 0.9;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -200,8 +201,8 @@
 /* --- 1. LEMARI ARSIP DIGITAL (FILING CABINET) --- */
 .cabinet-grid {
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 240px 1fr;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -209,23 +210,23 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1rem;
+  padding: 0.85rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .drawer-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
   border: 1px solid #f1f5f9;
   background: #f8fafc;
   color: #334155;
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
@@ -248,8 +249,8 @@
 
 .drawer-badge-count {
   margin-left: auto;
-  font-size: 0.75rem;
-  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.06);
 }
@@ -262,7 +263,7 @@
 .cabinet-main-view {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.15rem;
 }
 
 .docs-search-bar {
@@ -272,10 +273,10 @@
 
 .docs-search-bar input {
   flex: 1;
-  padding: 0.75rem 1.15rem;
+  padding: 0.65rem 1rem;
   border: 1px solid var(--border-color);
-  border-radius: 10px;
-  font-size: 0.88rem;
+  border-radius: 9px;
+  font-size: 0.85rem;
   outline: none;
   transition: border-color 0.2s;
   background: #ffffff;
@@ -288,19 +289,19 @@
 
 .doc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.15rem;
 }
 
 .doc-card {
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.25rem;
+  padding: 1.15rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.6rem;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 
@@ -317,51 +318,51 @@
 }
 
 .doc-tag {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 0.2rem 0.55rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 6px;
   background: #e0f2fe;
   color: #0284c7;
 }
 
 .doc-card h3 {
-  font-size: 0.98rem;
+  font-size: 0.94rem;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
 }
 
 .doc-card p {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: #64748b;
-  line-height: 1.5;
+  line-height: 1.45;
   flex: 1;
 }
 
 .doc-card-meta {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #94a3b8;
   display: flex;
   justify-content: space-between;
-  padding-top: 0.5rem;
+  padding-top: 0.45rem;
   border-top: 1px solid #f1f5f9;
 }
 
 .doc-actions {
   display: flex;
-  gap: 0.5rem;
-  margin-top: 0.4rem;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
 }
 
 .btn-doc-view {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.45rem;
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -372,18 +373,14 @@
 }
 
 .btn-doc-copy {
-  padding: 0.5rem 0.85rem;
+  padding: 0.45rem 0.75rem;
   background: #f8fafc;
   color: #475569;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-}
-
-.btn-doc-copy:hover {
-  background: #e2e8f0;
 }
 
 /* --- 2. MEJA PENGUMPULAN TUGAS (SUBMISSION DESK) --- */
@@ -391,12 +388,12 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.35rem;
-  margin-bottom: 1.25rem;
+  padding: 1.25rem;
+  margin-bottom: 1.15rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.85rem;
 }
 
 .sub-header {
@@ -414,23 +411,23 @@
 }
 
 .agent-avatar-small {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: #e0f2fe;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 
 .sub-body-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.95rem;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   white-space: pre-wrap;
   color: #1e293b;
   max-height: 240px;
@@ -441,7 +438,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.75rem;
+  padding-top: 0.65rem;
   border-top: 1px solid #f1f5f9;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -451,12 +448,11 @@
   background: #0284c7;
   color: #ffffff;
   border: none;
-  padding: 0.55rem 1.15rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s;
 }
 
 .btn-approve:hover {
@@ -467,9 +463,9 @@
   background: #fff1f2;
   color: #e11d48;
   border: 1px solid #fecdd3;
-  padding: 0.55rem 1.1rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 7px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -478,9 +474,9 @@
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
-  padding: 0.55rem 1.1rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 7px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -489,7 +485,7 @@
 .kanban-board-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
+  gap: 1.15rem;
   align-items: start;
 }
 
@@ -497,39 +493,39 @@
   background: #f1f5f9;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 1rem;
+  padding: 0.95rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  min-height: 480px;
+  gap: 0.7rem;
+  min-height: 440px;
 }
 
 .kanban-col-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 0.65rem;
+  padding-bottom: 0.55rem;
   border-bottom: 2px solid #e2e8f0;
 }
 
 .kanban-col-title {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #334155;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .kanban-card {
   background: #ffffff;
-  border-radius: 10px;
+  border-radius: 9px;
   border: 1px solid #cbd5e1;
-  padding: 0.95rem;
+  padding: 0.85rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.5rem;
   transition: all 0.15s;
 }
 
@@ -540,7 +536,7 @@
 }
 
 .kanban-card h4 {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #0f172a;
   line-height: 1.35;
@@ -550,18 +546,17 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: #64748b;
-  margin-top: 0.2rem;
 }
 
 /* --- 4. TIMELINE OPERASIONAL --- */
 .timeline-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.15rem;
   position: relative;
-  padding-left: 2rem;
+  padding-left: 1.85rem;
 }
 
 .timeline-list::before {
@@ -569,7 +564,7 @@
   position: absolute;
   top: 10px;
   bottom: 10px;
-  left: 9px;
+  left: 8px;
   width: 2px;
   background: #cbd5e1;
 }
@@ -579,22 +574,22 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.15rem;
+  padding: 1.1rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 
 .timeline-dot {
   position: absolute;
-  left: -2.35rem;
+  left: -2.25rem;
   top: 1.25rem;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #0284c7;
-  border: 3px solid #ffffff;
+  border: 2px solid #ffffff;
   box-shadow: 0 0 0 2px #0284c7;
 }
 
@@ -608,14 +603,14 @@
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .modal-box {
   background: #ffffff;
   border-radius: 14px;
   width: 100%;
-  max-width: 650px;
+  max-width: 620px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -624,7 +619,7 @@
 }
 
 .modal-header {
-  padding: 1.25rem 1.5rem;
+  padding: 1.15rem 1.35rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -632,22 +627,24 @@
 }
 
 .modal-content {
-  padding: 1.5rem;
+  padding: 1.35rem;
   overflow-y: auto;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.6;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.35rem;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
-/* Responsiveness */
+/* ==============================================================
+   RESPONSIVE DESIGN FOR TABLET & MOBILE (< 1024px & < 768px)
+   ============================================================== */
 @media (max-width: 1024px) {
   .cabinet-grid {
     grid-template-columns: 1fr;
@@ -659,29 +656,74 @@
 
 @media (max-width: 768px) {
   .mgmt-navbar {
-    padding: 0.75rem 1rem;
+    padding: 0.6rem 0.85rem;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.65rem;
   }
+
   .mgmt-nav-tabs {
     order: 3;
     width: 100%;
     overflow-x: auto;
-    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.25rem;
+    scrollbar-width: none;
   }
+  .mgmt-nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
   .nav-tab-btn {
-    white-space: nowrap;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.78rem;
   }
+
+  .mgmt-content {
+    padding: 1rem 0.85rem 2.5rem;
+  }
+
   .view-header-banner {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    padding: 1.15rem;
+    gap: 0.85rem;
   }
+
   .quick-stats-row {
     width: 100%;
     justify-content: flex-start;
   }
+
+  .doc-card-grid {
+    grid-template-columns: 1fr;
+  }
+
   .kanban-board-container {
     grid-template-columns: 1fr;
+  }
+
+  .sub-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sub-actions-row > div {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.4rem;
+  }
+
+  .btn-doc-view, .btn-approve, .btn-revision, .btn-archive-it {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* 3D switch button on mobile */
+  .btn-switch-text {
+    display: none;
+  }
+  .btn-switch-management {
+    padding: 8px !important;
   }
 }
