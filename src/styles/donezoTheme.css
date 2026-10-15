@@ -1,0 +1,675 @@
+/* ==============================================================
+   DONEZO-STYLE CLEAN SAAS DASHBOARD DESIGN SYSTEM
+   Ultra-clean light grey/white background, crisp borders, 
+   refined typography, modern SVG icon set, zero emoji
+   ============================================================== */
+
+:root {
+  --bg-app: #f4f5f7;
+  --bg-sidebar: #ffffff;
+  --bg-card: #ffffff;
+  --text-title: #0f172a;
+  --text-body: #475569;
+  --text-muted: #94a3b8;
+  --border-subtle: #e6e8ec;
+  --border-focus: #0284c7;
+  --primary-accent: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-gradient: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --tag-bg-blue: #f0f7ff;
+  --tag-text-blue: #0284c7;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+}
+
+.donezo-app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg-app);
+  font-family: var(--font-family);
+  color: var(--text-body);
+}
+
+/* ==============================================================
+   1. SIDEBAR (DONEZO STYLE)
+   ============================================================== */
+.donezo-sidebar {
+  width: 250px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1.25rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.donezo-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding-left: 0.25rem;
+}
+
+.brand-symbol {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--primary-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.brand-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-title);
+  letter-spacing: -0.3px;
+}
+
+.sidebar-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.sidebar-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.sidebar-nav-item:hover {
+  background: #f8fafc;
+  color: var(--primary-accent);
+}
+
+.sidebar-nav-item.active {
+  background: #f0f7ff;
+  color: var(--primary-accent);
+}
+
+.nav-badge-pill {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: #e0f2fe;
+  color: var(--primary-accent);
+}
+
+.sidebar-footer-card {
+  margin-top: auto;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 14px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-footer-card h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.sidebar-footer-card p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* ==============================================================
+   2. MAIN CONTENT AREA
+   ============================================================== */
+.donezo-main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Top App Header */
+.donezo-top-header {
+  height: 68px;
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.donezo-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  width: 320px;
+}
+
+.donezo-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  width: 100%;
+  color: var(--text-title);
+}
+
+.search-shortcut-key {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #ffffff;
+}
+
+.header-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-icon-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid var(--border-subtle);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.header-icon-action:hover {
+  background: #f8fafc;
+  color: var(--primary-accent);
+}
+
+.profile-avatar-block {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-title);
+  line-height: 1.2;
+}
+
+.profile-email {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Page Body Canvas */
+.donezo-canvas {
+  padding: 2rem;
+  max-width: 1360px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+}
+
+.page-title-heading h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-title);
+  letter-spacing: -0.4px;
+  margin: 0 0 0.25rem 0;
+}
+
+.page-title-heading p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.action-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.btn-pill-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary-accent);
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-pill-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-pill-outline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid var(--border-subtle);
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-pill-outline:hover {
+  background: #f8fafc;
+}
+
+/* ==============================================================
+   3. METRIC METRIC CARDS ROW (4 CARDS LIKE DONEZO)
+   ============================================================== */
+.metrics-four-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.metric-card-donezo {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.metric-card-donezo:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.metric-card-donezo.primary-fill {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.metric-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.metric-card-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.metric-card-donezo.primary-fill .metric-card-title {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.metric-icon-bubble {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+}
+
+.metric-card-donezo.primary-fill .metric-icon-bubble {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.metric-number-big {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.1;
+  margin-bottom: 0.65rem;
+}
+
+.metric-card-donezo.primary-fill .metric-number-big {
+  color: #ffffff;
+}
+
+.metric-growth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.metric-card-donezo.primary-fill .metric-growth-badge {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ==============================================================
+   4. LAYOUT SPLIT & DATA GRIDS
+   ============================================================== */
+.dashboard-split-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.card-box-donezo {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.card-box-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-title);
+  margin: 0;
+}
+
+/* Tab filters inside cards */
+.filter-chips-row {
+  display: flex;
+  gap: 0.4rem;
+  background: #f8fafc;
+  padding: 0.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+}
+
+.filter-chip-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip-btn.active {
+  background: #ffffff;
+  color: var(--primary-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Clean Document List Item */
+.clean-doc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  margin-bottom: 0.65rem;
+  transition: all 0.15s;
+  background: #ffffff;
+}
+
+.clean-doc-item:hover {
+  border-color: #bae6fd;
+  background: #fafcff;
+}
+
+.clean-doc-icon-col {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.doc-type-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f0f7ff;
+  color: var(--primary-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doc-item-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 0.2rem;
+}
+
+.doc-item-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Clean Submission List Item */
+.clean-sub-item {
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.clean-sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clean-sub-body {
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #334155;
+  max-height: 180px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* Clean Kanban */
+.clean-kanban-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
+}
+
+.clean-kanban-col {
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 400px;
+}
+
+.clean-kanban-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.clean-kanban-card {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  padding: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* ==============================================================
+   5. RESPONSIVE DESIGN (MOBILE & TABLET)
+   ============================================================== */
+@media (max-width: 1024px) {
+  .metrics-four-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-split-layout {
+    grid-template-columns: 1fr;
+  }
+  .clean-kanban-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .donezo-app-layout {
+    flex-direction: column;
+  }
+
+  .donezo-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding: 1rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .sidebar-nav-group {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .sidebar-nav-item {
+    white-space: nowrap;
+    width: auto;
+  }
+
+  .sidebar-footer-card {
+    display: none;
+  }
+
+  .donezo-top-header {
+    padding: 0 1rem;
+  }
+
+  .donezo-search-box {
+    width: 100%;
+  }
+
+  .donezo-canvas {
+    padding: 1.25rem 1rem;
+  }
+
+  .metrics-four-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clean-kanban-row {
+    grid-template-columns: 1fr;
+  }
+}
