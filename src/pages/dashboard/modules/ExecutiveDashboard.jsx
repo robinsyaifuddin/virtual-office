@@ -48,7 +48,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
       </div>
 
       {/* 4 Top Metric Cards (Selaras Biru) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Net Cashflow Bulan Ini"
           value={executiveSummary.monthlyNetCashflow}

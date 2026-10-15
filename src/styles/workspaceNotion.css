@@ -180,3 +180,44 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
   outline: 1px solid #0284c7;
   outline-offset: -1px;
 }
+
+/* Metric Cards Responsive Grid (Sejajar baris ke samping di Mobile) */
+.ws-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .ws-metric-grid {
+    display: grid !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(135px, 1fr) !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    scroll-snap-type: x mandatory;
+    gap: 10px !important;
+  }
+
+  .ws-metric-card {
+    padding: 12px 10px !important;
+    min-width: 130px !important;
+    scroll-snap-align: start;
+    border-radius: 12px !important;
+  }
+
+  .ws-metric-title {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .ws-metric-val {
+    font-size: 1.05rem !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .ws-metric-sub {
+    font-size: 0.68rem !important;
+    margin-top: 4px !important;
+  }
+}

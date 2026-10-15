@@ -439,50 +439,94 @@ export default function UniversalDetailModal({
                           e.target.style.borderColor = '#cbd5e1';
                         }}
                       />
+                    ) : (col.key === 'fileFormat' || col.key === 'format') ? (
+                      <select
+                        value={val || 'PDF'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="PDF">PDF</option>
+                        <option value="DOCX">DOCX</option>
+                        <option value="XLSX">XLSX</option>
+                        <option value="ZIP">ZIP</option>
+                        <option value="RAR">RAR</option>
+                        <option value="PNG">PNG</option>
+                        <option value="JPG">JPG</option>
+                        <option value="MP4">MP4</option>
+                        <option value="JSON">JSON</option>
+                      </select>
                     ) : (col.key === 'downloadUrl' || col.key === 'receiptDoc' || col.key === 'contractDoc' || col.key === 'attachmentDoc' || col.key === 'mediaLink') ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        {/* Nama File */}
+                        <div style={{ 
+                          padding: '5px 10px', 
+                          borderRadius: '6px', 
+                          backgroundColor: '#f8fafc', 
+                          border: '1px solid #e2e8f0', 
+                          fontSize: '0.78rem',
+                          color: '#334155',
+                          maxWidth: '220px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {data.fileName || (val ? `${mainTitle}.${(data.fileFormat || 'pdf').toLowerCase()}` : 'Belum ada berkas')}
+                        </div>
+
+                        {/* Tombol Icon Unduh */}
                         {val ? (
                           <a
                             href={val}
                             download={data.fileName || `${mainTitle}.${(data.fileFormat || 'pdf').toLowerCase()}`}
+                            title="Unduh Berkas"
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              padding: '6px 12px',
+                              justifyContent: 'center',
+                              width: '32px',
+                              height: '32px',
                               borderRadius: '6px',
                               backgroundColor: '#0284c7',
                               color: '#ffffff',
-                              fontSize: '0.8rem',
-                              fontWeight: 600,
                               textDecoration: 'none',
-                              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
+                              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)',
+                              cursor: 'pointer'
                             }}
                           >
-                            <Download size={14} /> Unduh Berkas
+                            <Download size={15} />
                           </a>
-                        ) : (
-                          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Belum ada berkas</span>
-                        )}
+                        ) : null}
 
+                        {/* Tombol Icon Upload / Ganti Berkas */}
                         <label
                           htmlFor={`modal-upload-${col.key}`}
+                          title={val ? 'Ganti Berkas' : 'Upload Berkas'}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 12px',
+                            justifyContent: 'center',
+                            width: '32px',
+                            height: '32px',
                             borderRadius: '6px',
                             backgroundColor: '#f1f5f9',
-                            color: '#334155',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
+                            color: '#0284c7',
                             cursor: 'pointer',
                             border: '1px solid #cbd5e1'
                           }}
                         >
-                          <UploadCloud size={14} color="#0284c7" />
-                          <span>{val ? 'Ganti File' : 'Upload File'}</span>
+                          <UploadCloud size={16} />
                         </label>
                         <input
                           id={`modal-upload-${col.key}`}
@@ -500,11 +544,9 @@ export default function UniversalDetailModal({
                                 : `${Math.round(file.size / 1024)} KB`;
 
                               handleFieldChange(col.key, dataUrl);
-                              if (col.key === 'downloadUrl') {
-                                handleFieldChange('fileFormat', ext);
-                                handleFieldChange('fileSize', size);
-                                handleFieldChange('fileName', file.name);
-                              }
+                              handleFieldChange('fileName', file.name);
+                              handleFieldChange('fileFormat', ext);
+                              handleFieldChange('fileSize', size);
                             };
                             reader.readAsDataURL(file);
                           }}

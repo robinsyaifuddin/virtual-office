@@ -58,7 +58,7 @@ export default function SasaranKpi() {
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Sasaran Aktif (Q4)"
           value={okrGoals.length}

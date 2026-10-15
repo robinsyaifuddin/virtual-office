@@ -29,6 +29,7 @@ export default function DataArsip() {
     { 
       key: 'category', 
       label: 'Kategori Dokumen',
+      minWidth: '200px',
       options: fileCategoryOptions,
       render: (val, row, update) => (
         <select
@@ -41,10 +42,11 @@ export default function DataArsip() {
             color: '#0284c7',
             outline: 'none',
             cursor: 'pointer',
-            padding: '4px 8px',
+            padding: '4px 10px',
             borderRadius: '6px',
             fontSize: '0.78rem',
-            fontWeight: 600
+            fontWeight: 600,
+            maxWidth: '100%'
           }}
         >
           {fileCategoryOptions.map((opt) => (
@@ -57,112 +59,64 @@ export default function DataArsip() {
       key: 'fileFormat',
       label: 'Format',
       render: (val, row, update) => (
-        <span style={{
-          padding: '2px 8px',
-          borderRadius: '4px',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          backgroundColor: '#eff6ff',
-          color: '#0284c7',
-          border: '1px solid #bfdbfe'
-        }}>
-          {val || 'FILE'}
-        </span>
+        <select
+          value={val || 'PDF'}
+          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { fileFormat: e.target.value })}
+          className="ws-notion-pill"
+          style={{
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '3px 8px',
+            borderRadius: '6px',
+            fontSize: '0.76rem',
+            fontWeight: 700
+          }}
+        >
+          <option value="PDF">PDF</option>
+          <option value="DOCX">DOCX</option>
+          <option value="XLSX">XLSX</option>
+          <option value="ZIP">ZIP</option>
+          <option value="RAR">RAR</option>
+          <option value="PNG">PNG</option>
+          <option value="JPG">JPG</option>
+          <option value="MP4">MP4</option>
+          <option value="JSON">JSON</option>
+        </select>
       )
     },
     { key: 'version', label: 'Versi' },
-    { key: 'accessLevel', label: 'Hak Akses' },
-    { key: 'fileSize', label: 'Ukuran' },
     {
       key: 'downloadUrl',
-      label: 'Unduh / Upload Berkas',
-      render: (val, row, update) => {
-        const handleFileUpload = (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-
-          const reader = new FileReader();
-          reader.onload = (uploadEvent) => {
-            const fileDataUrl = uploadEvent.target.result;
-            const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
-            const sizeStr = file.size > 1024 * 1024 
-              ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
-              : `${Math.round(file.size / 1024)} KB`;
-
-            const updatedData = {
-              downloadUrl: fileDataUrl,
-              fileName: file.name,
-              fileFormat: extension,
-              fileSize: sizeStr
-            };
-
-            if (update) {
-              update(fileDataUrl);
-              updateArchive(row.id, updatedData);
-            } else {
-              updateArchive(row.id, updatedData);
-            }
-          };
-          reader.readAsDataURL(file);
-        };
-
-        const fileInputId = `upload-file-${row.id}`;
-
-        return (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            {/* Tombol Unduh Berkas yang diupload */}
-            {val ? (
-              <a
-                href={val}
-                download={row.fileName || `${row.title}.${(row.fileFormat || 'pdf').toLowerCase()}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '5px 10px',
-                  borderRadius: '6px',
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
-                }}
-              >
-                <Download size={13} /> Unduh
-              </a>
-            ) : (
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Belum ada file</span>
-            )}
-
-            {/* Tombol Ganti / Upload Berkas */}
-            <label
-              htmlFor={fileInputId}
-              title="Upload berkas baru"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                backgroundColor: '#f1f5f9',
-                color: '#475569',
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                border: '1px solid #cbd5e1'
-              }}
-            >
-              <UploadCloud size={13} color="#0284c7" /> {val ? 'Ganti File' : 'Upload'}
-            </label>
-            <input
-              id={fileInputId}
-              type="file"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-          </div>
+      label: 'Unduh',
+      render: (val, row) => {
+        return val ? (
+          <a
+            href={val}
+            download={row.fileName || `${row.title}.${(row.fileFormat || 'pdf').toLowerCase()}`}
+            title={`Unduh ${row.fileName || row.title}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              backgroundColor: '#0284c7',
+              color: '#ffffff',
+              fontSize: '0.76rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
+            }}
+          >
+            <Download size={13} />
+            <span>Unduh</span>
+          </a>
+        ) : (
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>-</span>
         );
       }
     }
@@ -225,7 +179,7 @@ export default function DataArsip() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Dokumen & Aset"
           value={archives.length}
@@ -270,10 +224,9 @@ export default function DataArsip() {
               <div>
                 <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0284c7' }}>{doc.category}</span>
                 <h4 style={{ margin: '6px 0 4px 0', fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>{doc.title}</h4>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{doc.version} • {doc.fileSize}</span>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{doc.version}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{doc.accessLevel}</span>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                 <button
                   onClick={() => alert(`Mengunduh: ${doc.title}`)}
                   style={{

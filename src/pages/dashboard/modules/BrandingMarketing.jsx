@@ -110,7 +110,7 @@ export default function BrandingMarketing() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Jangkauan (Reach)"
           value={totalReach.toLocaleString('id-ID')}

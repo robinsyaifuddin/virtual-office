@@ -48,7 +48,7 @@ export default function LaporanEvaluasi() {
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Rata-rata Skor Mutu Layanan"
           value="4.5 / 5.0"

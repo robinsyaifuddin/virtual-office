@@ -373,7 +373,7 @@ export default function TugasKalender() {
       </div>
 
       {/* Metric Cards Ringkasan */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Tugas Aktif Selesai"
           value={`${completedTasks}/${totalTasks}`}

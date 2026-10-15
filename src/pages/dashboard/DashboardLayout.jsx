@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import '../../styles/workspaceNotion.css';
+import { Icon3DUser } from '../../components/ui/Modern3DIcons';
 
 // Modules
 import ExecutiveDashboard from './modules/ExecutiveDashboard';
@@ -342,24 +343,8 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
             </div>
           </div>
 
-          {/* Right: Engine Indicator & Profile Dropdown */}
+          {/* Right: Profile Dropdown with 3D User Icon */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '5px 10px',
-              borderRadius: '999px',
-              border: '1px solid #bbf7d0',
-              backgroundColor: '#f0fdf4',
-              fontSize: '0.74rem',
-              color: '#15803d',
-              fontWeight: 600
-            }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16a34a' }} />
-              Groq Llama 3.3 Active
-            </div>
-
             {/* Profile Avatar with Interactive Dropdown Menu */}
             <div style={{ position: 'relative' }} ref={profileMenuRef}>
               <button
@@ -378,19 +363,17 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
                 }}
               >
                 <div style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '8px',
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '10px',
+                  backgroundColor: '#eff6ff',
+                  border: '1px solid #bfdbfe',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.15)'
                 }}>
-                  DB
+                  <Icon3DUser size={20} />
                 </div>
                 <ChevronDown size={14} color="#64748b" />
               </button>

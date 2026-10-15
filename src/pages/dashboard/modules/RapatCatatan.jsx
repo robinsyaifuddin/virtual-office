@@ -55,7 +55,7 @@ export default function RapatCatatan() {
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Notulensi Tersimpan"
           value={meetings.length}

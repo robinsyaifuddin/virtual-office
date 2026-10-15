@@ -101,7 +101,7 @@ export default function KeuanganProfit() {
         </h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Pemasukan (Lunas)"
           value={`Rp ${(totalIncome / 1000000).toFixed(1)} Jt`}

@@ -174,7 +174,7 @@ export default function CrmKlien() {
       </div>
 
       {/* Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div className="ws-metric-grid">
         <MetricCard
           title="Total Nilai Pipeline"
           value={`Rp ${(totalPipeline / 1000000).toFixed(0)} Juta`}
