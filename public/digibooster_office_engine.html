@@ -1273,8 +1273,6 @@ for (let i = -3; i <= 3; i++) {
   b.position.set(i * 0.95, 0.35, 1.0);
   centralIsland.add(b);
 }
-makeVoxelTree(centralIsland, -3.0, -1.8, 0.95);
-makeVoxelTree(centralIsland, 3.0, -1.8, 0.95);
 
 // 4. POS SATPAM & PALANG GERBANG DI JALAN MASUK 'U'
 const guardBooth = new THREE.Group();
@@ -1720,9 +1718,9 @@ buildWall(officeGroup, -11.0, 1.6, -3.0, 1.6, "glass");  // DEPAN PANTRY: KACA E
 buildWall(officeGroup, 6.0, 1.6, 9.0, 1.6, "solid");     // Sisi barat pintu mushola
 buildWall(officeGroup, 10.6, 1.6, 13.5, 1.6, "solid");   // Sisi timur pintu mushola
 
-// DINDING DEPAN TOILET DENGAN BUKAAN PINTU KE JALAN SETAPAK (Pintu di X: 16.5):
-buildWall(officeGroup, 13.5, 1.6, 15.6, 1.6, "solid");   // Sisi barat pintu toilet
-buildWall(officeGroup, 17.4, 1.6, 29.0, 1.6, "solid");   // Sisi timur pintu toilet
+// DINDING DEPAN TOILET DENGAN BUKAAN PINTU KE JALAN SETAPAK (Pintu di tengah ruangan X: 21.25):
+buildWall(officeGroup, 13.5, 1.6, 20.35, 1.6, "solid");   // Sisi barat pintu toilet
+buildWall(officeGroup, 22.15, 1.6, 29.0, 1.6, "solid");   // Sisi timur pintu toilet
 
 // SEKAT VERTIKAL BARIS ATAS
 buildWall(officeGroup, -18.5, -18, -18.5, -10.6, "glass"); // SEKAT SAMPING SERVER (KIRI-KANAN): KACA ELEGAN
@@ -1788,7 +1786,7 @@ makeInteractiveDoor(officeGroup, -7.0, 1.6, Math.PI, 1.4, 2.15, "wood");   // Pa
 
 // PINTU MENGARAH KE JALAN SETAPAK (MUSHOLA & TOILET):
 makeInteractiveDoor(officeGroup, 9.8, 1.6, 0, 1.4, 2.15, "wood");    // Pintu Mushola ke Jalan Setapak
-makeInteractiveDoor(officeGroup, 16.5, 1.6, 0, 1.4, 2.15, "white");  // Pintu Toilet Utama ke Jalan Setapak
+makeInteractiveDoor(officeGroup, 21.25, 1.6, 0, 1.4, 2.15, "white");  // Pintu Toilet Utama ke Jalan Setapak (Tepat di Tengah Ruangan)
 
 // Pintu Utama Selasar Tengah ditiadakan - Koridor Utama Tengah kini plong tanpa sekat hingga Gerbang Depan
 
@@ -2271,7 +2269,7 @@ const ROOM_MAP = {
   pantry:        { x: -7.0,  y: WALL_H + 0.35, z: 7.8,   name: "Pantry" },
   
   mushola:       { x: 9.8,   y: WALL_H + 0.35, z: 7.8,   name: "Mushola" },
-  toilet:        { x: 18.0,  y: WALL_H + 0.35, z: 7.8,   name: "Toilet" },
+  toilet:        { x: 21.25, y: WALL_H + 0.35, z: 7.8,   name: "Toilet" },
   gerbang:       { x: -6.2,  y: 3.2,             z: 23.5,  name: "Pos Satpam & Parkir" }
 };
 
