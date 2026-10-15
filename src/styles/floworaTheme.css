@@ -25,11 +25,13 @@
 
 .fl-layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   width: 100%;
   background-color: var(--fl-bg-canvas);
   font-family: var(--font-sans);
   color: var(--fl-text-dark);
+  overflow: hidden;
 }
 
 /* ==============================================================
@@ -46,8 +48,10 @@
   position: sticky;
   top: 0;
   height: 100vh;
+  max-height: 100vh;
   overflow-y: auto;
   box-sizing: border-box;
+  z-index: 50;
 }
 
 .fl-brand-header {
@@ -162,7 +166,9 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100vh;
   overflow-y: auto;
+  position: relative;
 }
 
 .fl-topbar {
@@ -980,14 +986,22 @@
 @media (max-width: 768px) {
   .fl-layout {
     flex-direction: column;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
   .fl-sidebar {
     width: 100%;
     height: auto;
+    max-height: none;
     position: relative;
     padding: 14px;
     border-right: none;
     border-bottom: 1px solid var(--fl-border);
+  }
+  .fl-main-wrapper {
+    height: auto;
+    overflow-y: visible;
   }
   .fl-nav-list {
     flex-direction: row;

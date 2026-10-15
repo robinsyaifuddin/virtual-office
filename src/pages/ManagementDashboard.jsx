@@ -177,15 +177,6 @@ export default function ManagementDashboard({ onLogout }) {
             Logout
           </button>
         </nav>
-
-        {/* Small Progress Green Banner at Bottom */}
-        <div className="fl-sidebar-banner">
-          <h5>Small steps make big progress</h5>
-          <p>Autonomous AI agents coordinate in background.</p>
-          <button className="fl-banner-btn" onClick={() => setActiveTab('tasks')}>
-            Review Tasks →
-          </button>
-        </div>
       </aside>
 
       {/* ==============================================================
