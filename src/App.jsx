@@ -1,30 +1,54 @@
 import React, { useState, useEffect } from 'react';
 import Office3D from './Office3D';
 import LoginPage from './pages/LoginPage';
-import ManagementDashboard from './pages/ManagementDashboard';
+import DashboardLayout from './pages/dashboard/DashboardLayout';
+import { useWorkspaceStore } from './store/workspaceStore';
 
 function App() {
-  // Routes: 'office3d' | 'login' | 'management'
+  // Routes: 'office3d' | 'login' | 'dashboard'
   const [currentRoute, setCurrentRoute] = useState('office3d');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { setActiveModule } = useWorkspaceStore();
 
-  // Deteksi path URL saat ini (misal dibuka langsung /manajemen)
+  // Deteksi path URL saat ini (sinkron direct link browser)
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.includes('manajemen') || path.includes('admin')) {
+    
+    // Cek apakah ada direct subpath dashboard, misal /dashboard/crmdanklien
+    const validModules = [
+      'executivedashboard',
+      'crmdanklien',
+      'keuangandanprofit',
+      'brandingdanmarketing',
+      'tugasdankalender',
+      'sasarandankpi',
+      'rapatdancatatan',
+      'laporandanevaluasi',
+      'datadandarsip',
+      'staffagent',
+      'pengaturanworkspace'
+    ];
+
+    if (path.includes('dashboard') || path.includes('manajemen') || path.includes('admin')) {
+      // Ekstrak nama submodul jika ada
+      const matchedModule = validModules.find(m => path.includes(m));
+      if (matchedModule) {
+        setActiveModule(matchedModule);
+      }
+
       if (isAuthenticated) {
-        setCurrentRoute('management');
+        setCurrentRoute('dashboard');
       } else {
         setCurrentRoute('login');
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, setActiveModule]);
 
   // Dengarkan pesan dari 3D Office iframe saat tombol manajemen diklik
   useEffect(() => {
     const handleMessage = (e) => {
       if (e.data && e.data.type === 'OPEN_MANAGEMENT') {
-        handleSwitchToManagement();
+        handleSwitchToDashboard();
       }
     };
     window.addEventListener('message', handleMessage);
@@ -33,8 +57,8 @@ function App() {
 
   const handleLoginSuccess = () => {
     setIsAuthenticated(true);
-    setCurrentRoute('management');
-    window.history.pushState({}, '', '/manajemen');
+    setCurrentRoute('dashboard');
+    window.history.pushState({}, '', '/dashboard');
   };
 
   const handleLogout = () => {
@@ -43,13 +67,13 @@ function App() {
     window.history.pushState({}, '', '/');
   };
 
-  const handleSwitchToManagement = () => {
+  const handleSwitchToDashboard = () => {
     if (isAuthenticated) {
-      setCurrentRoute('management');
-      window.history.pushState({}, '', '/manajemen');
+      setCurrentRoute('dashboard');
+      window.history.pushState({}, '', '/dashboard');
     } else {
       setCurrentRoute('login');
-      window.history.pushState({}, '', '/manajemen');
+      window.history.pushState({}, '', '/dashboard');
     }
   };
 
@@ -75,9 +99,9 @@ function App() {
         />
       )}
 
-      {/* Route 3: Dashboard Manajemen Lengkap */}
-      {currentRoute === 'management' && (
-        <ManagementDashboard 
+      {/* Route 3: Dashboard Manajemen Notion Lengkap (Modular) */}
+      {currentRoute === 'dashboard' && (
+        <DashboardLayout 
           onLogout={handleLogout}
           onSwitchTo3D={handleSwitchTo3D}
         />
@@ -87,4 +111,3 @@ function App() {
 }
 
 export default App;
-

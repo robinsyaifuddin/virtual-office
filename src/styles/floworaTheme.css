@@ -172,17 +172,19 @@
 }
 
 .fl-topbar {
-  height: 72px;
+  height: 88px;
+  min-height: 88px;
   background: #ffffff;
   border-bottom: 1px solid var(--fl-border);
-  padding: 0 32px;
+  padding: 0 36px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 24px;
   position: sticky;
   top: 0;
   z-index: 40;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
 }
 
 .fl-search-bar {
@@ -191,10 +193,10 @@
   gap: 12px;
   background: #f8fafc;
   border: 1px solid var(--fl-border);
-  border-radius: 24px;
-  padding: 9px 18px;
+  border-radius: 28px;
+  padding: 11px 22px;
   width: 100%;
-  max-width: 520px;
+  max-width: 580px;
   transition: all 0.2s;
 }
 
@@ -208,7 +210,7 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   width: 100%;
   color: var(--fl-text-dark);
 }
@@ -216,12 +218,12 @@
 .fl-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
 
 .fl-icon-circle {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 1px solid var(--fl-border);
   background: #ffffff;
@@ -241,24 +243,24 @@
 
 .fl-red-dot {
   position: absolute;
-  top: 9px;
-  right: 10px;
-  width: 7px;
-  height: 7px;
+  top: 10px;
+  right: 11px;
+  width: 8px;
+  height: 8px;
   background: #ef4444;
   border-radius: 50%;
-  border: 1px solid #ffffff;
+  border: 1.5px solid #ffffff;
 }
 
 .fl-user-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .fl-user-avatar {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: #bae6fd;
   color: #0369a1;
@@ -266,11 +268,11 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .fl-user-name {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--fl-text-dark);
 }

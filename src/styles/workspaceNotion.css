@@ -1,0 +1,182 @@
+/* ==============================================================
+   WORKSPACE NOTION DESIGN SYSTEM (ANTI-SLOP & CLEAN LINEAR UX)
+   Adheres to anti-slop-ui & modern-responsive-ux:
+   - High neutral discipline (zinc/slate)
+   - Zero generic purple gradient, zero emoji as icons
+   - Clean vector icons & subtle borders (flat-depth)
+   - Responsive layout with mobile tap targets (44px min)
+   ============================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --ws-bg-page: #f8fafc;
+  --ws-bg-card: #ffffff;
+  --ws-bg-subtle: #f1f5f9;
+  --ws-bg-hover: #f8fafc;
+  
+  --ws-border: #e2e8f0;
+  --ws-border-focus: #0284c7;
+  
+  --ws-text-main: #0f172a;
+  --ws-text-muted: #64748b;
+  --ws-text-dim: #94a3b8;
+  
+  --ws-primary: #0284c7;
+  --ws-primary-hover: #0369a1;
+  --ws-primary-light: #eff6ff;
+  
+  --ws-success: #16a34a;
+  --ws-success-light: #f0fdf4;
+  --ws-warning: #d97706;
+  --ws-warning-light: #fffbeb;
+  --ws-danger: #dc2626;
+  --ws-danger-light: #fef2f2;
+  
+  --ws-radius-sm: 6px;
+  --ws-radius-md: 10px;
+  --ws-radius-lg: 14px;
+  
+  --ws-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --ws-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+/* Base resets & typography */
+.ws-root, .ws-root * {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+.ws-root {
+  color: var(--ws-text-main);
+  background-color: var(--ws-bg-page);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Batasi bobot bold agar tidak terlalu tebal (maksimal 600) */
+.ws-root strong, 
+.ws-root b, 
+.ws-root th, 
+.ws-root h1, 
+.ws-root h2, 
+.ws-root h3, 
+.ws-root h4 {
+  font-weight: 600 !important;
+}
+
+/* Micro-interactions */
+.ws-btn-transition {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
+}
+.ws-btn-transition:active {
+  transform: scale(0.98);
+}
+
+/* Custom modern scrollbars */
+.ws-custom-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.ws-custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ws-custom-scroll::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+.ws-custom-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Slide-over drawer animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.ws-drawer-animate {
+  animation: slideInRight 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Sidebar Transition Classes - Smooth Linear Style */
+.ws-sidebar-smooth {
+  transition: width 280ms cubic-bezier(0.2, 0, 0, 1), 
+              padding 280ms cubic-bezier(0.2, 0, 0, 1),
+              transform 280ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: width, padding;
+  contain: layout style;
+}
+
+.ws-label-fade {
+  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1), 
+              transform 200ms cubic-bezier(0.2, 0, 0, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .ws-mobile-hidden {
+    display: none !important;
+  }
+  .ws-mobile-full {
+    width: 100% !important;
+  }
+  .ws-mobile-column {
+    flex-direction: column !important;
+  }
+}
+
+/* ==============================================================
+   NOTION DATABASE TABLE: STICKY FROZEN COLUMNS & WRAP UTILITIES
+   ============================================================== */
+.ws-sticky-col-1 {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+}
+
+.ws-sticky-col-2 {
+  position: sticky;
+  left: 56px;
+  z-index: 20;
+  box-shadow: 3px 0 6px -2px rgba(15, 23, 42, 0.08);
+}
+
+thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
+  z-index: 30;
+}
+
+.ws-cell-wrap {
+  white-space: normal !important;
+  word-break: break-word;
+}
+
+.ws-cell-nowrap {
+  white-space: nowrap !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-notion-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+.ws-cell-hover:hover {
+  outline: 1px solid #0284c7;
+  outline-offset: -1px;
+}

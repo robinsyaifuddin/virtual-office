@@ -206,10 +206,6 @@ export default function ManagementDashboard({ onLogout }) {
             <div className="fl-icon-circle" onClick={() => showToast('Tema mode disesuaikan')}>
               <Moon size={16} />
             </div>
-            <div className="fl-user-badge">
-              <div className="fl-user-avatar">RS</div>
-              <span className="fl-user-name">Robin Syaifuddin</span>
-            </div>
           </div>
         </header>
 
