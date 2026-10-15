@@ -141,22 +141,22 @@ export default function ManagementDashboard({ onLogout }) {
             Team Agents
           </button>
           <button 
-            className="fl-nav-btn"
-            onClick={() => showToast('Calendar harian')}
+            className={`fl-nav-btn ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
           >
             <Calendar size={18} />
             Calendar
           </button>
           <button 
-            className="fl-nav-btn"
-            onClick={() => showToast('Goal setting operasional')}
+            className={`fl-nav-btn ${activeTab === 'goals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('goals')}
           >
             <Target size={18} />
             Goals
           </button>
           <button 
-            className="fl-nav-btn"
-            onClick={() => showToast('Report performa dual-engine')}
+            className={`fl-nav-btn ${activeTab === 'reports' ? 'active' : ''}`}
+            onClick={() => setActiveTab('reports')}
           >
             <BarChart2 size={18} />
             Reports
@@ -830,6 +830,454 @@ export default function ManagementDashboard({ onLogout }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </main>
+        )}
+
+        {/* ==============================================================
+            TAB 5: CALENDAR & AVAILABILITY (PERSIS REFERENSI GAMBAR 1)
+            ============================================================== */}
+        {activeTab === 'calendar' && (
+          <main className="fl-canvas">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>Availability</h1>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Manage slots, meetings and agent schedules.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Consultant ▾</button>
+                <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Client ▾</button>
+                <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Status ▾</button>
+                <span style={{ fontSize: '0.8rem', color: '#64748b', background: '#ffffff', padding: '6px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  🌐 London, UK (GMT +0)
+                </span>
+              </div>
+            </div>
+
+            <div className="cal-grid-layout">
+              {/* Left Column: Mini Calendar & Categories */}
+              <div className="fl-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '1rem' }}>October, 2026</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button className="fl-banner-btn" style={{ padding: '4px 8px' }}>‹</button>
+                    <button className="fl-banner-btn" style={{ padding: '4px 8px' }}>›</button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center', fontSize: '0.75rem', marginBottom: '24px' }}>
+                  <span style={{ color: '#94a3b8' }}>SU</span><span style={{ color: '#94a3b8' }}>MO</span><span style={{ color: '#94a3b8' }}>TU</span><span style={{ color: '#94a3b8' }}>WE</span><span style={{ color: '#94a3b8' }}>TH</span><span style={{ color: '#94a3b8' }}>FR</span><span style={{ color: '#94a3b8' }}>SA</span>
+                  <span>5</span><span>6</span><span style={{ background: '#f87171', color: '#fff', borderRadius: '50%' }}>7</span><span>8</span><span>9</span><span>10</span><span>11</span>
+                  <span>12</span><span>13</span><span>14</span><span style={{ background: '#0284c7', color: '#fff', borderRadius: '50%' }}>15</span><span>16</span><span>17</span><span>18</span>
+                  <span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span>
+                </div>
+
+                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '10px' }}>Categories</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8rem', color: '#475569' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" defaultChecked /> Publicity</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" defaultChecked /> Technology</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" defaultChecked /> Finance</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><input type="checkbox" defaultChecked /> Advertising</label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle Timeline Stream */}
+              <div className="cal-timeline-col">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #edf2f7', paddingBottom: '12px' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>Day View • Oct 15, 2026</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    <button className="fl-banner-btn" style={{ padding: '4px 8px' }}>‹</button>
+                    <button className="fl-banner-btn" style={{ padding: '4px 8px' }}>›</button>
+                  </div>
+                </div>
+
+                <div className="cal-slot-card cal-slot-cyan">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 800 }}>
+                    <span>8:00 am</span><span>45 min</span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>Public Relations Expert</div>
+                  <span style={{ fontSize: '0.75rem' }}>Publicity Division</span>
+                </div>
+
+                {/* Floating Big Focus Meeting */}
+                <div className="cal-slot-card cal-slot-blue-solid">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, opacity: 0.9 }}>
+                    <span>9:45 am</span><span>1h 45 min</span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem', margin: '4px 0' }}>Growing a passive income</div>
+                  <span style={{ fontSize: '0.78rem', opacity: 0.9 }}>Public Webinar & AI Agent Review</span>
+                </div>
+
+                <div className="cal-slot-card cal-slot-amber">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 800 }}>
+                    <span>11:00 am</span><span>1h 15 min</span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>Ruby/Rails Web Development</div>
+                  <span style={{ fontSize: '0.75rem' }}>Technology Architecture</span>
+                </div>
+
+                <div className="cal-slot-card cal-slot-pink">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 800 }}>
+                    <span>12:30 pm</span><span>30 min</span>
+                  </div>
+                  <div style={{ fontWeight: 800, fontSize: '0.92rem' }}>Marketing Strategy & Content Sync</div>
+                  <span style={{ fontSize: '0.75rem' }}>Creative Division</span>
+                </div>
+              </div>
+
+              {/* Right Detail Card */}
+              <div className="fl-card">
+                <div style={{ display: 'inline-block', background: '#dcfce7', color: '#15803d', fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: '12px', marginBottom: '12px' }}>
+                  Scheduled
+                </div>
+                <h3 style={{ margin: '0 0 6px', fontSize: '1.1rem', fontWeight: 800 }}>Growing a passive income</h3>
+                <span style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: 700 }}>Public Event</span>
+                
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '14px 0 10px', color: '#0f172a' }}>$ 25.00</div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '18px' }}>
+                  <div>⏱️ 12:30 pm - 1:00 pm (30m)</div>
+                  <div>📅 Wed, Oct 15, 2026</div>
+                </div>
+
+                <button className="fl-banner-btn" style={{ width: '100%', padding: '10px', marginBottom: '20px' }} onClick={() => showToast('Jadwal meeting diatur ulang')}>
+                  Reschedule
+                </button>
+
+                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '14px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, marginBottom: '8px' }}>Consultant</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fce7f3', color: '#db2777', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>LV</div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: '0.85rem' }}>Lucy Vaughn</div>
+                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Finance Guru of Sales</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        )}
+
+        {/* ==============================================================
+            TAB 6: GOALS & FINANCIAL SAVINGS (PERSIS REFERENSI GAMBAR 2)
+            ============================================================== */}
+        {activeTab === 'goals' && (
+          <main className="fl-canvas">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>Goals & Targets</h1>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Track strategic company targets, milestones, and savings.</p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>This year ▾</button>
+                <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Sort by: Name A-Z ▾</button>
+                <button className="fl-banner-btn" onClick={() => showToast('Target baru ditambahkan')}>+ Add new goal</button>
+              </div>
+            </div>
+
+            {/* 4 Cards (MacBook Pro, New Car, New House, Vacation) */}
+            <div className="goals-four-grid">
+              <div className="goal-card-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>MacBook Pro M4 Max</div>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Due: 7 Oct 2026</span>
+                </div>
+                <div className="goal-amount-big">$412<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>.50 / $1,650</span></div>
+                <div className="goal-progress-pill">
+                  <div className="goal-pill-fill" style={{ width: '25%' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                  <span>25% Complete</span>
+                  <b>$1,237.50 left</b>
+                </div>
+              </div>
+
+              <div className="goal-card-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>Company EV Fleet</div>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Due: 25 Sep 2027</span>
+                </div>
+                <div className="goal-amount-big">$25,000<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>.00 / $60,000</span></div>
+                <div className="goal-progress-pill">
+                  <div className="goal-pill-fill" style={{ width: '42%', background: '#7c3aed' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                  <span>42% Complete</span>
+                  <b>$35,000 left</b>
+                </div>
+              </div>
+
+              <div className="goal-card-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>Digital HQ Hub</div>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Due: 20 Apr 2028</span>
+                </div>
+                <div className="goal-amount-big">$5,000<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>.00 / $150,000</span></div>
+                <div className="goal-progress-pill">
+                  <div className="goal-pill-fill" style={{ width: '3%', background: '#059669' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                  <span>3% Complete</span>
+                  <b>$145,000 left</b>
+                </div>
+              </div>
+
+              <div className="goal-card-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontWeight: 800, fontSize: '1.05rem' }}>Team Retreat Bali</div>
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Left 18 days</span>
+                </div>
+                <div className="goal-amount-big">$2,500<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>.00 / $3,500</span></div>
+                <div className="goal-progress-pill">
+                  <div className="goal-pill-fill" style={{ width: '71%', background: '#ea580c' }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
+                  <span>71% Complete</span>
+                  <b>$1,000 left</b>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Row: Total Goals Breakdown + Savings Overview Curve */}
+            <div className="goals-bottom-split">
+              {/* Total Goals Mini Breakdown */}
+              <div className="fl-card">
+                <div className="fl-card-head">
+                  <span className="fl-card-title">Total Goals</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>This year ▾</span>
+                </div>
+                <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>25</div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: '#fef3c7', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#b45309' }}>Not started</div>
+                    <b style={{ fontSize: '1.2rem', color: '#92400e' }}>3</b>
+                  </div>
+                  <div style={{ background: '#dcfce7', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#15803d' }}>In progress</div>
+                    <b style={{ fontSize: '1.2rem', color: '#166534' }}>4</b>
+                  </div>
+                  <div style={{ background: '#fee2e2', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#b91c1c' }}>Canceled</div>
+                    <b style={{ fontSize: '1.2rem', color: '#991b1b' }}>2</b>
+                  </div>
+                  <div style={{ background: '#e0f2fe', padding: '12px', borderRadius: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#0369a1' }}>Finished</div>
+                    <b style={{ fontSize: '1.2rem', color: '#0284c7' }}>16</b>
+                  </div>
+                </div>
+              </div>
+
+              {/* Savings Overview Multi-Wave Chart */}
+              <div className="fl-card">
+                <div className="fl-card-head">
+                  <span className="fl-card-title">Savings Overview</span>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem', color: '#64748b' }}>
+                    <span>🟣 This year</span>
+                    <span>⚪ Last year</span>
+                  </div>
+                </div>
+                <div style={{ padding: '10px 0' }}>
+                  <svg width="100%" height="150" viewBox="0 0 500 150">
+                    <path d="M 0 120 Q 80 40 160 100 T 320 60 T 500 40" fill="none" stroke="#0284c7" strokeWidth="3" />
+                    <path d="M 0 140 Q 80 80 160 130 T 320 100 T 500 80" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4" />
+                    <circle cx="280" cy="80" r="5" fill="#0284c7" />
+                  </svg>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>
+                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        )}
+
+        {/* ==============================================================
+            TAB 7: SOCIAL MEDIA ANALYTICS & REPORTS (PERSIS REFERENSI GAMBAR 3)
+            ============================================================== */}
+        {activeTab === 'reports' && (
+          <main className="fl-canvas">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800 }}>Social Media Analytics</h1>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>Monitor reach, engagement, and audience health across all platforms.</p>
+              </div>
+              <button className="fl-banner-btn" style={{ padding: '8px 18px', fontSize: '0.85rem' }} onClick={() => showToast('File CSV laporan berhasil diekspor')}>
+                Export CSV
+              </button>
+            </div>
+
+            {/* 4 Analytics Top Metrics (Followers, Engagement, Reach, Impressions) */}
+            <div className="rep-four-metrics">
+              <div className="rep-stat-card">
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>Total Followers</span>
+                <div className="rep-stat-num">241,870</div>
+                <div className="rep-stat-sub">
+                  <span>↑ +11% vs last month</span>
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '18px' }}>
+                    <div style={{ width: 4, height: 8, background: '#0284c7' }}></div>
+                    <div style={{ width: 4, height: 14, background: '#0284c7' }}></div>
+                    <div style={{ width: 4, height: 18, background: '#0284c7' }}></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rep-stat-card">
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>Total Engagement</span>
+                <div className="rep-stat-num">63,410</div>
+                <div className="rep-stat-sub">
+                  <span>↑ +7% vs last month</span>
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '18px' }}>
+                    <div style={{ width: 4, height: 10, background: '#7c3aed' }}></div>
+                    <div style={{ width: 4, height: 16, background: '#7c3aed' }}></div>
+                    <div style={{ width: 4, height: 12, background: '#7c3aed' }}></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rep-stat-card">
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>Total Reach</span>
+                <div className="rep-stat-num">2.4M</div>
+                <div className="rep-stat-sub">
+                  <span>↑ +14% vs last month</span>
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '18px' }}>
+                    <div style={{ width: 4, height: 6, background: '#059669' }}></div>
+                    <div style={{ width: 4, height: 12, background: '#059669' }}></div>
+                    <div style={{ width: 4, height: 18, background: '#059669' }}></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rep-stat-card">
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 700 }}>Total Impressions</span>
+                <div className="rep-stat-num">5.1M</div>
+                <div className="rep-stat-sub">
+                  <span>↑ +9% vs last month</span>
+                  <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '18px' }}>
+                    <div style={{ width: 4, height: 8, background: '#ea580c' }}></div>
+                    <div style={{ width: 4, height: 15, background: '#ea580c' }}></div>
+                    <div style={{ width: 4, height: 18, background: '#ea580c' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Middle Row (Follower Growth Chart + Age Demographics + Audience Sentiment) */}
+            <div className="rep-middle-split">
+              {/* Follower Growth Chart */}
+              <div className="fl-card">
+                <div className="fl-card-head">
+                  <span className="fl-card-title">Follower Growth</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>6 Months ▾</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '130px', padding: '10px 0' }}>
+                  <div style={{ width: 28, height: 50, background: '#f1f5f9', borderRadius: 8 }}></div>
+                  <div style={{ width: 28, height: 75, background: '#f1f5f9', borderRadius: 8 }}></div>
+                  <div style={{ width: 28, height: 110, background: '#0284c7', borderRadius: 8, position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: -14, left: 10, width: 8, height: 8, borderRadius: '50%', background: '#0284c7' }}></div>
+                  </div>
+                  <div style={{ width: 28, height: 65, background: '#f1f5f9', borderRadius: 8 }}></div>
+                  <div style={{ width: 28, height: 85, background: '#f1f5f9', borderRadius: 8 }}></div>
+                  <div style={{ width: 28, height: 95, background: '#f1f5f9', borderRadius: 8 }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#94a3b8', marginTop: '6px' }}>
+                  <span>Jan</span><span>Feb</span><span style={{ color: '#0284c7', fontWeight: 800 }}>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                </div>
+              </div>
+
+              {/* Age Demographics */}
+              <div className="fl-card">
+                <div className="fl-card-head">
+                  <span className="fl-card-title">Age Demographics</span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>This Week ▾</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '130px', padding: '10px 0' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 }}>22%</div>
+                    <div style={{ width: 34, height: 60, background: '#7c3aed', borderRadius: 10 }}></div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4 }}>18-24</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0284c7', marginBottom: 4 }}>50%</div>
+                    <div style={{ width: 34, height: 105, background: '#0284c7', borderRadius: 10 }}></div>
+                    <div style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 800, marginTop: 4 }}>25-34</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 }}>24%</div>
+                    <div style={{ width: 34, height: 70, background: '#ea580c', borderRadius: 10 }}></div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4 }}>35-44</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 }}>13%</div>
+                    <div style={{ width: 34, height: 35, background: '#ec4899', borderRadius: 10 }}></div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4 }}>45+</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audience Sentiment Gauge */}
+              <div className="fl-card">
+                <div className="fl-card-head">
+                  <span className="fl-card-title">Audience Sentiment</span>
+                </div>
+                <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <svg width="160" height="90" viewBox="0 0 200 110">
+                    <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#e2e8f0" strokeWidth="22" strokeLinecap="round" />
+                    <path d="M 20 100 A 80 80 0 0 1 145 35" fill="none" stroke="#0284c7" strokeWidth="22" strokeLinecap="round" />
+                  </svg>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a' }}>68%</div>
+                  <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: 700 }}>Positive Sentiment</div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.72rem', color: '#64748b', marginTop: '12px' }}>
+                  <span>🔵 68% Pos</span>
+                  <span>⚪ 21% Neu</span>
+                  <span>🔴 11% Neg</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Platform Breakdown Table */}
+            <div className="fl-card">
+              <div className="fl-card-head">
+                <span className="fl-card-title">Platform Breakdown</span>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>This Month ▾</span>
+              </div>
+              <table className="doc-table">
+                <thead>
+                  <tr>
+                    <th>Platform</th>
+                    <th>Followers</th>
+                    <th>Engagement</th>
+                    <th>Reach</th>
+                    <th>Growth</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ fontWeight: 800, color: '#ec4899' }}>📸 Instagram</td>
+                    <td>94k</td>
+                    <td>27.3k</td>
+                    <td>680k</td>
+                    <td><span className="doc-tag-valid">+13%</span></td>
+                  </tr>
+                  <tr>
+                    <td style={{ fontWeight: 800, color: '#0f172a' }}>🎵 TikTok</td>
+                    <td>71k</td>
+                    <td>19.8k</td>
+                    <td>910k</td>
+                    <td><span className="doc-tag-valid">+18%</span></td>
+                  </tr>
+                  <tr>
+                    <td style={{ fontWeight: 800, color: '#0284c7' }}>💼 LinkedIn</td>
+                    <td>48k</td>
+                    <td>9.1k</td>
+                    <td>910k</td>
+                    <td><span className="doc-tag-valid">+5%</span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </main>
         )}
