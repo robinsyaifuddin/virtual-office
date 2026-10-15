@@ -1,0 +1,831 @@
+/* ==============================================================
+   DONEZO 1:1 EXACT REPLICA DESIGN SYSTEM (BLUE EDITION)
+   Crisp curved borders, subtle soft shadows, clean pill tabs,
+   Plus Jakarta Sans typography, identical widget arrangements
+   ============================================================== */
+
+:root {
+  --canvas-bg: #eceef1;
+  --app-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --card-bg: #ffffff;
+  --card-border: #f0f2f5;
+  --card-border-subtle: #edf0f4;
+  --text-dark: #121826;
+  --text-sub: #64748b;
+  --text-light: #94a3b8;
+  --brand-blue: #0284c7;
+  --brand-blue-dark: #0369a1;
+  --brand-blue-light: #e0f2fe;
+  --brand-blue-gradient: linear-gradient(145deg, #0284c7 0%, #0369a1 100%);
+  --tag-green-bg: #dcfce7;
+  --tag-green-text: #15803d;
+  --tag-yellow-bg: #fef9c3;
+  --tag-yellow-text: #854d0e;
+  --tag-red-bg: #fee2e2;
+  --tag-red-text: #b91c1c;
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Base Wrapper centered like Dribbble Mockup canvas */
+.donezo-viewport-wrapper {
+  background-color: var(--canvas-bg);
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: var(--font-family);
+  box-sizing: border-box;
+}
+
+.donezo-app-container {
+  background-color: var(--app-bg);
+  width: 100%;
+  max-width: 1380px;
+  border-radius: 28px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.06);
+  display: flex;
+  overflow: hidden;
+  min-height: 860px;
+  position: relative;
+}
+
+/* ==============================================================
+   1. SIDEBAR (DONEZO 1:1)
+   ============================================================== */
+.dz-sidebar {
+  width: 240px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 28px 20px;
+  flex-shrink: 0;
+}
+
+.dz-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  padding-left: 8px;
+}
+
+.dz-brand-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-blue);
+}
+
+.dz-brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.3px;
+}
+
+.dz-menu-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin: 18px 0 8px 10px;
+}
+
+.dz-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.dz-nav-item:hover {
+  color: var(--brand-blue);
+  background-color: #f8fafc;
+}
+
+.dz-nav-item.active {
+  color: var(--brand-blue);
+  background-color: #f0f7ff;
+}
+
+.dz-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--brand-blue);
+}
+
+.dz-pill-badge {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background-color: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.dz-download-card {
+  margin-top: auto;
+  background: radial-gradient(circle at bottom right, #0369a1 0%, #091322 100%);
+  border-radius: 18px;
+  padding: 16px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.dz-download-card h5 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.dz-download-card p {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0 0 10px 0;
+}
+
+.dz-btn-download {
+  background: rgba(2, 132, 199, 0.85);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  padding: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dz-btn-download:hover {
+  background: var(--brand-blue);
+}
+
+/* ==============================================================
+   2. MAIN CONTENT AREA & HEADER
+   ============================================================== */
+.dz-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.dz-header {
+  padding: 24px 32px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dz-search-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 8px 18px;
+  width: 320px;
+}
+
+.dz-search-pill input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  width: 100%;
+  color: var(--text-dark);
+}
+
+.dz-search-kbd {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-light);
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 6px;
+  background: #ffffff;
+}
+
+.dz-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dz-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--card-border);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dz-circle-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.dz-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dz-user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fed7aa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #7c2d12;
+}
+
+.dz-user-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.dz-user-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.2;
+}
+
+.dz-user-email {
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+/* Page Body Content */
+.dz-content {
+  padding: 8px 32px 32px;
+}
+
+.dz-title-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.dz-title-text h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.5px;
+  margin: 0 0 4px 0;
+}
+
+.dz-title-text p {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.dz-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dz-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dz-btn-primary:hover {
+  background: #0369a1;
+}
+
+.dz-btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: var(--text-dark);
+  border: 1px solid var(--card-border);
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dz-btn-outline:hover {
+  background: #f8fafc;
+}
+
+/* ==============================================================
+   3. METRIC CARDS ROW (DONEZO 4-CARD EXACT)
+   ============================================================== */
+.dz-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.dz-stat-card {
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.dz-stat-card.featured {
+  background: linear-gradient(145deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.dz-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dz-stat-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.dz-stat-card.featured .dz-stat-label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.dz-stat-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dark);
+}
+
+.dz-stat-card.featured .dz-stat-icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+}
+
+.dz-stat-value {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.dz-stat-card.featured .dz-stat-value {
+  color: #ffffff;
+}
+
+.dz-stat-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 600;
+}
+
+.dz-stat-card.featured .dz-stat-footer {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dz-badge-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* ==============================================================
+   4. MIDDLE 3-COLUMN LAYOUT (ANALYTICS, REMINDERS, PROJECT LIST)
+   ============================================================== */
+.dz-middle-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1.1fr 1.3fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.dz-card {
+  background: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.dz-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.dz-card-head h3 {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+/* Custom Chart Pillars */
+.dz-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 120px;
+  padding-top: 20px;
+}
+
+.dz-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.dz-bar-pill {
+  width: 28px;
+  border-radius: 14px;
+  background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 3px, #ffffff 3px, #ffffff 6px);
+  transition: all 0.2s ease;
+}
+
+.dz-bar-pill.solid-blue {
+  background: var(--brand-blue);
+}
+
+.dz-bar-pill.light-blue {
+  background: #38bdf8;
+  position: relative;
+}
+
+.dz-bar-tag-float {
+  position: absolute;
+  top: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.dz-bar-day {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+/* Reminder Box */
+.dz-reminder-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0 0 4px 0;
+}
+
+.dz-reminder-time {
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  margin: 0 0 20px 0;
+}
+
+.dz-btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Project List */
+.dz-project-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.dz-project-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dz-project-bullet {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--brand-blue);
+}
+
+.dz-project-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2px;
+}
+
+.dz-project-date {
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+/* ==============================================================
+   5. BOTTOM 3-COLUMN LAYOUT (COLLABORATION, PROGRESS, TIMER)
+   ============================================================== */
+.dz-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1.1fr 1.3fr;
+  gap: 18px;
+}
+
+/* Team Member Row */
+.dz-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.dz-team-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dz-member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.dz-member-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.dz-member-desc {
+  font-size: 0.72rem;
+  color: var(--text-light);
+}
+
+.dz-status-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.dz-status-tag.completed {
+  background: #f0fdf4;
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.dz-status-tag.inprogress {
+  background: #fefce8;
+  color: #a16207;
+  border-color: #fef08a;
+}
+
+.dz-status-tag.pending {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+/* Gauge Progress Ring */
+.dz-progress-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.dz-progress-big-num {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.dz-progress-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.dz-progress-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  font-size: 0.72rem;
+  color: var(--text-sub);
+}
+
+.dz-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+/* Time Tracker Widget */
+.dz-tracker-card {
+  background: radial-gradient(circle at bottom right, #0284c7 0%, #061e38 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dz-tracker-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dz-tracker-time {
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin: 16px 0;
+}
+
+.dz-tracker-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.dz-timer-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dz-timer-btn.active {
+  background: #ef4444;
+}
+
+/* ==============================================================
+   RESPONSIVE DESIGN (TABLET & MOBILE)
+   ============================================================== */
+@media (max-width: 1200px) {
+  .dz-middle-grid, .dz-bottom-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .donezo-viewport-wrapper {
+    padding: 0;
+  }
+  .donezo-app-container {
+    border-radius: 0;
+    flex-direction: column;
+  }
+  .dz-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--card-border);
+    padding: 16px;
+  }
+  .dz-sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+  }
+  .dz-nav-item {
+    white-space: nowrap;
+  }
+  .dz-download-card {
+    display: none;
+  }
+  .dz-metrics-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dz-middle-grid, .dz-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dz-metrics-row {
+    grid-template-columns: 1fr;
+  }
+  .dz-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dz-search-pill {
+    width: 100%;
+  }
+}
