@@ -12,7 +12,9 @@ import {
   ShieldCheck, 
   Maximize2,
   Minimize2,
-  FileText
+  FileText,
+  UploadCloud,
+  Download
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
@@ -65,7 +67,7 @@ export default function UniversalDetailModal({
   };
 
   // Label nama / judul utama
-  const mainTitle = data.title || data.name || data.uraian || 'Tanpa Judul';
+  const mainTitle = data.title || data.name || data.period || data.objective || data.uraian || 'Tanpa Judul';
 
   return (
     <div style={{
@@ -74,18 +76,18 @@ export default function UniversalDetailModal({
       backgroundColor: 'rgba(15, 23, 42, 0.55)',
       backdropFilter: 'blur(4px)',
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
-      padding: '24px 16px',
-      overflowY: 'auto'
+      padding: '20px 16px'
     }}>
       <div 
         className="ws-drawer-animate"
         style={{
           width: '100%',
           maxWidth: isFullWidth ? '96vw' : '880px',
-          minHeight: 'auto',
+          maxHeight: '92vh',
+          height: '92vh',
           backgroundColor: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
@@ -93,10 +95,10 @@ export default function UniversalDetailModal({
           display: 'flex',
           flexDirection: 'column',
           transition: 'max-width 200ms ease',
-          margin: 'auto 0'
+          overflow: 'hidden'
         }}
       >
-        {/* Top Header & Breadcrumbs (Sesuai Gambar Notion User) */}
+        {/* Top Header & Breadcrumbs (Sticky di atas) */}
         <div style={{
           padding: '14px 24px',
           borderBottom: '1px solid #f1f5f9',
@@ -104,8 +106,7 @@ export default function UniversalDetailModal({
           alignItems: 'center',
           justifyContent: 'space-between',
           backgroundColor: '#fafbfc',
-          position: 'sticky',
-          top: 0,
+          flexShrink: 0,
           zIndex: 40
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#64748b' }}>
@@ -164,17 +165,28 @@ export default function UniversalDetailModal({
           </div>
         </div>
 
-        {/* Modal Main Content Container (Persis Halaman Penuh Notion di Screenshot) */}
-        <div style={{ padding: '36px 44px', display: 'flex', flexDirection: 'column', gap: '28px', flex: 1 }}>
+        {/* Modal Main Content Container (Scrollable internal body) */}
+        <div style={{ 
+          padding: '36px 44px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '28px', 
+          flex: 1,
+          overflowY: 'auto'
+        }}>
           
-          {/* Judul Besar Tugas / Transaksi */}
+          {/* Judul Besar Tugas / Transaksi / Periode / Objective */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <Icon3DClipboard size={38} />
             <input
               type="text"
-              value={data.title || data.name || ''}
+              value={data.title || data.name || data.period || data.objective || data.uraian || ''}
               onChange={(e) => {
-                const key = data.title !== undefined ? 'title' : 'name';
+                const key = data.title !== undefined ? 'title' 
+                  : data.name !== undefined ? 'name' 
+                  : data.period !== undefined ? 'period' 
+                  : data.objective !== undefined ? 'objective' 
+                  : 'title';
                 handleFieldChange(key, e.target.value);
               }}
               placeholder="Ketik judul di sini..."
@@ -204,8 +216,8 @@ export default function UniversalDetailModal({
             paddingTop: '20px'
           }}>
             {columns.map((col) => {
-              // Lewati kolom nama/judul karena sudah jadi header besar di atas
-              if (col.key === 'title' || col.key === 'name') return null;
+              // Lewati kolom nama/judul/periode/objective karena sudah jadi header besar di atas
+              if (col.key === 'title' || col.key === 'name' || col.key === 'period' || col.key === 'objective') return null;
 
               const val = data[col.key];
 
@@ -243,7 +255,7 @@ export default function UniversalDetailModal({
                       </select>
                     ) : (col.key === 'category' || col.key === 'kategori') ? (
                       <select
-                        value={val || (taskCategories ? taskCategories[0] : 'General')}
+                        value={val || (col.options ? col.options[0] : (taskCategories ? taskCategories[0] : 'General'))}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
                         className="ws-notion-pill"
                         style={{
@@ -259,7 +271,7 @@ export default function UniversalDetailModal({
                           fontFamily: 'inherit'
                         }}
                       >
-                        {(taskCategories || []).map((cat) => (
+                        {(col.options || taskCategories || []).map((cat) => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
                       </select>
@@ -427,6 +439,77 @@ export default function UniversalDetailModal({
                           e.target.style.borderColor = '#cbd5e1';
                         }}
                       />
+                    ) : (col.key === 'downloadUrl' || col.key === 'receiptDoc' || col.key === 'contractDoc' || col.key === 'attachmentDoc' || col.key === 'mediaLink') ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        {val ? (
+                          <a
+                            href={val}
+                            download={data.fileName || `${mainTitle}.${(data.fileFormat || 'pdf').toLowerCase()}`}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              backgroundColor: '#0284c7',
+                              color: '#ffffff',
+                              fontSize: '0.8rem',
+                              fontWeight: 600,
+                              textDecoration: 'none',
+                              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
+                            }}
+                          >
+                            <Download size={14} /> Unduh Berkas
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Belum ada berkas</span>
+                        )}
+
+                        <label
+                          htmlFor={`modal-upload-${col.key}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            backgroundColor: '#f1f5f9',
+                            color: '#334155',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            border: '1px solid #cbd5e1'
+                          }}
+                        >
+                          <UploadCloud size={14} color="#0284c7" />
+                          <span>{val ? 'Ganti File' : 'Upload File'}</span>
+                        </label>
+                        <input
+                          id={`modal-upload-${col.key}`}
+                          type="file"
+                          style={{ display: 'none' }}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const dataUrl = ev.target.result;
+                              const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+                              const size = file.size > 1024 * 1024 
+                                ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+                                : `${Math.round(file.size / 1024)} KB`;
+
+                              handleFieldChange(col.key, dataUrl);
+                              if (col.key === 'downloadUrl') {
+                                handleFieldChange('fileFormat', ext);
+                                handleFieldChange('fileSize', size);
+                                handleFieldChange('fileName', file.name);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </div>
                     ) : (
                       <input
                         type="text"
@@ -525,6 +608,71 @@ export default function UniversalDetailModal({
             </div>
           </div>
 
+          {/* Catatan / Notes Tambahan (Bisa ditulis memanjang ke bawah) */}
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            borderTop: '1px solid #f1f5f9',
+            paddingTop: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              color: '#0f172a'
+            }}>
+              <Icon3DNotes size={16} />
+              <span>Catatan Dokumen / Notulensi</span>
+            </div>
+            <textarea
+              value={data.notes || data.summaryNotes || data.keterangan || data.description || ''}
+              onChange={(e) => {
+                handleFieldChange('notes', e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.max(90, e.target.scrollHeight)}px`;
+              }}
+              onInput={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = `${Math.max(90, e.target.scrollHeight)}px`;
+              }}
+              ref={(el) => {
+                if (el) {
+                  el.style.height = 'auto';
+                  el.style.height = `${Math.max(90, el.scrollHeight)}px`;
+                }
+              }}
+              placeholder="Tuliskan catatan, ringkasan, atau instruksi kerja di sini (akan otomatis memanjang ke bawah)..."
+              style={{
+                width: '100%',
+                minHeight: '90px',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                fontSize: '0.84rem',
+                color: '#1e293b',
+                outline: 'none',
+                lineHeight: 1.55,
+                fontFamily: 'inherit',
+                resize: 'none',
+                overflowY: 'hidden',
+                boxSizing: 'border-box',
+                transition: 'border-color 150ms ease, box-shadow 150ms ease'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#0284c7';
+                e.target.style.boxShadow = '0 0 0 3px rgba(2, 132, 199, 0.12)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#cbd5e1';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+          </div>
+
           {/* Kolom Komentar & Diskusi Realtime (Sesuai Gambar Screenshot Notion) */}
           <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -604,27 +752,34 @@ export default function UniversalDetailModal({
 
         </div>
 
-        {/* Footer Modal */}
+        {/* Footer Modal (Sticky di bawah) */}
         <div style={{
           padding: '14px 24px',
           borderTop: '1px solid #f1f5f9',
           display: 'flex',
-          justifyContent: 'flex-end',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           gap: '8px',
-          backgroundColor: '#fafbfc'
+          backgroundColor: '#fafbfc',
+          flexShrink: 0,
+          zIndex: 40
         }}>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            Data tersimpan otomatis
+          </span>
           <button
             onClick={onClose}
             className="ws-btn-transition"
             style={{
-              padding: '7px 18px',
+              padding: '7px 20px',
               borderRadius: '8px',
               border: '1px solid #cbd5e1',
               backgroundColor: '#ffffff',
               fontSize: '0.82rem',
               fontWeight: 700,
               color: '#334155',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
             }}
           >
             Selesai

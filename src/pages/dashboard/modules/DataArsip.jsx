@@ -2,11 +2,21 @@ import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
-import { FolderGit2, FileText, Download, HardDrive, Shield } from 'lucide-react';
+import { FolderGit2, FileText, Download, HardDrive, Shield, UploadCloud, CheckCircle } from 'lucide-react';
 
 export default function DataArsip() {
   const { archives, addArchive, updateArchive, deleteArchive } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table');
+
+  const fileCategoryOptions = [
+    'Dokumen PDF / Legalitas',
+    'Spreadsheet & Finansial',
+    'Presentasi & Pitch Deck',
+    'Aset Desain & Grafis',
+    'Media Video & Audio',
+    'Arsip Terkompresi (ZIP/RAR)',
+    'Kode & Konfigurasi'
+  ];
 
   const columns = [
     {
@@ -16,20 +26,47 @@ export default function DataArsip() {
         <span style={{ fontWeight: 600, color: '#0f172a' }}>{val}</span>
       )
     },
-    { key: 'category', label: 'Kategori Dokumen' },
+    { 
+      key: 'category', 
+      label: 'Kategori Dokumen',
+      options: fileCategoryOptions,
+      render: (val, row, update) => (
+        <select
+          value={val || fileCategoryOptions[0]}
+          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { category: e.target.value })}
+          className="ws-notion-pill"
+          style={{
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            fontWeight: 600
+          }}
+        >
+          {fileCategoryOptions.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+      )
+    },
     {
       key: 'fileFormat',
       label: 'Format',
-      render: (val) => (
+      render: (val, row, update) => (
         <span style={{
-          padding: '2px 6px',
+          padding: '2px 8px',
           borderRadius: '4px',
           fontSize: '0.72rem',
           fontWeight: 700,
-          backgroundColor: '#e2e8f0',
-          color: '#334155'
+          backgroundColor: '#eff6ff',
+          color: '#0284c7',
+          border: '1px solid #bfdbfe'
         }}>
-          {val}
+          {val || 'FILE'}
         </span>
       )
     },
@@ -38,31 +75,96 @@ export default function DataArsip() {
     { key: 'fileSize', label: 'Ukuran' },
     {
       key: 'downloadUrl',
-      label: 'Unduh',
-      render: (val, row) => (
-        <a
-          href={val}
-          download={row.title}
-          onClick={(e) => {
-            e.preventDefault();
-            alert(`Mengunduh berkas: ${row.title} (${row.fileFormat})`);
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            padding: '4px 8px',
-            borderRadius: '6px',
-            backgroundColor: '#f0f9ff',
-            color: '#0284c7',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            textDecoration: 'none'
-          }}
-        >
-          <Download size={13} /> Unduh
-        </a>
-      )
+      label: 'Unduh / Upload Berkas',
+      render: (val, row, update) => {
+        const handleFileUpload = (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (uploadEvent) => {
+            const fileDataUrl = uploadEvent.target.result;
+            const extension = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+            const sizeStr = file.size > 1024 * 1024 
+              ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+              : `${Math.round(file.size / 1024)} KB`;
+
+            const updatedData = {
+              downloadUrl: fileDataUrl,
+              fileName: file.name,
+              fileFormat: extension,
+              fileSize: sizeStr
+            };
+
+            if (update) {
+              update(fileDataUrl);
+              updateArchive(row.id, updatedData);
+            } else {
+              updateArchive(row.id, updatedData);
+            }
+          };
+          reader.readAsDataURL(file);
+        };
+
+        const fileInputId = `upload-file-${row.id}`;
+
+        return (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            {/* Tombol Unduh Berkas yang diupload */}
+            {val ? (
+              <a
+                href={val}
+                download={row.fileName || `${row.title}.${(row.fileFormat || 'pdf').toLowerCase()}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '5px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
+                }}
+              >
+                <Download size={13} /> Unduh
+              </a>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Belum ada file</span>
+            )}
+
+            {/* Tombol Ganti / Upload Berkas */}
+            <label
+              htmlFor={fileInputId}
+              title="Upload berkas baru"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                backgroundColor: '#f1f5f9',
+                color: '#475569',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                border: '1px solid #cbd5e1'
+              }}
+            >
+              <UploadCloud size={13} color="#0284c7" /> {val ? 'Ganti File' : 'Upload'}
+            </label>
+            <input
+              id={fileInputId}
+              type="file"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+          </div>
+        );
+      }
     }
   ];
 
