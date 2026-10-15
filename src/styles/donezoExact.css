@@ -213,19 +213,27 @@
 .dz-search-pill {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: #f8fafc;
   border: 1px solid var(--card-border);
   border-radius: 24px;
-  padding: 8px 18px;
-  width: 320px;
+  padding: 10px 20px;
+  width: 100%;
+  max-width: 580px;
+  transition: all 0.2s ease;
+}
+
+.dz-search-pill:focus-within {
+  background: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
 }
 
 .dz-search-pill input {
   border: none;
   background: transparent;
   outline: none;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   width: 100%;
   color: var(--text-dark);
 }

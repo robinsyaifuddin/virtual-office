@@ -153,16 +153,6 @@ html, body {
 .btn-text {
   display: inline;
 }
-.btn-mgmt {
-  background: rgba(2, 132, 199, 0.25);
-  border-color: rgba(56, 189, 248, 0.45);
-  color: #bae6fd;
-}
-.btn-mgmt:hover {
-  background: #0284c7;
-  border-color: #38bdf8;
-  color: #fff;
-}
 
 /* BOTTOM BAR */
 .bottom-footer {
@@ -191,28 +181,29 @@ html, body {
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35);
 }
 
-/* 3D ROOM SIGN (PERSIS SEPERTI GAMBAR: PLAKAT BIRU TUA BERBINGKAI PUTIH) */
+/* 3D ROOM SIGN (TEKS SAJA TANPA SHAPE BERWARNA) */
 .room-sign {
   pointer-events: none;
-  background: #1d3557;
-  border: 1.5px solid #ffffff;
-  border-radius: 6px;
-  padding: 3px 9px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   color: #ffffff;
-  font: 800 11px/1.2 'Plus Jakarta Sans', sans-serif;
-  letter-spacing: 0.2px;
+  font: 800 12px/1.2 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.3px;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: none;
   transform: translate(-50%, -50%);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.9), 0 2px 3px rgba(0, 0, 0, 1);
 }
 .room-sign.hero {
-  background: #0284c7;
-  border-color: #ffffff;
-  color: #ffffff;
-  font-size: 12px;
-  padding: 4px 12px;
-  box-shadow: 0 0 16px rgba(0, 210, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5);
+  background: transparent;
+  border: none;
+  color: #38bdf8;
+  font-size: 13.5px;
+  padding: 0;
+  box-shadow: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 210, 255, 0.85), 0 2px 3px rgba(0, 0, 0, 1);
 }
 
 /* AGENT TAGS */
@@ -525,14 +516,10 @@ dialog#agentDlg::backdrop {
 <div id="stage"></div>
 <div id="labels"></div>
 
-<!-- WATERMARK TOP-LEFT PERSIS GAMBAR -->
+<!-- WATERMARK TOP-LEFT PERSIS GAMBAR (HANYA LOGO, TANPA TEKS) -->
 <div class="brand-watermark">
   <div class="logo-icon" style="background: transparent; box-shadow: none;">
     <img src="logo.webp" alt="DigiBooster Logo" style="width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(0,210,255,0.6));" />
-  </div>
-  <div class="brand-texts">
-    <div class="brand-name">DigiBooster Indonesia</div>
-    <div class="brand-tagline">Skill Up, Stand Up</div>
   </div>
 </div>
 
@@ -574,10 +561,6 @@ dialog#agentDlg::backdrop {
     <button class="btn" id="demoBtn" aria-pressed="false" title="Demo Sinematik Kantor">
       <span class="btn-icon">🎬</span>
       <span class="btn-text">Demo</span>
-    </button>
-    <button class="btn btn-mgmt" id="managementBtn" title="Buka Ruang Manajemen (/manajemen)">
-      <span class="btn-icon">🏢</span>
-      <span class="btn-text">Manajemen</span>
     </button>
   </div>
 </div>
@@ -677,7 +660,7 @@ camera.position.copy(DEFAULT_CAM_POS);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -688,7 +671,10 @@ labelRenderer.setSize(window.innerWidth, window.innerHeight);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.08;
+controls.dampingFactor = 0.16; // Sensitif, responsif instan, dan halus tanpa lambat/lag
+controls.panSpeed = 1.85;      // Geser denah cepat & enak digerakkan
+controls.rotateSpeed = 1.35;   // Putar sudut kamera lincah
+controls.zoomSpeed = 1.6;      // Zoom responsif
 controls.target.copy(DEFAULT_TARGET);
 controls.minZoom = 0.35;
 controls.maxZoom = 4.0;
@@ -697,6 +683,10 @@ controls.mouseButtons = {
   LEFT: THREE.MOUSE.PAN,
   MIDDLE: THREE.MOUSE.PAN,
   RIGHT: THREE.MOUSE.ROTATE
+};
+controls.touches = {
+  ONE: THREE.TOUCH.PAN,
+  TWO: THREE.TOUCH.DOLLY_ROTATE
 };
 
 function onResize() {
@@ -3044,18 +3034,6 @@ demoBtn.addEventListener("click", () => {
   demoBtn.setAttribute("aria-pressed", isDemo);
 });
 
-// Buka Ruang Manajemen
-const mgmtBtn = document.getElementById("managementBtn");
-if (mgmtBtn) {
-  mgmtBtn.addEventListener("click", () => {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: "OPEN_MANAGEMENT" }, "*");
-    } else {
-      window.location.href = "/manajemen";
-    }
-  });
-}
-
 /* ================= 14. ANIMATION LOOP ================= */
 let clock = new THREE.Clock();
 
@@ -3232,17 +3210,17 @@ function animate() {
     }
   });
 
-  // Interpolasi kamera sinematik saat fokus ke agent atau ruangan
+  // Interpolasi kamera sinematik saat fokus ke agent atau ruangan (Cepat & Responsif)
   if (isCamTransitioning) {
-    controls.target.lerp(targetLookAt, 0.08);
-    camera.position.lerp(targetCamPos, 0.08);
-    camera.zoom = THREE.MathUtils.lerp(camera.zoom, targetCamZoom, 0.08);
+    controls.target.lerp(targetLookAt, 0.16);
+    camera.position.lerp(targetCamPos, 0.16);
+    camera.zoom = THREE.MathUtils.lerp(camera.zoom, targetCamZoom, 0.16);
     camera.updateProjectionMatrix();
 
     if (
-      controls.target.distanceTo(targetLookAt) < 0.01 &&
-      camera.position.distanceTo(targetCamPos) < 0.02 &&
-      Math.abs(camera.zoom - targetCamZoom) < 0.01
+      controls.target.distanceTo(targetLookAt) < 0.02 &&
+      camera.position.distanceTo(targetCamPos) < 0.03 &&
+      Math.abs(camera.zoom - targetCamZoom) < 0.015
     ) {
       controls.target.copy(targetLookAt);
       camera.position.copy(targetCamPos);

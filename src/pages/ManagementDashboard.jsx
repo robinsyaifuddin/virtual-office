@@ -174,11 +174,13 @@ export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
           <div className="dz-brand-row">
             <img 
               src="/logo.webp" 
-              alt="Logo" 
-              style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '8px' }} 
+              alt="DigiBooster Logo" 
+              style={{ maxHeight: '46px', maxWidth: '160px', objectFit: 'contain' }} 
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = '/favicon.svg';
+                e.target.style.width = '42px';
+                e.target.style.height = '42px';
               }}
             />
           </div>
@@ -287,11 +289,10 @@ export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
               <Search size={16} color="#94a3b8" />
               <input 
                 type="text" 
-                placeholder="Search task, project, or documents" 
+                placeholder="Search task, project, or documents..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <span className="dz-search-kbd">⌘ F</span>
             </div>
 
             {/* Header Right Actions */}
