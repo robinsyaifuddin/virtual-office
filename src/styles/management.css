@@ -1,12 +1,12 @@
 /* ==============================================================
    DIGIBOOSTER EXECUTIVE HEADQUARTERS - BLUE THEME DESIGN SYSTEM
-   Professional, high-contrast, cohesive sky/royal blue palette
+   Professional, responsive, clean, high-contrast
    ============================================================== */
 
 :root {
-  --primary-blue: #0284c7;        /* Biru cerah korporat utama */
+  --primary-blue: #0284c7;
   --primary-hover: #0369a1;
-  --primary-light: #e0f2fe;       /* Sky blue soft background */
+  --primary-light: #e0f2fe;
   --accent-cyan: #06b6d4;
   --bg-slate: #f8fafc;
   --card-bg: #ffffff;
@@ -14,9 +14,8 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   --border-focus: #38bdf8;
-  --shadow-sm: 0 1px 3px rgba(2, 132, 199, 0.08);
-  --shadow-md: 0 4px 14px rgba(2, 132, 199, 0.12);
-  --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 1px 3px rgba(2, 132, 199, 0.06);
+  --shadow-md: 0 4px 12px rgba(2, 132, 199, 0.1);
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -25,66 +24,52 @@
   background-color: var(--bg-slate);
   color: var(--text-main);
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  position: relative;
 }
 
 /* --- Top Navigation Bar --- */
 .mgmt-navbar {
   background: #ffffff;
   border-bottom: 1px solid var(--border-color);
-  padding: 0.85rem 1.75rem;
+  padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .mgmt-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
 }
 
 .brand-icon-box {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
   background: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
   font-weight: 800;
-  font-size: 1.15rem;
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
-}
-
-.brand-info h1 {
   font-size: 1.1rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.brand-info span {
-  font-size: 0.75rem;
-  color: #0284c7;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.25);
 }
 
 /* Nav Menu Tabs */
 .mgmt-nav-tabs {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.35rem;
   background: #f1f5f9;
-  padding: 0.35rem;
+  padding: 0.3rem;
   border-radius: 10px;
   border: 1px solid #e2e8f0;
 }
@@ -93,7 +78,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.95rem;
   border: none;
   background: transparent;
   color: #475569;
@@ -101,7 +86,7 @@
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .nav-tab-btn:hover {
@@ -112,102 +97,88 @@
 .nav-tab-btn.active {
   background: #ffffff;
   color: #0284c7;
-  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 2px 5px rgba(2, 132, 199, 0.12);
+}
+
+.badge-notification {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
 }
 
 .nav-user-controls {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
 }
 
-.user-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.4rem 0.85rem;
-  background: var(--primary-light);
-  border-radius: 20px;
-  border: 1px solid #bae6fd;
-}
-
-.user-dot {
-  width: 8px;
-  height: 8px;
-  background: #10b981;
-  border-radius: 50%;
-  animation: pulse-dot 2s infinite;
-}
-
-@keyframes pulse-dot {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
-.btn-secondary-nav {
-  padding: 0.45rem 0.9rem;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #334155;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
+.btn-logout {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  transition: all 0.2s;
+  padding: 0.45rem 0.9rem;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.btn-secondary-nav:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+.btn-logout:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 
 /* --- Main Content Container --- */
 .mgmt-content {
   flex: 1;
-  max-width: 1380px;
+  max-width: 1320px;
   width: 100%;
   margin: 0 auto;
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem 1.5rem 3rem;
 }
 
 /* Subheader Banner */
 .view-header-banner {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
-  padding: 1.75rem 2rem;
-  border-radius: 16px;
-  margin-bottom: 2rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.2);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.16);
 }
 
 .view-header-banner h2 {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.25rem;
 }
 
 .view-header-banner p {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   opacity: 0.9;
   max-width: 650px;
+  line-height: 1.45;
 }
 
 .quick-stats-row {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .quick-stat-box {
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(8px);
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1.15rem;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   text-align: right;
@@ -220,7 +191,7 @@
 }
 
 .quick-stat-box .label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   opacity: 0.9;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -229,57 +200,58 @@
 /* --- 1. LEMARI ARSIP DIGITAL (FILING CABINET) --- */
 .cabinet-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 1.75rem;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .cabinet-drawers-sidebar {
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.25rem;
+  padding: 1rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .drawer-btn {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  padding: 0.9rem 1rem;
-  border: 1px solid #e2e8f0;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #f1f5f9;
   background: #f8fafc;
   color: #334155;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   width: 100%;
 }
 
 .drawer-btn:hover {
   background: #e0f2fe;
-  border-color: #7dd3fc;
+  border-color: #bae6fd;
   color: #0369a1;
 }
 
 .drawer-btn.active {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  background: #0284c7;
   color: #ffffff;
   border-color: #0284c7;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  box-shadow: 0 3px 8px rgba(2, 132, 199, 0.2);
 }
 
 .drawer-badge-count {
   margin-left: auto;
   font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.15rem 0.5rem;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .drawer-btn.active .drawer-badge-count {
@@ -303,7 +275,7 @@
   padding: 0.75rem 1.15rem;
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   outline: none;
   transition: border-color 0.2s;
   background: #ffffff;
@@ -311,12 +283,12 @@
 
 .docs-search-bar input:focus {
   border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 
 .doc-card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
   gap: 1.25rem;
 }
 
@@ -324,16 +296,16 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.35rem;
+  padding: 1.25rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  gap: 0.65rem;
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .doc-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: #bae6fd;
 }
@@ -345,23 +317,23 @@
 }
 
 .doc-tag {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 0.25rem 0.65rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 6px;
   background: #e0f2fe;
   color: #0284c7;
 }
 
 .doc-card h3 {
-  font-size: 1rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
 }
 
 .doc-card p {
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   color: #64748b;
   line-height: 1.5;
   flex: 1;
@@ -379,7 +351,7 @@
 .doc-actions {
   display: flex;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
 }
 
 .btn-doc-view {
@@ -392,7 +364,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-doc-view:hover {
@@ -417,26 +389,22 @@
 /* --- 2. MEJA PENGUMPULAN TUGAS (SUBMISSION DESK) --- */
 .submission-card {
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.5rem;
+  padding: 1.35rem;
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  transition: all 0.2s;
-}
-
-.submission-card:hover {
-  border-color: #7dd3fc;
-  box-shadow: var(--shadow-md);
+  gap: 0.9rem;
 }
 
 .sub-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .agent-identity-badge {
@@ -459,10 +427,10 @@
 .sub-body-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 1.25rem;
+  border-radius: 8px;
+  padding: 1rem;
   font-family: 'Consolas', 'Courier New', monospace;
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   white-space: pre-wrap;
   color: #1e293b;
   max-height: 240px;
@@ -475,18 +443,20 @@
   justify-content: space-between;
   padding-top: 0.75rem;
   border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .btn-approve {
   background: #0284c7;
   color: #ffffff;
   border: none;
-  padding: 0.6rem 1.25rem;
+  padding: 0.55rem 1.15rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.15s;
 }
 
 .btn-approve:hover {
@@ -497,25 +467,20 @@
   background: #fff1f2;
   color: #e11d48;
   border: 1px solid #fecdd3;
-  padding: 0.6rem 1.15rem;
+  padding: 0.55rem 1.1rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-revision:hover {
-  background: #ffe4e6;
 }
 
 .btn-archive-it {
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
-  padding: 0.6rem 1.15rem;
+  padding: 0.55rem 1.1rem;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -535,7 +500,7 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.75rem;
   min-height: 480px;
 }
 
@@ -548,7 +513,7 @@
 }
 
 .kanban-col-title {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 700;
   color: #334155;
   display: flex;
@@ -560,23 +525,22 @@
   background: #ffffff;
   border-radius: 10px;
   border: 1px solid #cbd5e1;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 0.95rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  transition: all 0.2s;
-  cursor: pointer;
+  gap: 0.55rem;
+  transition: all 0.15s;
 }
 
 .kanban-card:hover {
   transform: translateY(-2px);
   border-color: #0284c7;
-  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.1);
 }
 
 .kanban-card h4 {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: #0f172a;
   line-height: 1.35;
@@ -586,9 +550,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: #64748b;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
 }
 
 /* --- 4. TIMELINE OPERASIONAL --- */
@@ -615,7 +579,7 @@
   background: #ffffff;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  padding: 1.25rem;
+  padding: 1.15rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
@@ -625,7 +589,7 @@
 .timeline-dot {
   position: absolute;
   left: -2.35rem;
-  top: 1.35rem;
+  top: 1.25rem;
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -649,10 +613,10 @@
 
 .modal-box {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 14px;
   width: 100%;
-  max-width: 680px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 650px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
   max-height: 85vh;
@@ -660,7 +624,7 @@
 }
 
 .modal-header {
-  padding: 1.25rem 1.75rem;
+  padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -668,14 +632,14 @@
 }
 
 .modal-content {
-  padding: 1.75rem;
+  padding: 1.5rem;
   overflow-y: auto;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.6;
 }
 
 .modal-footer {
-  padding: 1rem 1.75rem;
+  padding: 1rem 1.5rem;
   background: #f8fafc;
   border-top: 1px solid #e2e8f0;
   display: flex;
@@ -693,11 +657,29 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .mgmt-navbar {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .mgmt-nav-tabs {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+  .nav-tab-btn {
+    white-space: nowrap;
+  }
+  .view-header-banner {
     flex-direction: column;
-    gap: 0.85rem;
     align-items: flex-start;
+    gap: 1rem;
+  }
+  .quick-stats-row {
+    width: 100%;
+    justify-content: flex-start;
   }
   .kanban-board-container {
     grid-template-columns: 1fr;

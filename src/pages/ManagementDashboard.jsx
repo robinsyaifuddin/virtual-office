@@ -136,10 +136,6 @@ export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
       <header className="mgmt-navbar">
         <div className="mgmt-brand">
           <div className="brand-icon-box">DB</div>
-          <div className="brand-info">
-            <h1>Executive Headquarters</h1>
-            <span>DigiBooster Virtual Office</span>
-          </div>
         </div>
 
         {/* Tab Menus */}
@@ -158,7 +154,7 @@ export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
             <Inbox size={16} />
             Meja Pengumpulan
             {submissions.filter(s => s.status === 'Menunggu Persetujuan').length > 0 && (
-              <span style={{ background: '#0284c7', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '10px' }}>
+              <span className="badge-notification">
                 {submissions.filter(s => s.status === 'Menunggu Persetujuan').length}
               </span>
             )}
@@ -186,19 +182,11 @@ export default function ManagementDashboard({ onLogout, onSwitchTo3D }) {
           </button>
         </nav>
 
-        {/* User Badge & Actions */}
+        {/* User Controls */}
         <div className="nav-user-controls">
-          <div className="user-badge">
-            <span className="user-dot"></span>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1' }}>Owner / Direktur Utama</span>
-          </div>
-          <button className="btn-secondary-nav" onClick={onSwitchTo3D} title="Buka Denah Visual 3D Kantor">
-            <ExternalLink size={14} />
-            Visual 3D
-          </button>
-          <button className="btn-secondary-nav" onClick={onLogout} title="Keluar dari Manajemen">
-            <LogOut size={14} />
-            Logout
+          <button className="btn-logout" onClick={onLogout} title="Keluar">
+            <LogOut size={16} />
+            Keluar
           </button>
         </div>
       </header>
