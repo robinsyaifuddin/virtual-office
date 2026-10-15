@@ -70,19 +70,22 @@ export default function UniversalDetailModal({
   const mainTitle = data.title || data.name || data.period || data.objective || data.uraian || 'Tanpa Judul';
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(15, 23, 42, 0.55)',
-      backdropFilter: 'blur(4px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000,
-      padding: '20px 16px'
-    }}>
+    <div 
+      className="ws-modal-backdrop-mobile"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(15, 23, 42, 0.55)',
+        backdropFilter: 'blur(4px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: '20px 16px'
+      }}
+    >
       <div 
-        className="ws-drawer-animate"
+        className="ws-drawer-animate ws-modal-drawer-mobile"
         style={{
           width: '100%',
           maxWidth: isFullWidth ? '96vw' : '880px',
@@ -99,22 +102,25 @@ export default function UniversalDetailModal({
         }}
       >
         {/* Top Header & Breadcrumbs (Sticky di atas) */}
-        <div style={{
-          padding: '14px 24px',
-          borderBottom: '1px solid #f1f5f9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: '#fafbfc',
-          flexShrink: 0,
-          zIndex: 40
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#64748b' }}>
-            <span style={{ fontWeight: 600 }}>Workspace</span>
-            <span>/</span>
-            <span>Daftar Operasional</span>
-            <span>/</span>
-            <span style={{ fontWeight: 600, color: '#0f172a', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div 
+          className="ws-modal-header-mobile"
+          style={{
+            padding: '14px 24px',
+            borderBottom: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: '#fafbfc',
+            flexShrink: 0,
+            zIndex: 40
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#64748b' }}>
+            <span className="ws-mobile-hidden" style={{ fontWeight: 600 }}>Workspace</span>
+            <span className="ws-mobile-hidden">/</span>
+            <span className="ws-mobile-hidden">Daftar Operasional</span>
+            <span className="ws-mobile-hidden">/</span>
+            <span style={{ fontWeight: 700, color: '#0f172a', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {mainTitle}
             </span>
           </div>
@@ -166,14 +172,17 @@ export default function UniversalDetailModal({
         </div>
 
         {/* Modal Main Content Container (Scrollable internal body) */}
-        <div style={{ 
-          padding: '36px 44px', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '28px', 
-          flex: 1,
-          overflowY: 'auto'
-        }}>
+        <div 
+          className="ws-modal-body-mobile ws-custom-scroll"
+          style={{ 
+            padding: '36px 44px', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '28px', 
+            flex: 1,
+            overflowY: 'auto'
+          }}
+        >
           
           {/* Judul Besar Tugas / Transaksi / Periode / Objective */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -190,6 +199,7 @@ export default function UniversalDetailModal({
                 handleFieldChange(key, e.target.value);
               }}
               placeholder="Ketik judul di sini..."
+              className="ws-modal-title-input"
               style={{
                 width: '100%',
                 fontSize: '1.65rem',
@@ -222,12 +232,19 @@ export default function UniversalDetailModal({
               const val = data[col.key];
 
               return (
-                <div key={col.key} style={{ display: 'grid', gridTemplateColumns: '190px 1fr', alignItems: 'center', minHeight: '34px' }}>
-                  <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div 
+                  key={col.key} 
+                  className="ws-modal-property-row"
+                  style={{ display: 'grid', gridTemplateColumns: '190px 1fr', alignItems: 'center', minHeight: '34px' }}
+                >
+                  <span 
+                    className="ws-modal-property-label"
+                    style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}
+                  >
                     {col.label}
                   </span>
 
-                  <div>
+                  <div style={{ minWidth: 0, overflow: 'hidden' }}>
                     {/* Render khusus untuk PIC / Assignee (Dropdown Staff & AI Agent) */}
                     {(col.key === 'pic' || col.key === 'assignee' || col.key === 'owner' || col.key === 'author') ? (
                       <select
@@ -795,17 +812,20 @@ export default function UniversalDetailModal({
         </div>
 
         {/* Footer Modal (Sticky di bawah) */}
-        <div style={{
-          padding: '14px 24px',
-          borderTop: '1px solid #f1f5f9',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          backgroundColor: '#fafbfc',
-          flexShrink: 0,
-          zIndex: 40
-        }}>
+        <div 
+          className="ws-modal-footer-mobile"
+          style={{
+            padding: '14px 24px',
+            borderTop: '1px solid #f1f5f9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            backgroundColor: '#fafbfc',
+            flexShrink: 0,
+            zIndex: 40
+          }}
+        >
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
             Data tersimpan otomatis
           </span>
