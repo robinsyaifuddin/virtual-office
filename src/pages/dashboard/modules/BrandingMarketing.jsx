@@ -6,9 +6,33 @@ import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Megaphone, Calendar, Share2, Plus, Table as TableIcon, LayoutGrid } from 'lucide-react';
 
+import { 
+  Icon3DClipboard, 
+  Icon3DCalendar, 
+  Icon3DTag, 
+  Icon3DFlag, 
+  Icon3DGear, 
+  Icon3DUser, 
+  Icon3DNotes 
+} from '../../../components/ui/Modern3DIcons';
+
 export default function BrandingMarketing() {
   const { marketingCampaigns, addMarketingCampaign, updateMarketingCampaign, deleteMarketingCampaign } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table');
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Ide', 'Design/Video', 'Review', 'Siap Tayang', 'Selesai Tayang'];
+
+  // Filter kampanye berdasarkan status tahapan konten
+  const filteredCampaigns = marketingCampaigns.filter((c) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    if (statusFilter === 'Ide' || statusFilter === 'Ide Konten') {
+      return c.stage === 'Ide' || c.stage === 'Ide Konten';
+    }
+    return c.stage === statusFilter;
+  });
 
   const totalReach = marketingCampaigns.reduce((acc, c) => acc + (c.metrics?.reach || 0), 0);
   const totalLeads = marketingCampaigns.reduce((acc, c) => acc + (c.metrics?.leads || 0), 0);
@@ -16,9 +40,11 @@ export default function BrandingMarketing() {
   // Data Bar Chart: Jangkauan Konten per Judul/Kampanye
   const marketingBarData = marketingCampaigns.slice(0, 5).map((c, i) => {
     const reachVal = c.metrics?.reach || 1000;
-    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#a855f7', '#ec4899'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
+    const rawTitle = (c.title && typeof c.title === 'string' && c.title.trim()) ? c.title : `Konten ${i+1}`;
+    const shortLabel = rawTitle.split(' ').slice(0, 2).join(' ') || `Konten ${i+1}`;
     return {
-      label: c.title.split(' ').slice(0, 2).join(' ') || `Konten ${i+1}`,
+      label: shortLabel,
       value: reachVal,
       displayVal: reachVal >= 1000 ? `${(reachVal/1000).toFixed(0)}k` : reachVal,
       color: colors[i % colors.length]
@@ -27,7 +53,8 @@ export default function BrandingMarketing() {
 
   // Data Donut Chart: Distribusi Saluran / Channel Konten
   const channelCounts = marketingCampaigns.reduce((acc, c) => {
-    const ch = c.channel || 'Instagram';
+    const rawCh = Array.isArray(c.channel) ? c.channel[0] : (c.channel || 'Instagram');
+    const ch = typeof rawCh === 'string' && rawCh.trim() ? rawCh : 'Instagram';
     acc[ch] = (acc[ch] || 0) + 1;
     return acc;
   }, {});
@@ -37,7 +64,9 @@ export default function BrandingMarketing() {
     'LinkedIn': '#0077b5',
     'TikTok': '#0f172a',
     'Website': '#0284c7',
-    'YouTube': '#ff0000'
+    'YouTube': '#ff0000',
+    'Meta Ads': '#0081fb',
+    'Email': '#8b5cf6'
   };
 
   const marketingDonutData = Object.keys(channelCounts).map(ch => ({
@@ -48,30 +77,159 @@ export default function BrandingMarketing() {
   }));
 
   const columns = [
-    { key: 'title', label: 'Judul Konten / Kampanye' },
-    { key: 'channel', label: 'Channel Distribusi' },
-    { key: 'pillar', label: 'Pilar Konten' },
-    {
-      key: 'stage',
-      label: 'Status Produksi',
-      render: (val) => (
-        <span style={{
-          padding: '2px 8px',
-          borderRadius: '999px',
-          fontSize: '0.75rem',
-          fontWeight: 700,
-          backgroundColor: val === 'Selesai Tayang' ? '#dcfce7' : '#eff6ff',
-          color: val === 'Selesai Tayang' ? '#15803d' : '#1d4ed8'
-        }}>
-          {val}
+    { 
+      key: 'title', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Judul Konten / Kampanye
         </span>
+      ), 
+      minWidth: '220px' 
+    },
+    { 
+      key: 'channel', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Channel Distribusi
+        </span>
+      ),
+      minWidth: '140px',
+      render: (val, row, update) => {
+        const ch = Array.isArray(val) ? val[0] : (val || 'Instagram');
+        return (
+          <select
+            value={ch}
+            onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { channel: e.target.value })}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: '#0f172a',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="Instagram" style={{ color: '#0f172a', fontWeight: 500 }}>Instagram</option>
+            <option value="TikTok" style={{ color: '#0f172a', fontWeight: 500 }}>TikTok</option>
+            <option value="LinkedIn" style={{ color: '#0f172a', fontWeight: 500 }}>LinkedIn</option>
+            <option value="YouTube" style={{ color: '#0f172a', fontWeight: 500 }}>YouTube</option>
+            <option value="Website" style={{ color: '#0f172a', fontWeight: 500 }}>Website</option>
+            <option value="Meta Ads" style={{ color: '#0f172a', fontWeight: 500 }}>Meta Ads</option>
+            <option value="Email" style={{ color: '#0f172a', fontWeight: 500 }}>Email</option>
+          </select>
+        );
+      }
+    },
+    { 
+      key: 'pillar', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DFlag size={14} /> Pilar Konten
+        </span>
+      ),
+      minWidth: '150px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Edukasi'}
+          onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { pillar: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Edukasi" style={{ color: '#0f172a', fontWeight: 500 }}>Edukasi</option>
+          <option value="Case Study" style={{ color: '#0f172a', fontWeight: 500 }}>Case Study</option>
+          <option value="Promo/Hard Sell" style={{ color: '#0f172a', fontWeight: 500 }}>Promo/Hard Sell</option>
+          <option value="Branding" style={{ color: '#0f172a', fontWeight: 500 }}>Branding</option>
+          <option value="Behind The Scenes" style={{ color: '#0f172a', fontWeight: 500 }}>Behind The Scenes</option>
+          <option value="Tips & Trick" style={{ color: '#0f172a', fontWeight: 500 }}>Tips & Trick</option>
+        </select>
       )
     },
-    { key: 'publishDate', label: 'Jadwal Tayang' },
+    {
+      key: 'stage',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Status Produksi
+        </span>
+      ),
+      minWidth: '150px',
+      render: (val, row, update) => {
+        const stageTextColors = {
+          'Ide': '#64748b',
+          'Design/Video': '#0284c7',
+          'Review': '#d97706',
+          'Siap Tayang': '#6366f1',
+          'Selesai Tayang': '#16a34a'
+        };
+        const currentTextColor = stageTextColors[val] || '#0284c7';
+        return (
+          <select
+            value={val || 'Ide'}
+            onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { stage: e.target.value })}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: currentTextColor,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="Ide" style={{ color: '#64748b', fontWeight: 600 }}>Ide Konten</option>
+            <option value="Design/Video" style={{ color: '#0284c7', fontWeight: 600 }}>Design/Video</option>
+            <option value="Review" style={{ color: '#d97706', fontWeight: 600 }}>Review</option>
+            <option value="Siap Tayang" style={{ color: '#6366f1', fontWeight: 600 }}>Siap Tayang</option>
+            <option value="Selesai Tayang" style={{ color: '#16a34a', fontWeight: 600 }}>Selesai Tayang</option>
+          </select>
+        );
+      }
+    },
+    { 
+      key: 'publishDate', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DCalendar size={14} /> Jadwal Tayang
+        </span>
+      ),
+      minWidth: '135px',
+      render: (val, row, update) => (
+        <input
+          type="date"
+          value={val ? String(val).split(' ')[0] : ''}
+          onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { publishDate: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontSize: '0.8rem',
+            fontFamily: 'inherit',
+            color: '#0f172a',
+            outline: 'none',
+            padding: '2px 4px',
+            cursor: 'pointer'
+          }}
+        />
+      )
+    },
     {
       key: 'metrics',
-      label: 'Performa (Reach / Leads)',
-      render: (val) => val ? `${val.reach?.toLocaleString()} reach (${val.leads} leads)` : '-'
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Performa (Reach / Leads)
+        </span>
+      ),
+      minWidth: '160px',
+      render: (val) => val ? `${(val.reach || 0).toLocaleString('id-ID')} reach (${val.leads || 0} leads)` : '-'
     }
   ];
 
@@ -86,8 +244,8 @@ export default function BrandingMarketing() {
   const handleAddCampaign = () => {
     const newCamp = {
       id: `MKT-${Date.now().toString().slice(-4)}`,
-      title: 'Ide Video Edukasi Baru',
-      channel: ['TikTok', 'Instagram'],
+      title: '',
+      channel: ['Instagram'],
       pillar: 'Edukasi',
       stage: 'Ide',
       publishDate: new Date().toISOString().split('T')[0],
@@ -111,37 +269,6 @@ export default function BrandingMarketing() {
           <h2 className="ws-page-title">
             Branding & Marketing
           </h2>
-        </div>
-
-        <div style={{ display: 'flex', backgroundColor: '#e2e8f0', padding: '3px', borderRadius: '8px' }}>
-          <button
-            onClick={() => setViewMode('table')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: viewMode === 'table' ? '#ffffff' : 'transparent',
-              fontWeight: 600,
-              fontSize: '0.8rem',
-              cursor: 'pointer'
-            }}
-          >
-            Tabel
-          </button>
-          <button
-            onClick={() => setViewMode('kanban')}
-            style={{
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: viewMode === 'kanban' ? '#ffffff' : 'transparent',
-              fontWeight: 600,
-              fontSize: '0.8rem',
-              cursor: 'pointer'
-            }}
-          >
-            Kanban Produksi
-          </button>
         </div>
       </div>
 
@@ -172,42 +299,59 @@ export default function BrandingMarketing() {
           title="Sebaran Konten per Channel Media"
           subtitle="Komposisi jalur publikasi digital"
           data={marketingDonutData}
-          centerValue={`${marketingCampaigns.length}`}
-          centerLabel="Total Post"
         />
       </div>
 
-      {viewMode === 'table' ? (
-        <NotionTable
-          title="Kalender & Kampanye Pemasaran"
-          data={marketingCampaigns}
-          columns={columns}
-          onAddRow={handleAddCampaign}
-          onDeleteRow={deleteMarketingCampaign}
-          onUpdateCell={(id, field, val) => updateMarketingCampaign(id, { [field]: val })}
-          exportFileName="marketing_campaigns_digibooster.csv"
-        />
-      ) : (
-        <NotionKanban
-          columns={kanbanStages}
-          items={marketingCampaigns}
-          statusKey="stage"
-          onAddItem={() => handleAddCampaign()}
-          renderCard={(camp) => (
-            <div>
-              <span style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700 }}>{camp.pillar}</span>
-              <h5 style={{ margin: '4px 0 6px 0', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{camp.title}</h5>
-              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                {camp.channel?.map((c, i) => (
-                  <span key={i} style={{ fontSize: '0.68rem', backgroundColor: '#f1f5f9', padding: '1px 5px', borderRadius: '4px' }}>
-                    {c}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        />
-      )}
+      {/* Main Content Area: NotionTable membungkus seluruh mode tampilan (Tabel & Kanban) */}
+      <NotionTable
+        title="Kalender & Kampanye Pemasaran"
+        data={filteredCampaigns}
+        columns={columns}
+        onAddRow={handleAddCampaign}
+        onDeleteRow={deleteMarketingCampaign}
+        onUpdateCell={(id, field, val) => updateMarketingCampaign(id, { [field]: val })}
+        exportFileName="marketing_campaigns_digibooster.csv"
+        currentViewMode={viewMode}
+        onChangeViewMode={setViewMode}
+        availableViewModes={['table', 'kanban']}
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
+        renderCustomView={({ filteredData }) => {
+          if (viewMode === 'kanban') {
+            return (
+              <NotionKanban
+                columns={kanbanStages}
+                items={filteredData}
+                statusKey="stage"
+                onAddItem={() => handleAddCampaign()}
+                renderCard={(camp) => {
+                  const channelList = Array.isArray(camp.channel) 
+                    ? camp.channel 
+                    : (camp.channel ? [camp.channel] : ['Instagram']);
+                  return (
+                    <div>
+                      <span style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700 }}>{camp.pillar || 'Konten'}</span>
+                      <h5 style={{ margin: '4px 0 6px 0', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}>{camp.title || 'Tanpa Judul'}</h5>
+                      <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                        {channelList.map((c, i) => (
+                          <span key={i} style={{ fontSize: '0.68rem', backgroundColor: '#f1f5f9', padding: '1px 5px', borderRadius: '4px' }}>
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            );
+          }
+          return null;
+        }}
+      />
     </div>
   );
 }

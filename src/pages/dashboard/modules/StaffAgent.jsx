@@ -1,15 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Users, Bot, Briefcase, Mail } from 'lucide-react';
 
+import { 
+  Icon3DClipboard, 
+  Icon3DCalendar, 
+  Icon3DTag, 
+  Icon3DFlag, 
+  Icon3DGear, 
+  Icon3DUser, 
+  Icon3DNotes 
+} from '../../../components/ui/Modern3DIcons';
+
 export default function StaffAgent() {
   const { staffAgents, addStaffAgent, updateStaffAgent, deleteStaffAgent } = useWorkspaceStore();
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Online / Bertugas', 'Standby', 'Istirahat', 'Cuti / Off'];
+
+  // Filter staf berdasarkan status ketersediaan personil
+  const filteredStaff = staffAgents.filter((s) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    return s.status === statusFilter;
+  });
 
   const humanStaff = staffAgents.filter(s => s.type === 'Staf Manusia');
-  const aiStaff = staffAgents.filter(s => s.type.includes('AI'));
+  const aiStaff = staffAgents.filter(s => (s.type || '').includes('AI'));
 
   // Data Bar Chart: Personil per Departemen
   const deptCounts = staffAgents.reduce((acc, s) => {
@@ -19,9 +40,10 @@ export default function StaffAgent() {
   }, {});
 
   const staffBarData = Object.keys(deptCounts).map((dept, idx) => {
-    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#10b981', '#f59e0b'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
+    const rawDept = (dept && typeof dept === 'string') ? dept : `Divisi ${idx+1}`;
     return {
-      label: dept.split(' ')[0] || dept,
+      label: rawDept.split(' ')[0] || dept,
       value: deptCounts[dept],
       displayVal: `${deptCounts[dept]} Orang`,
       color: colors[idx % colors.length]
@@ -31,13 +53,18 @@ export default function StaffAgent() {
   // Data Donut Chart: Komposisi Manusia vs Autonomous AI Agent
   const staffDonutData = [
     { label: 'Staf Manusia', value: humanStaff.length, displayVal: `${humanStaff.length}`, color: '#0284c7' },
-    { label: 'Autonomous AI', value: aiStaff.length, displayVal: `${aiStaff.length}`, color: '#8b5cf6' }
+    { label: 'Autonomous AI', value: aiStaff.length, displayVal: `${aiStaff.length}`, color: '#0ea5e9' }
   ];
 
   const columns = [
     {
       key: 'name',
-      label: 'Nama Anggota / AI Agent',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DUser size={14} /> Nama Anggota / AI Agent
+        </span>
+      ),
+      minWidth: '220px',
       render: (val, row) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {row.avatar ? (
@@ -53,51 +80,128 @@ export default function StaffAgent() {
     },
     {
       key: 'type',
-      label: 'Tipe',
-      render: (val) => (
-        <span style={{
-          padding: '2px 8px',
-          borderRadius: '999px',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          backgroundColor: val.includes('AI') ? '#faf5ff' : '#eff6ff',
-          color: val.includes('AI') ? '#7e22ce' : '#1d4ed8'
-        }}>
-          {val}
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Tipe Anggota
         </span>
+      ),
+      minWidth: '150px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Staf Manusia'}
+          onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { type: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            color: '#0f172a',
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Staf Manusia" style={{ color: '#0f172a', fontWeight: 600 }}>Staf Manusia</option>
+          <option value="AI Agent DigiBooster" style={{ color: '#0f172a', fontWeight: 600 }}>AI Agent DigiBooster</option>
+        </select>
       )
     },
-    { key: 'role', label: 'Peran & Tanggung Jawab' },
-    { key: 'department', label: 'Departemen' },
+    { 
+      key: 'role', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Peran & Tanggung Jawab
+        </span>
+      ), 
+      minWidth: '200px' 
+    },
+    { 
+      key: 'department', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DFlag size={14} /> Departemen
+        </span>
+      ),
+      minWidth: '150px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Manajemen'}
+          onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { department: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Manajemen" style={{ color: '#0f172a', fontWeight: 500 }}>Manajemen</option>
+          <option value="Tech" style={{ color: '#0f172a', fontWeight: 500 }}>Tech</option>
+          <option value="Kreatif" style={{ color: '#0f172a', fontWeight: 500 }}>Kreatif</option>
+          <option value="Sales & Marketing" style={{ color: '#0f172a', fontWeight: 500 }}>Sales & Marketing</option>
+        </select>
+      )
+    },
     {
       key: 'status',
-      label: 'Status',
-      render: (val) => (
-        <span style={{
-          padding: '2px 8px',
-          borderRadius: '999px',
-          fontSize: '0.72rem',
-          fontWeight: 700,
-          backgroundColor: val.includes('Online') ? '#dcfce7' : '#f1f5f9',
-          color: val.includes('Online') ? '#15803d' : '#64748b'
-        }}>
-          {val}
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Status Kerja
         </span>
-      )
+      ),
+      minWidth: '140px',
+      render: (val, row, update) => {
+        const isOnline = val?.includes('Online');
+        const isRest = val?.includes('Istirahat');
+        const isStandby = val?.includes('Standby');
+        const statusColor = isOnline ? '#16a34a' : isRest ? '#d97706' : isStandby ? '#0284c7' : '#64748b';
+        return (
+          <select
+            value={val || 'Online / Bertugas'}
+            onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { status: e.target.value })}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              color: statusColor,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="Online / Bertugas" style={{ color: '#16a34a', fontWeight: 600 }}>Online / Bertugas</option>
+            <option value="Standby" style={{ color: '#0284c7', fontWeight: 600 }}>Standby</option>
+            <option value="Istirahat" style={{ color: '#d97706', fontWeight: 600 }}>Istirahat</option>
+            <option value="Cuti / Off" style={{ color: '#64748b', fontWeight: 600 }}>Cuti / Off</option>
+          </select>
+        );
+      }
     },
-    { key: 'contact', label: 'Jalur Kontak' }
+    { 
+      key: 'contact', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Jalur Kontak
+        </span>
+      ), 
+      minWidth: '160px' 
+    }
   ];
 
   const handleAddStaff = () => {
     const newAgent = {
       id: `STF-${Date.now().toString().slice(-4)}`,
-      name: 'DigiBot Sales Assistant',
-      type: 'AI Agent DigiBooster',
-      role: 'Autonomous Lead Qualifier (Groq Engine)',
-      department: 'Sales & Marketing',
+      name: '',
+      type: 'Staf Manusia',
+      role: '',
+      department: 'Manajemen',
       status: 'Online / Bertugas',
-      activeProjects: ['Pipeline Auto-Followup'],
-      contact: 'bot-sales@digibooster.internal',
+      activeProjects: [],
+      contact: '',
       avatar: null
     };
     addStaffAgent(newAgent);
@@ -108,7 +212,7 @@ export default function StaffAgent() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h2 className="ws-page-title">
-          Staff & AI Agents (Direktori SDM)
+          Staff &amp; AI Agents
         </h2>
       </div>
 
@@ -138,19 +242,24 @@ export default function StaffAgent() {
           title="Rasio Staf Manusia vs Autonomous AI"
           subtitle="Struktur kolaborasi tenaga kerja modern"
           data={staffDonutData}
-          centerValue={`${staffAgents.length}`}
-          centerLabel="Total Tim"
+          
         />
       </div>
 
       <NotionTable
         title="Direktori Karyawan & Autonomous Agents"
-        data={staffAgents}
+        data={filteredStaff}
         columns={columns}
         onAddRow={handleAddStaff}
         onDeleteRow={deleteStaffAgent}
         onUpdateCell={(id, field, val) => updateStaffAgent(id, { [field]: val })}
         exportFileName="staff_ai_agents_digibooster.csv"
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
       />
     </div>
   );

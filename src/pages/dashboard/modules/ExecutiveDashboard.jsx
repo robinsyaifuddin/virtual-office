@@ -31,34 +31,42 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
         </h2>
       </div>
 
-      {/* 4 Top Metric Cards (Selaras Biru) */}
+      {/* 4 Top Metric Cards (Selaras Biru) dengan Navigasi Simulasi Demo */}
       <div className="ws-metric-grid">
-        <MetricCard
-          title="Net Cashflow Bulan Ini"
-          value={executiveSummary.monthlyNetCashflow}
-          change={executiveSummary.cashflowGrowth}
-          trend="up"
-          subtitle="vs bulan lalu"
-          icon={DollarSign}
-        />
-        <MetricCard
-          title="Active Pipeline Value"
-          value={executiveSummary.activePipelineValue}
-          subtitle={`${crmClients.length} Prospek Aktif`}
-          icon={Briefcase}
-        />
-        <MetricCard
-          title="Task Velocity & Health"
-          value={`${executiveSummary.taskVelocityPercent}%`}
-          subtitle={`${executiveSummary.taskVelocityStatus} delivery`}
-          icon={Zap}
-        />
-        <MetricCard
-          title="Rata-rata Capaian OKR"
-          value={`${executiveSummary.okrAverageProgress}%`}
-          subtitle="Target Kuartal Q4"
-          icon={Target}
-        />
+        <div onClick={() => onNavigateModule && onNavigateModule('keuangandanprofit')} style={{ cursor: 'pointer' }} title="Klik untuk simulasi buka modul Keuangan & Profit">
+          <MetricCard
+            title="Net Cashflow Bulan Ini"
+            value={executiveSummary.monthlyNetCashflow}
+            change={executiveSummary.cashflowGrowth}
+            trend="up"
+            subtitle="vs bulan lalu (Klik Buka)"
+            icon={DollarSign}
+          />
+        </div>
+        <div onClick={() => onNavigateModule && onNavigateModule('crmdanklien')} style={{ cursor: 'pointer' }} title="Klik untuk simulasi buka modul CRM & Klien">
+          <MetricCard
+            title="Active Pipeline Value"
+            value={executiveSummary.activePipelineValue}
+            subtitle={`${crmClients.length} Prospek Aktif (Klik Buka)`}
+            icon={Briefcase}
+          />
+        </div>
+        <div onClick={() => onNavigateModule && onNavigateModule('tugasdankalender')} style={{ cursor: 'pointer' }} title="Klik untuk simulasi buka modul Tugas &amp; Kalender">
+          <MetricCard
+            title="Task Velocity & Health"
+            value={`${executiveSummary.taskVelocityPercent}%`}
+            subtitle={`${executiveSummary.taskVelocityStatus} delivery (Klik Buka)`}
+            icon={Zap}
+          />
+        </div>
+        <div onClick={() => onNavigateModule && onNavigateModule('sasarandankpi')} style={{ cursor: 'pointer' }} title="Klik untuk simulasi buka modul Sasaran & KPI">
+          <MetricCard
+            title="Rata-rata Capaian OKR"
+            value={`${executiveSummary.okrAverageProgress}%`}
+            subtitle="Target Kuartal Q4 (Klik Buka)"
+            icon={Target}
+          />
+        </div>
       </div>
 
       {/* Analytics 2 Charts: Bar Chart & Donut Chart */}
@@ -72,8 +80,6 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           title="Komposisi Pendapatan Layanan"
           subtitle="Distribusi portofolio kontrak aktif"
           data={executiveDonutData}
-          centerValue="Rp 68.5M"
-          centerLabel="Pemasukan"
         />
       </div>
 
@@ -86,7 +92,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           targetText="Target SLA >= 90%"
         />
 
-        {/* Action Center & Critical Alerts */}
+        {/* Action Center & Critical Alerts dengan Tombol Tindaklanjuti */}
         <div style={{
           backgroundColor: '#ffffff',
           border: '1px solid #e2e8f0',
@@ -96,11 +102,14 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           flexDirection: 'column',
           gap: '12px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <AlertTriangle size={18} color="#0284c7" />
-            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
-              Action Center & Critical Alerts
-            </h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={18} color="#0284c7" />
+              <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
+                Action Center & Critical Alerts
+              </h4>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>Simulasi Demo</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -113,16 +122,48 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
                   backgroundColor: '#f0f9ff',
                   border: '1px solid #bae6fd',
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2px'
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px'
                 }}
               >
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>
-                  {alert.title}
-                </span>
-                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                  {alert.detail}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>
+                    {alert.title}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                    {alert.detail}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    if (alert.title.includes('Proposal') || alert.title.includes('Enterprise')) {
+                      onNavigateModule && onNavigateModule('crmdanklien');
+                    } else if (alert.title.includes('Invoice') || alert.title.includes('Tagihan')) {
+                      onNavigateModule && onNavigateModule('keuangandanprofit');
+                    } else {
+                      onNavigateModule && onNavigateModule('tugasdankalender');
+                    }
+                  }}
+                  className="ws-btn-transition"
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    flexShrink: 0
+                  }}
+                >
+                  <span>Buka Modul</span>
+                  <ArrowRight size={12} />
+                </button>
               </div>
             ))}
           </div>

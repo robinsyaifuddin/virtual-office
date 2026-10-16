@@ -17,6 +17,7 @@ import {
   Download
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
+import { exportRowAsPdf } from '../../../utils/exportPdf';
 
 import { 
   Icon3DClipboard, 
@@ -121,7 +122,7 @@ export default function UniversalDetailModal({
             <span className="ws-mobile-hidden">Daftar Operasional</span>
             <span className="ws-mobile-hidden">/</span>
             <span style={{ fontWeight: 700, color: '#0f172a', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {mainTitle}
+              {mainTitle && mainTitle !== 'Tanpa Judul' ? mainTitle : 'Data Baru'}
             </span>
           </div>
 
@@ -138,6 +139,29 @@ export default function UniversalDetailModal({
                 <CheckCircle2 size={14} /> Tersimpan
               </span>
             )}
+
+            {/* Tombol Unduh PDF Dokumen Resmi */}
+            <button
+              onClick={() => exportRowAsPdf(data, columns, { title })}
+              title="Unduh Dokumen PDF Resmi"
+              className="ws-btn-transition"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #bae6fd',
+                backgroundColor: '#f0f9ff',
+                color: '#0284c7',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <FileText size={14} />
+              <span className="ws-mobile-hidden">Unduh PDF</span>
+            </button>
 
             {/* Toggle Full Width Modal */}
             <button
@@ -248,7 +272,7 @@ export default function UniversalDetailModal({
                     {/* Render khusus untuk PIC / Assignee (Dropdown Staff & AI Agent) */}
                     {(col.key === 'pic' || col.key === 'assignee' || col.key === 'owner' || col.key === 'author') ? (
                       <select
-                        value={val || (staffAgents && staffAgents[0] ? staffAgents[0].name : '')}
+                        value={val || ''}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
                         className="ws-notion-pill"
                         style={{
@@ -264,6 +288,7 @@ export default function UniversalDetailModal({
                           fontFamily: 'inherit'
                         }}
                       >
+                        <option value="">Pilih Penanggung Jawab...</option>
                         {(staffAgents || []).map((staff) => (
                           <option key={staff.id || staff.name} value={staff.name}>
                             {staff.name}
@@ -288,23 +313,234 @@ export default function UniversalDetailModal({
                           fontFamily: 'inherit'
                         }}
                       >
-                        {(col.options || taskCategories || []).map((cat) => (
+                        {(col.options || taskCategories || [
+                          'Pembayaran Klien',
+                          'Server & Tools',
+                          'Marketing Ads',
+                          'Operasional Kantor',
+                          'Gaji & Tim',
+                          'Lain-lain'
+                        ]).map((cat) => (
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
                       </select>
-                    ) : (col.key === 'dueDate' || col.key === 'date' || col.key === 'completedDate' || col.key === 'tanggalSelesai') ? (
+                    ) : (col.key === 'channel') ? (
+                      <select
+                        value={Array.isArray(val) ? val[0] : (val || 'Instagram')}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Instagram">Instagram</option>
+                        <option value="TikTok">TikTok</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Website">Website</option>
+                        <option value="Meta Ads">Meta Ads</option>
+                        <option value="Email">Email</option>
+                      </select>
+                    ) : (col.key === 'pillar') ? (
+                      <select
+                        value={val || 'Edukasi'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Edukasi">Edukasi</option>
+                        <option value="Case Study">Case Study</option>
+                        <option value="Promo/Hard Sell">Promo/Hard Sell</option>
+                        <option value="Branding">Branding</option>
+                        <option value="Behind The Scenes">Behind The Scenes</option>
+                        <option value="Tips & Trick">Tips & Trick</option>
+                      </select>
+                    ) : (col.key === 'services') ? (
+                      <select
+                        value={Array.isArray(val) ? val[0] : (val || 'Custom AI')}
+                        onChange={(e) => handleFieldChange(col.key, [e.target.value])}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Custom AI">Custom AI</option>
+                        <option value="Web Dev">Web Dev</option>
+                        <option value="Branding">Branding</option>
+                        <option value="Social Media">Social Media</option>
+                        <option value="Digital Ads">Digital Ads</option>
+                        <option value="Full Retainer">Full Retainer</option>
+                      </select>
+                    ) : (col.key === 'division') ? (
+                      <select
+                        value={val || 'Sales & Marketing'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Sales & Marketing">Sales & Marketing</option>
+                        <option value="Operasional/Produksi">Operasional/Produksi</option>
+                        <option value="Kreatif">Kreatif</option>
+                        <option value="Teknologi">Teknologi</option>
+                        <option value="Manajemen & Legal">Manajemen & Legal</option>
+                      </select>
+                    ) : (col.key === 'quarter') ? (
+                      <select
+                        value={val || 'Q4'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                      </select>
+                    ) : (col.key === 'department') ? (
+                      <select
+                        value={val || 'Manajemen'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Manajemen">Manajemen</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Kreatif">Kreatif</option>
+                        <option value="Sales & Marketing">Sales & Marketing</option>
+                      </select>
+                    ) : (col.key === 'accessLevel') ? (
+                      <select
+                        value={val || 'Publik Semua Tim'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="Publik Semua Tim">Publik Semua Tim</option>
+                        <option value="Hanya Manager">Hanya Manager</option>
+                        <option value="Rahasia/Direksi">Rahasia/Direksi</option>
+                      </select>
+                    ) : (col.key === 'rating') ? (
+                      <select
+                        value={val || 5}
+                        onChange={(e) => handleFieldChange(col.key, Number(e.target.value))}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #fef08a',
+                          backgroundColor: '#fefce8',
+                          color: '#ca8a04',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value={5}>Skor 5/5 (Mutu Terbaik)</option>
+                        <option value={4}>Skor 4/5 (Sangat Baik)</option>
+                        <option value={3}>Skor 3/5 (Cukup Baik)</option>
+                        <option value={2}>Skor 2/5 (Perlu Perbaikan)</option>
+                        <option value={1}>Skor 1/5 (Tidak Memenuhi SLA)</option>
+                      </select>
+                    ) : (
+                      col.key === 'dueDate' || 
+                      col.key === 'date' || 
+                      col.key === 'completedDate' || 
+                      col.key === 'publishDate' || 
+                      col.key === 'updatedAt' || 
+                      col.key === 'dateTime' || 
+                      col.key === 'targetDeadline' ||
+                      col.key === 'tanggalSelesai'
+                    ) ? (
                       <input
                         type="date"
-                        value={val || ''}
+                        value={val ? String(val).split(' ')[0] : ''}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
                         style={{
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid #cbd5e1',
                           backgroundColor: '#f8fafc',
-                          padding: '5px 10px',
+                          padding: '6px 12px',
                           borderRadius: '6px',
                           fontSize: '0.82rem',
                           outline: 'none',
-                          fontFamily: 'inherit'
+                          fontFamily: 'inherit',
+                          color: '#0f172a',
+                          fontWeight: 500,
+                          cursor: 'pointer'
                         }}
                       />
                     ) : (col.key === 'status') ? (
@@ -334,6 +570,7 @@ export default function UniversalDetailModal({
                         <option value="Online / Bertugas">Online / Bertugas</option>
                         <option value="Standby">Standby</option>
                         <option value="Istirahat">Istirahat</option>
+                        <option value="Cuti / Off">Cuti / Off</option>
                       </select>
                     ) : (col.key === 'stage') ? (
                       <select
@@ -357,7 +594,8 @@ export default function UniversalDetailModal({
                         <option value="Discovery Call">Discovery Call</option>
                         <option value="Proposal Terkirim">Proposal Terkirim</option>
                         <option value="Negosiasi">Negosiasi</option>
-                        <option value="Deal Won 🎉">Deal Won 🎉</option>
+                        <option value="Deal Won">Deal Won</option>
+                        <option value="Deal Lost">Deal Lost</option>
                         <option value="Ide">Ide Konten</option>
                         <option value="Design/Video">Design/Video</option>
                         <option value="Review">Review</option>
@@ -411,8 +649,19 @@ export default function UniversalDetailModal({
                         <option value="AI Agent DigiBooster">AI Agent DigiBooster</option>
                         <option value="Internal Weekly Sync">Internal Weekly Sync</option>
                         <option value="Client Kick-off">Client Kick-off</option>
+                        <option value="Review Sprint">Review Sprint</option>
+                        <option value="Evaluasi Klien">Evaluasi Klien</option>
+                        <option value="Strategi Bisnis">Strategi Bisnis</option>
                       </select>
-                    ) : (col.key === 'description' || col.key === 'keterangan') ? (
+                    ) : (
+                      col.key === 'description' || 
+                      col.key === 'keterangan' || 
+                      col.key === 'summaryNotes' || 
+                      col.key === 'whatWentWell' || 
+                      col.key === 'bottlenecks' || 
+                      col.key === 'actionPlan' ||
+                      col.key === 'outputResult'
+                    ) ? (
                       <textarea
                         value={typeof val === 'object' ? JSON.stringify(val) : (val || '')}
                         onChange={(e) => {
@@ -829,23 +1078,31 @@ export default function UniversalDetailModal({
           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
             Data tersimpan otomatis
           </span>
-          <button
-            onClick={onClose}
-            className="ws-btn-transition"
-            style={{
-              padding: '7px 20px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              color: '#334155',
-              cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
-            }}
-          >
-            Selesai
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={onClose}
+              className="ws-btn-transition"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 22px',
+                borderRadius: '8px',
+                border: 'none',
+                backgroundColor: '#0284c7',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: '#ffffff',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+            >
+              <CheckCircle2 size={15} />
+              Simpan &amp; Selesai
+            </button>
+          </div>
         </div>
       </div>
     </div>

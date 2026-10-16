@@ -1,20 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart, ProgressBarWidget } from '../components/ChartWidgets';
 import { Target, Award, TrendingUp } from 'lucide-react';
 
+import { 
+  Icon3DClipboard, 
+  Icon3DCalendar, 
+  Icon3DTag, 
+  Icon3DFlag, 
+  Icon3DGear, 
+  Icon3DUser, 
+  Icon3DNotes 
+} from '../../../components/ui/Modern3DIcons';
+
 export default function SasaranKpi() {
   const { okrGoals, addOkrGoal, updateOkrGoal, deleteOkrGoal } = useWorkspaceStore();
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Belum Mulai', 'On Track', 'At Risk', 'Tercapai'];
+
+  // Filter sasaran & KPI berdasarkan status ketercapaian
+  const filteredGoals = okrGoals.filter((g) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    let pct = Math.round((g.currentNum / g.targetNum) * 100);
+    if (g.unit === 'Detik') pct = Math.round((g.targetNum / g.currentNum) * 100);
+    const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
+    const currentStatus = g.status || autoStatus;
+    return currentStatus === statusFilter;
+  });
 
   // Data Bar Chart: Progres Capaian per Sasaran (OKR)
   const okrBarData = okrGoals.slice(0, 5).map((g, idx) => {
     let pct = Math.round((g.currentNum / g.targetNum) * 100);
     if (g.unit === 'Detik') pct = Math.round((g.targetNum / g.currentNum) * 100);
-    const colors = ['#0284c7', '#38bdf8', '#10b981', '#6366f1', '#f59e0b'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
     // Ambil kata pertama yang informatif agar pas di layar mobile tanpa terpotong
-    const firstWord = g.objective.split(' ')[0] || `OKR ${idx+1}`;
+    const rawObj = (g.objective && typeof g.objective === 'string') ? g.objective : `OKR ${idx+1}`;
+    const firstWord = rawObj.split(' ')[0] || `OKR ${idx+1}`;
     return {
       label: firstWord,
       value: Math.min(pct, 100),
@@ -45,14 +71,119 @@ export default function SasaranKpi() {
   }));
 
   const columns = [
-    { key: 'objective', label: 'Sasaran Utama (Objective)', minWidth: '180px' },
-    { key: 'keyResult', label: 'Indikator Kunci (Key Result)', minWidth: '180px' },
-    { key: 'division', label: 'Divisi', minWidth: '110px' },
-    { key: 'quarter', label: 'Periode', minWidth: '80px' },
+    { 
+      key: 'objective', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Sasaran Utama (Objective)
+        </span>
+      ), 
+      minWidth: '220px' 
+    },
+    { 
+      key: 'keyResult', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Indikator Kunci (Key Result)
+        </span>
+      ), 
+      minWidth: '220px' 
+    },
+    { 
+      key: 'division', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Divisi
+        </span>
+      ), 
+      minWidth: '150px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Sales & Marketing'}
+          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { division: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Sales & Marketing" style={{ color: '#0f172a', fontWeight: 500 }}>Sales & Marketing</option>
+          <option value="Operasional/Produksi" style={{ color: '#0f172a', fontWeight: 500 }}>Operasional/Produksi</option>
+          <option value="Kreatif" style={{ color: '#0f172a', fontWeight: 500 }}>Kreatif</option>
+          <option value="Teknologi" style={{ color: '#0f172a', fontWeight: 500 }}>Teknologi</option>
+          <option value="Manajemen & Legal" style={{ color: '#0f172a', fontWeight: 500 }}>Manajemen & Legal</option>
+        </select>
+      )
+    },
+    { 
+      key: 'quarter', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DFlag size={14} /> Periode Kuartal
+        </span>
+      ), 
+      minWidth: '110px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Q4'}
+          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { quarter: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Q1" style={{ color: '#0f172a', fontWeight: 500 }}>Q1</option>
+          <option value="Q2" style={{ color: '#0f172a', fontWeight: 500 }}>Q2</option>
+          <option value="Q3" style={{ color: '#0f172a', fontWeight: 500 }}>Q3</option>
+          <option value="Q4" style={{ color: '#0f172a', fontWeight: 500 }}>Q4</option>
+        </select>
+      )
+    },
+    { 
+      key: 'targetDeadline', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DCalendar size={14} /> Target Deadline
+        </span>
+      ), 
+      minWidth: '135px',
+      render: (val, row, update) => (
+        <input
+          type="date"
+          value={val ? String(val).split(' ')[0] : '2026-12-31'}
+          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { targetDeadline: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontSize: '0.8rem',
+            fontFamily: 'inherit',
+            color: '#0f172a',
+            outline: 'none',
+            padding: '2px 4px',
+            cursor: 'pointer'
+          }}
+        />
+      )
+    },
     {
       key: 'progress',
-      label: 'Capaian Progres',
-      minWidth: '110px',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Capaian Progres
+        </span>
+      ),
+      minWidth: '130px',
       render: (_, row) => {
         let pct = Math.round((row.currentNum / row.targetNum) * 100);
         if (row.unit === 'Detik') {
@@ -68,20 +199,74 @@ export default function SasaranKpi() {
         );
       }
     },
-    { key: 'owner', label: 'Pemilik (Owner)', minWidth: '120px' }
+    {
+      key: 'status',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Status
+        </span>
+      ),
+      minWidth: '140px',
+      render: (val, row, update) => {
+        let pct = Math.round((row.currentNum / row.targetNum) * 100);
+        if (row.unit === 'Detik') pct = Math.round((row.targetNum / row.currentNum) * 100);
+        const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
+        const displayStatus = val || autoStatus;
+
+        const statusColors = {
+          'Belum Mulai': '#dc2626',
+          'On Track': '#0284c7',
+          'At Risk': '#d97706',
+          'Tercapai': '#16a34a'
+        };
+        const currentTextColor = statusColors[displayStatus] || '#0284c7';
+
+        return (
+          <select
+            value={displayStatus}
+            onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { status: e.target.value })}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: currentTextColor,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="On Track" style={{ color: '#0284c7', fontWeight: 600 }}>On Track</option>
+            <option value="At Risk" style={{ color: '#d97706', fontWeight: 600 }}>At Risk</option>
+            <option value="Belum Mulai" style={{ color: '#dc2626', fontWeight: 600 }}>Belum Mulai</option>
+            <option value="Tercapai" style={{ color: '#16a34a', fontWeight: 600 }}>Tercapai</option>
+          </select>
+        );
+      }
+    },
+    { 
+      key: 'owner', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DUser size={14} /> Pemilik (Owner)
+        </span>
+      ), 
+      minWidth: '140px' 
+    }
   ];
 
   const handleAddGoal = () => {
     const newGoal = {
       id: `OKR-${Date.now().toString().slice(-4)}`,
-      objective: 'Pengembangan Fitur Automasi Lanjutan',
-      keyResult: 'Implementasi 5 integrasi webhook baru',
+      objective: '',
+      keyResult: '',
       division: 'Operasional/Produksi',
       quarter: 'Q4',
-      targetNum: 5,
-      currentNum: 2,
-      unit: 'Fitur',
-      owner: 'Maya Nirmala'
+      targetNum: 100,
+      currentNum: 0,
+      unit: '%',
+      status: 'Belum Mulai',
+      owner: ''
     };
     addOkrGoal(newGoal);
     return newGoal;
@@ -91,7 +276,7 @@ export default function SasaranKpi() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h2 className="ws-page-title">
-          Sasaran & KPI (OKR Perusahaan)
+          Sasaran &amp; KPI
         </h2>
       </div>
 
@@ -125,19 +310,23 @@ export default function SasaranKpi() {
           title="Sebaran Sasaran Strategis per Divisi"
           subtitle="Fokus prioritas per departemen"
           data={okrDonutData}
-          centerValue={`${okrGoals.length}`}
-          centerLabel="Total OKR"
         />
       </div>
 
       <NotionTable
         title="Matriks OKR Kuartal 4"
-        data={okrGoals}
+        data={filteredGoals}
         columns={columns}
         onAddRow={handleAddGoal}
         onDeleteRow={deleteOkrGoal}
         onUpdateCell={(id, field, val) => updateOkrGoal(id, { [field]: val })}
         exportFileName="okr_kpi_digibooster.csv"
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
       />
     </div>
   );

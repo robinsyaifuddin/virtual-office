@@ -33,7 +33,7 @@ export const useWorkspaceStore = create((set, get) => ({
       services: ['Custom AI', 'Web Dev'],
       pic: 'Kevin Pratama',
       contractDoc: 'PKS_Sinergi_Draft_v2.pdf',
-      updatedAt: '15 Okt 2026'
+      updatedAt: '2026-10-15'
     },
     {
       id: 'CRM-002',
@@ -44,18 +44,18 @@ export const useWorkspaceStore = create((set, get) => ({
       services: ['Branding', 'Social Media'],
       pic: 'Dina Safitri',
       contractDoc: 'Proposal_Branding_Kopi.pdf',
-      updatedAt: '14 Okt 2026'
+      updatedAt: '2026-10-14'
     },
     {
       id: 'CRM-003',
       name: 'Nusa Cipta Solusi',
       contact: '+62 813-7766-5544',
-      stage: 'Deal Won 🎉',
+      stage: 'Deal Won',
       dealValue: 60000000,
       services: ['Custom AI', 'Digital Ads'],
       pic: 'Maya Nirmala',
       contractDoc: 'PKS_NusaCipta_Final.pdf',
-      updatedAt: '12 Okt 2026'
+      updatedAt: '2026-10-12'
     },
     {
       id: 'CRM-004',
@@ -66,7 +66,7 @@ export const useWorkspaceStore = create((set, get) => ({
       services: ['Custom AI'],
       pic: 'Tomi',
       contractDoc: null,
-      updatedAt: '10 Okt 2026'
+      updatedAt: '2026-10-10'
     },
     {
       id: 'CRM-005',
@@ -77,7 +77,40 @@ export const useWorkspaceStore = create((set, get) => ({
       services: ['Web Dev'],
       pic: 'Kevin Pratama',
       contractDoc: null,
-      updatedAt: '09 Okt 2026'
+      updatedAt: '2026-10-09'
+    },
+    {
+      id: 'CRM-006',
+      name: 'PT Mitra Retail Mandiri (Arsip Sept)',
+      contact: '+62 811-9922-3344',
+      stage: 'Deal Won',
+      dealValue: 85000000,
+      services: ['Custom AI', 'Omnichannel CRM'],
+      pic: 'Kevin Pratama',
+      contractDoc: 'PKS_MitraRetail_Sept26.pdf',
+      updatedAt: '2026-09-24'
+    },
+    {
+      id: 'CRM-007',
+      name: 'CV Samudera Cargo (Arsip Agt)',
+      contact: '+62 817-3344-5566',
+      stage: 'Deal Won',
+      dealValue: 40000000,
+      services: ['Web Dev', 'Tracking'],
+      pic: 'Maya Nirmala',
+      contractDoc: 'PKS_Samudera_Aug26.pdf',
+      updatedAt: '2026-08-19'
+    },
+    {
+      id: 'CRM-008',
+      name: 'Resto Rasa Nusantara (Arsip Juli)',
+      contact: '+62 819-5566-7788',
+      stage: 'Deal Won',
+      dealValue: 28000000,
+      services: ['Branding', 'Social Media'],
+      pic: 'Dina Safitri',
+      contractDoc: 'PKS_RasaNusantara_Jul26.pdf',
+      updatedAt: '2026-07-28'
     }
   ],
   addCrmClient: (client) => set((state) => ({ crmClients: [client, ...state.crmClients] })),
@@ -144,6 +177,51 @@ export const useWorkspaceStore = create((set, get) => ({
       date: '2026-10-05',
       status: 'Lunas',
       receiptDoc: 'Receipt_INV-2026-077.pdf'
+    },
+    // Transaksi Arsip Historis
+    {
+      id: 'FIN-106',
+      title: 'Pelunasan Kontrak Q3 PT Mitra Retail (Sept)',
+      type: 'Pemasukan',
+      category: 'Pembayaran Klien',
+      amount: 85000000,
+      clientRef: 'PT Mitra Retail Mandiri',
+      date: '2026-09-26',
+      status: 'Lunas',
+      receiptDoc: 'Receipt_INV-2026-068.pdf'
+    },
+    {
+      id: 'FIN-107',
+      title: 'Pembayaran Gaji & Bonus Tim Tech Q3 (Sept)',
+      type: 'Pengeluaran',
+      category: 'Operasional',
+      amount: 32000000,
+      clientRef: 'Internal HR',
+      date: '2026-09-25',
+      status: 'Lunas',
+      receiptDoc: 'Slip_Payroll_Sept26.pdf'
+    },
+    {
+      id: 'FIN-108',
+      title: 'Termin Akhir CV Samudera Cargo (Agustus)',
+      type: 'Pemasukan',
+      category: 'Pembayaran Klien',
+      amount: 40000000,
+      clientRef: 'CV Samudera Cargo',
+      date: '2026-08-20',
+      status: 'Lunas',
+      receiptDoc: 'Receipt_INV-2026-052.pdf'
+    },
+    {
+      id: 'FIN-109',
+      title: 'Pembayaran Jasa Retainer Resto Rasa (Juli)',
+      type: 'Pemasukan',
+      category: 'Pembayaran Klien',
+      amount: 28000000,
+      clientRef: 'Resto Rasa Nusantara',
+      date: '2026-07-30',
+      status: 'Lunas',
+      receiptDoc: 'Receipt_INV-2026-039.pdf'
     }
   ],
   addFinanceTransaction: (tx) => set((state) => ({ financeTransactions: [tx, ...state.financeTransactions] })),
@@ -159,10 +237,10 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MKT-001',
       title: '10 Script Video Pendek TikTok/Reels Kantor Otomatis',
-      channel: ['TikTok', 'Instagram'],
+      channel: 'TikTok',
       pillar: 'Edukasi',
       stage: 'Siap Tayang',
-      publishDate: '2026-10-18 10:00',
+      publishDate: '2026-10-18',
       adSpend: 2500000,
       metrics: { reach: 84000, leads: 42 },
       mediaLink: 'Aset_Video_KantorAI.mp4'
@@ -170,10 +248,10 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MKT-002',
       title: 'Studi Kasus Efisiensi 340% dengan Autonomous AI',
-      channel: ['LinkedIn', 'Website'],
+      channel: 'LinkedIn',
       pillar: 'Case Study',
       stage: 'Review',
-      publishDate: '2026-10-20 14:00',
+      publishDate: '2026-10-20',
       adSpend: 1500000,
       metrics: { reach: 24000, leads: 18 },
       mediaLink: 'Whitepaper_CaseStudy.pdf'
@@ -181,10 +259,10 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MKT-003',
       title: 'Broadcast Promo Flash Sale 10.10 Multi-Agent',
-      channel: ['Email', 'Meta Ads'],
+      channel: 'Email',
       pillar: 'Promo/Hard Sell',
       stage: 'Selesai Tayang',
-      publishDate: '2026-10-10 09:00',
+      publishDate: '2026-10-10',
       adSpend: 3000000,
       metrics: { reach: 110000, leads: 95 },
       mediaLink: 'Banner_Promo_1010.png'
@@ -192,13 +270,47 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MKT-004',
       title: 'Behind the Scenes: AI Agent Bekerja di Belakang Layar',
-      channel: ['Instagram', 'YouTube'],
+      channel: 'Instagram',
       pillar: 'Branding',
       stage: 'Design/Video',
-      publishDate: '2026-10-22 19:00',
+      publishDate: '2026-10-22',
       adSpend: 500000,
       metrics: { reach: 0, leads: 0 },
       mediaLink: 'Raw_Footage_BTS.zip'
+    },
+    // Kampanye Arsip Historis
+    {
+      id: 'MKT-005',
+      title: 'Peluncuran Podcast Bisnis AI Episode 1 (September)',
+      channel: 'YouTube',
+      pillar: 'Edukasi',
+      stage: 'Selesai Tayang',
+      publishDate: '2026-09-18',
+      adSpend: 4000000,
+      metrics: { reach: 98000, leads: 64 },
+      mediaLink: 'Video_Podcast_Ep1.mp4'
+    },
+    {
+      id: 'MKT-006',
+      title: 'Webinar Kolaborasi Efisiensi Operasional (Agustus)',
+      channel: 'LinkedIn',
+      pillar: 'Edukasi',
+      stage: 'Selesai Tayang',
+      publishDate: '2026-08-22',
+      adSpend: 2000000,
+      metrics: { reach: 45000, leads: 82 },
+      mediaLink: 'Recording_Webinar_Aug.mp4'
+    },
+    {
+      id: 'MKT-007',
+      title: 'Kampanye Branding Mid-Year Review 2026 (Juli)',
+      channel: 'Instagram',
+      pillar: 'Branding',
+      stage: 'Selesai Tayang',
+      publishDate: '2026-07-25',
+      adSpend: 3500000,
+      metrics: { reach: 125000, leads: 110 },
+      mediaLink: 'Carousel_MidYear.zip'
     }
   ],
   addMarketingCampaign: (camp) => set((state) => ({ marketingCampaigns: [camp, ...state.marketingCampaigns] })),
@@ -305,32 +417,105 @@ export const useWorkspaceStore = create((set, get) => ({
       project: 'Internal Tech',
       assignee: 'Kayla',
       priority: 'P3',
-      status: 'Backlog',
+      status: 'Menunggu Review',
       dueDate: '2026-10-28',
       completedDate: '',
-      outputResult: '',
+      outputResult: 'Draft checklist evaluasi siap ditinjau',
       createdBy: 'Executive Owner',
       createdAt: '2026-09-15 08:30',
       updatedBy: 'Kayla',
-      updatedAt: '2026-09-18 14:10',
+      updatedAt: '2026-10-14 14:10',
       comments: []
     },
     {
       id: 'TSK-005',
       title: 'Evaluasi Software dan SOP Workflow',
-      description: 'Evaluasi software yang digunakan selama Agustus untuk menentukan perbaikan dan prioritas September.',
+      description: 'Evaluasi software yang digunakan untuk menentukan perbaikan dan prioritas tim.',
       category: 'SOP & Workflow',
       project: 'Internal Management',
       assignee: 'Dimas',
       priority: 'P2',
-      status: 'Backlog',
-      dueDate: '2026-10-30',
-      completedDate: '',
-      outputResult: '',
+      status: 'Selesai',
+      dueDate: '2026-10-12',
+      completedDate: '2026-10-12',
+      outputResult: 'Dokumen SOP Workflow Oct2026 disahkan',
       createdBy: 'Executive Owner',
       createdAt: '2026-09-15 08:32',
       updatedBy: 'Dimas',
-      updatedAt: '2026-09-20 17:05',
+      updatedAt: '2026-10-12 17:05',
+      comments: []
+    },
+    // Data Arsip Historis (Bulan Lampau)
+    {
+      id: 'TSK-006',
+      title: 'Finalisasi Laporan Keuangan Q3 (September)',
+      description: 'Rekonsiliasi rekening koran dan pembukuan kuartal 3 selesai disetujui auditor internal.',
+      category: 'KPI & Reporting',
+      project: 'Internal Agency',
+      assignee: 'Kayla',
+      priority: 'P1',
+      status: 'Selesai',
+      dueDate: '2026-09-28',
+      completedDate: '2026-09-28',
+      outputResult: 'Laporan Q3_Signed.pdf',
+      createdBy: 'Executive Owner',
+      createdAt: '2026-09-01 10:00',
+      updatedBy: 'Kayla',
+      updatedAt: '2026-09-28 17:00',
+      comments: []
+    },
+    {
+      id: 'TSK-007',
+      title: 'Peluncuran Website V2 PT Sinergi Digital',
+      description: 'Deployment landing page dan integrasi tracking pixel selesai tepat waktu.',
+      category: 'Website & Tracking',
+      project: 'PT Sinergi Digital Utama',
+      assignee: 'Dimas',
+      priority: 'P1',
+      status: 'Selesai',
+      dueDate: '2026-09-15',
+      completedDate: '2026-09-15',
+      outputResult: 'Live di production domain',
+      createdBy: 'Executive Owner',
+      createdAt: '2026-09-01 09:00',
+      updatedBy: 'Dimas',
+      updatedAt: '2026-09-15 18:30',
+      comments: []
+    },
+    {
+      id: 'TSK-008',
+      title: 'Audit Infrastruktur Server & Cloud (Agustus)',
+      description: 'Pembersihan database staging dan peningkatan kapasitas server AI inference.',
+      category: 'Procurement & Tools',
+      project: 'Internal Tech',
+      assignee: 'Budi',
+      priority: 'P2',
+      status: 'Selesai',
+      dueDate: '2026-08-25',
+      completedDate: '2026-08-25',
+      outputResult: 'Dokumen arsitektur cloud v2',
+      createdBy: 'Executive Owner',
+      createdAt: '2026-08-05 11:20',
+      updatedBy: 'Budi',
+      updatedAt: '2026-08-25 16:00',
+      comments: []
+    },
+    {
+      id: 'TSK-009',
+      title: 'Workshop Orientasi Tim AI Baru (Juli)',
+      description: 'Sesi pelatihan onboarding 4 agent engineer dan transfer knowledge framework prompt.',
+      category: 'SOP & Workflow',
+      project: 'Internal Management',
+      assignee: 'Dimas',
+      priority: 'P2',
+      status: 'Selesai',
+      dueDate: '2026-07-20',
+      completedDate: '2026-07-20',
+      outputResult: 'Modul pelatihan internal & video rekaman',
+      createdBy: 'Executive Owner',
+      createdAt: '2026-07-01 09:00',
+      updatedBy: 'Dimas',
+      updatedAt: '2026-07-20 15:45',
       comments: []
     }
   ],
@@ -375,7 +560,9 @@ export const useWorkspaceStore = create((set, get) => ({
       targetNum: 100000000,
       currentNum: 75000000,
       unit: 'IDR',
-      owner: 'Kevin Pratama'
+      status: 'On Track',
+      owner: 'Kevin Pratama',
+      targetDeadline: '2026-12-31'
     },
     {
       id: 'OKR-002',
@@ -386,7 +573,9 @@ export const useWorkspaceStore = create((set, get) => ({
       targetNum: 2.0,
       currentNum: 1.4,
       unit: 'Detik',
-      owner: 'Maya Nirmala'
+      status: 'Tercapai',
+      owner: 'Maya Nirmala',
+      targetDeadline: '2026-11-30'
     },
     {
       id: 'OKR-003',
@@ -397,7 +586,9 @@ export const useWorkspaceStore = create((set, get) => ({
       targetNum: 500,
       currentNum: 380,
       unit: 'Leads',
-      owner: 'Dina Safitri'
+      status: 'On Track',
+      owner: 'Dina Safitri',
+      targetDeadline: '2026-12-15'
     }
   ],
   addOkrGoal: (goal) => set((state) => ({ okrGoals: [goal, ...state.okrGoals] })),
@@ -413,8 +604,9 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MTG-001',
       title: 'Weekly Management Sync: Evaluasi Sprint & Cashflow Q4',
-      dateTime: '2026-10-15 09:00 WIB',
+      dateTime: '2026-10-15',
       type: 'Internal Weekly Sync',
+      status: 'Selesai',
       participants: ['Kevin Pratama', 'Nadira', 'Maya Nirmala', 'Dina Safitri'],
       link: 'https://meet.google.com/dgb-sync-q4',
       summaryNotes: 'Arus kas bulan ini sangat sehat surplus Rp 68,5jt. Target peluncuran modul baru siap di minggu ke-3 Oktober. Klien PT Nusa Cipta telah menyetujui PKS final.',
@@ -426,8 +618,9 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'MTG-002',
       title: 'Discovery Call & Demo Sistem Otomasi Klien Logistik',
-      dateTime: '2026-10-13 14:00 WIB',
+      dateTime: '2026-10-13',
       type: 'Client Kick-off',
+      status: 'Terjadwal',
       participants: ['Kevin Pratama', 'Tomi'],
       link: 'https://meet.google.com/log-demo-ai',
       summaryNotes: 'Klien tertarik dengan integrasi WhatsApp ke database internal untuk status resi dan order otomatis.',
@@ -450,7 +643,9 @@ export const useWorkspaceStore = create((set, get) => ({
       id: 'RPT-001',
       period: 'Evaluasi Retrospektif Sprint 2 - Oktober 2026',
       category: 'Retrospektif Sprint',
+      date: '2026-10-14',
       rating: 5,
+      status: 'Final',
       whatWentWell: 'Penerapan modul terpisah membuat bug menurun drastis dan kecepatan rendering naik 40%.',
       bottlenecks: 'Koneksi API WhatsApp pihak ketiga sempat delay 2 menit pada jam sibuk.',
       actionPlan: 'Pasang fallback redundancy ke Gemini API jika Groq mengalami rate-limit.',
@@ -461,7 +656,9 @@ export const useWorkspaceStore = create((set, get) => ({
       id: 'RPT-002',
       period: 'Audit Mutu Layanan & Kepuasan Klien Q3',
       category: 'Audit Kualitas',
+      date: '2026-10-01',
       rating: 4,
+      status: 'Disahkan',
       whatWentWell: 'NPS Klien mencapai skor 88%, apresiasi tinggi pada kecepatan respon staf AI.',
       bottlenecks: 'Pemberitahuan invoice masih ada yang terlewat jika manual.',
       actionPlan: 'Otomatisasi trigger reminder WA 3 hari sebelum jatuh tempo.',
@@ -485,6 +682,7 @@ export const useWorkspaceStore = create((set, get) => ({
       category: 'SOP Perusahaan',
       fileFormat: 'PDF',
       version: 'v2.2',
+      status: 'Aktif',
       updatedAt: '2026-10-14',
       accessLevel: 'Publik Semua Tim',
       fileSize: '420 KB',
@@ -496,6 +694,7 @@ export const useWorkspaceStore = create((set, get) => ({
       category: 'Template Kontrak & NDA',
       fileFormat: 'DOCX',
       version: 'v1.4',
+      status: 'Disetujui',
       updatedAt: '2026-10-12',
       accessLevel: 'Hanya Manager',
       fileSize: '185 KB',
@@ -507,6 +706,7 @@ export const useWorkspaceStore = create((set, get) => ({
       category: 'Brand Assets/Logo/Font',
       fileFormat: 'ZIP',
       version: 'v3.0',
+      status: 'Publik',
       updatedAt: '2026-10-08',
       accessLevel: 'Publik Semua Tim',
       fileSize: '14.2 MB',
@@ -518,6 +718,7 @@ export const useWorkspaceStore = create((set, get) => ({
       category: 'Legalitas/PT',
       fileFormat: 'PDF',
       version: 'v1.0',
+      status: 'Arsip',
       updatedAt: '2026-09-01',
       accessLevel: 'Rahasia/Direksi',
       fileSize: '1.2 MB',

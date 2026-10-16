@@ -139,8 +139,9 @@ export default function LoginPage({ onLoginSuccess, onCancel }) {
           </button>
         </form>
 
-        <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', fontSize: '0.75rem', color: '#94a3b8' }}>
-          🛡️ Terproteksi Kriptografi Sesi & Dual-Engine (Groq + Gemini)
+        <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1rem', fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+          <ShieldCheck size={14} color="#0284c7" />
+          <span>Terproteksi Kriptografi Sesi &amp; Dual-Engine (Groq + Gemini)</span>
         </div>
       </div>
     </div>

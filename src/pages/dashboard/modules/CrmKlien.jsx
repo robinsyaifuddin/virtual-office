@@ -7,23 +7,45 @@ import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Users, DollarSign, Plus, Table as TableIcon, LayoutGrid, FileText, Download } from 'lucide-react';
 
+import { 
+  Icon3DClipboard, 
+  Icon3DCalendar, 
+  Icon3DTag, 
+  Icon3DFlag, 
+  Icon3DGear, 
+  Icon3DUser, 
+  Icon3DNotes 
+} from '../../../components/ui/Modern3DIcons';
+
 export default function CrmKlien() {
   const { crmClients, addCrmClient, updateCrmClient, deleteCrmClient, staffAgents } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'kanban'
   const [selectedClient, setSelectedClient] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Lead Masuk', 'Discovery Call', 'Proposal Terkirim', 'Negosiasi', 'Deal Won', 'Deal Lost'];
+
+  // Filter klien berdasarkan tahapan / status pipeline prospek
+  const filteredClients = crmClients.filter((c) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    return c.stage === statusFilter;
+  });
 
   // Total Pipeline Value
   const totalPipeline = crmClients.reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
-  const wonClients = crmClients.filter(c => c.stage.includes('Won'));
+  const wonClients = crmClients.filter(c => c.stage?.includes('Won'));
   const totalWonValue = wonClients.reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
 
   // Data Grafik Batang: Nilai Pipeline per Klien
   const crmBarData = crmClients.slice(0, 5).map((c, i) => {
     const valJt = Math.round((c.dealValue || 0) / 1000000);
-    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#818cf8'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
+    const rawName = (c.name && typeof c.name === 'string' && c.name.trim()) ? c.name : `Klien ${i+1}`;
     return {
-      label: c.name.split(' ')[0] || `Klien ${i+1}`,
+      label: rawName.split(' ')[0] || `Klien ${i+1}`,
       value: valJt,
       displayVal: `Rp ${valJt}Jt`,
       color: colors[i % colors.length]
@@ -40,8 +62,8 @@ export default function CrmKlien() {
   const stageColorMap = {
     'Prospek Awal': '#60a5fa',
     'Follow-up / Demo': '#f59e0b',
-    'Negosiasi Proposal': '#8b5cf6',
-    'Deal Won': '#10b981',
+    'Negosiasi Proposal': '#0ea5e9',
+    'Deal Won': '#0284c7',
     'Deal Lost': '#ef4444'
   };
 
@@ -53,64 +75,148 @@ export default function CrmKlien() {
   }));
 
   const columns = [
-    { key: 'name', label: 'Nama Klien / Perusahaan' },
-    { key: 'contact', label: 'WhatsApp PIC' },
+    { 
+      key: 'name', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Nama Klien / Perusahaan
+        </span>
+      ), 
+      minWidth: '220px',
+      render: (val) => (
+        <span style={{ fontWeight: 700, color: '#0f172a' }}>
+          {val || '-'}
+        </span>
+      )
+    },
+    { 
+      key: 'contact', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> WhatsApp PIC
+        </span>
+      ), 
+      minWidth: '150px',
+      render: (val) => (
+        <span style={{ color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
+      )
+    },
     {
       key: 'stage',
-      label: 'Tahapan (Stage)',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Tahapan (Stage)
+        </span>
+      ),
+      minWidth: '160px',
       render: (val) => {
-        const isWon = val.includes('Won');
-        const isLost = val.includes('Lost');
+        const stageColors = {
+          'Lead Masuk': { text: '#64748b', bg: '#f1f5f9' },
+          'Discovery Call': { text: '#0284c7', bg: '#e0f2fe' },
+          'Proposal Terkirim': { text: '#d97706', bg: '#fef3c7' },
+          'Negosiasi': { text: '#0284c7', bg: '#eff6ff' },
+          'Deal Won': { text: '#16a34a', bg: '#dcfce7' },
+          'Deal Lost': { text: '#dc2626', bg: '#fee2e2' }
+        };
+        const conf = stageColors[val] || { text: '#0284c7', bg: '#eff6ff' };
         return (
-          <span style={{
-            padding: '3px 8px',
-            borderRadius: '999px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            backgroundColor: isWon ? '#dcfce7' : isLost ? '#fee2e2' : '#eff6ff',
-            color: isWon ? '#15803d' : isLost ? '#b91c1c' : '#1d4ed8'
-          }}>
-            {val}
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '3px 10px',
+              borderRadius: '999px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: conf.text,
+              backgroundColor: conf.bg
+            }}
+          >
+            {val || 'Lead Masuk'}
           </span>
         );
       }
     },
     {
       key: 'dealValue',
-      label: 'Nilai Deal',
-      render: (val) => `Rp ${(val || 0).toLocaleString('id-ID')}`
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Nilai Deal
+        </span>
+      ),
+      minWidth: '130px',
+      render: (val) => (
+        <span style={{ fontWeight: 600, color: '#0f172a' }}>
+          {`Rp ${(val || 0).toLocaleString('id-ID')}`}
+        </span>
+      )
     },
-    { key: 'services', label: 'Paket Layanan' },
+    { 
+      key: 'services', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Paket Layanan
+        </span>
+      ),
+      minWidth: '150px',
+      render: (val) => {
+        const svc = Array.isArray(val) ? val[0] : (val || 'Custom AI');
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              backgroundColor: '#f1f5f9',
+              color: '#334155'
+            }}
+          >
+            {svc}
+          </span>
+        );
+      }
+    },
     { 
       key: 'pic', 
-      label: 'PIC Internal',
-      render: (val, row, update) => (
-        <select
-          value={val || (staffAgents && staffAgents[0] ? staffAgents[0].name : '')}
-          onChange={(e) => update ? update(e.target.value) : updateCrmClient(row.id, { pic: e.target.value })}
-          style={{
-            padding: '3px 8px',
-            borderRadius: '6px',
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
-            fontSize: '0.78rem',
-            fontWeight: 500,
-            outline: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          {staffAgents && staffAgents.map((staff) => (
-            <option key={staff.id || staff.name} value={staff.name}>
-              {staff.name}
-            </option>
-          ))}
-        </select>
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DUser size={14} /> PIC Internal
+        </span>
+      ),
+      minWidth: '150px',
+      render: (val) => (
+        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.8rem' }}>
+          {val || '-'}
+        </span>
+      )
+    },
+    { 
+      key: 'updatedAt', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DCalendar size={14} /> Terakhir Diperbarui
+        </span>
+      ),
+      minWidth: '135px',
+      render: (val) => (
+        <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+          {val ? String(val).split(' ')[0] : '-'}
+        </span>
       )
     },
     {
       key: 'contractDoc',
-      label: 'Kontrak PKS',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Kontrak PKS
+        </span>
+      ),
+      minWidth: '150px',
       render: (val) => val ? (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0284c7', fontSize: '0.78rem', fontWeight: 600 }}>
           <FileText size={12} /> {val}
@@ -125,8 +231,8 @@ export default function CrmKlien() {
     { id: 'Lead Masuk', title: 'Lead Masuk', color: '#94a3b8' },
     { id: 'Discovery Call', title: 'Discovery Call', color: '#38bdf8' },
     { id: 'Proposal Terkirim', title: 'Proposal Terkirim', color: '#fbbf24' },
-    { id: 'Negosiasi', title: 'Negosiasi', color: '#818cf8' },
-    { id: 'Deal Won 🎉', title: 'Deal Won 🎉', color: '#22c55e' }
+    { id: 'Negosiasi', title: 'Negosiasi', color: '#0284c7' },
+    { id: 'Deal Won', title: 'Deal Won', color: '#0284c7' }
   ];
 
   const handleRowClick = (client) => {
@@ -138,12 +244,12 @@ export default function CrmKlien() {
     const newId = `CRM-00${crmClients.length + 1}`;
     const newClient = {
       id: newId,
-      name: 'Klien Prospek Baru',
-      contact: '+62 812-0000-1111',
+      name: '',
+      contact: '',
       stage: 'Lead Masuk',
-      dealValue: 25000000,
-      services: ['Custom AI'],
-      pic: 'Kevin Pratama',
+      dealValue: 0,
+      services: [],
+      pic: '',
       contractDoc: null,
       createdBy: 'Executive Owner',
       createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
@@ -161,50 +267,8 @@ export default function CrmKlien() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h2 className="ws-page-title">
-            CRM & Manajemen Klien
+            CRM &amp; Klien
           </h2>
-        </div>
-
-        {/* View Switcher Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ display: 'flex', backgroundColor: '#e2e8f0', padding: '3px', borderRadius: '8px' }}>
-            <button
-              onClick={() => setViewMode('table')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: viewMode === 'table' ? '#ffffff' : 'transparent',
-                color: viewMode === 'table' ? '#0f172a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
-            >
-              <TableIcon size={14} /> Tabel
-            </button>
-            <button
-              onClick={() => setViewMode('kanban')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: viewMode === 'kanban' ? '#ffffff' : 'transparent',
-                color: viewMode === 'kanban' ? '#0f172a' : '#64748b',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
-            >
-              <LayoutGrid size={14} /> Pipeline Kanban
-            </button>
-          </div>
         </div>
       </div>
 
@@ -237,45 +301,56 @@ export default function CrmKlien() {
           title="Distribusi Tahapan Pipeline Klien"
           subtitle="Status perjalanan konversi prospek"
           data={crmDonutData}
-          centerValue={`${crmClients.length}`}
-          centerLabel="Klien"
         />
       </div>
 
-      {/* Main Content Area */}
-      {viewMode === 'table' ? (
-        <NotionTable
-          title="Daftar Klien & Prospek"
-          data={crmClients}
-          columns={columns}
-          onAddRow={handleAddQuickClient}
-          onEditRow={handleRowClick}
-          onDeleteRow={deleteCrmClient}
-          onUpdateCell={(id, field, val) => updateCrmClient(id, { [field]: val })}
-          exportFileName="crm_klien_digibooster.csv"
-        />
-      ) : (
-        <NotionKanban
-          columns={kanbanColumns}
-          items={crmClients}
-          statusKey="stage"
-          onAddItem={() => handleAddQuickClient()}
-          renderCard={(client) => (
-            <div onClick={() => handleRowClick(client)}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <h5 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>{client.name}</h5>
-              </div>
-              <p style={{ margin: '6px 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: '#0284c7' }}>
-                Rp {(client.dealValue || 0).toLocaleString('id-ID')}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b' }}>
-                <span>PIC: {client.pic}</span>
-                <span>{client.services?.[0]}</span>
-              </div>
-            </div>
-          )}
-        />
-      )}
+      {/* Main Content Area: NotionTable membungkus seluruh mode tampilan (Tabel & Kanban) */}
+      <NotionTable
+        title="Daftar Klien & Prospek"
+        data={filteredClients}
+        columns={columns}
+        onAddRow={handleAddQuickClient}
+        onEditRow={handleRowClick}
+        onDeleteRow={deleteCrmClient}
+        onUpdateCell={(id, field, val) => updateCrmClient(id, { [field]: val })}
+        exportFileName="crm_klien_digibooster.csv"
+        currentViewMode={viewMode}
+        onChangeViewMode={setViewMode}
+        availableViewModes={['table', 'kanban']}
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
+        renderCustomView={({ filteredData }) => {
+          if (viewMode === 'kanban') {
+            return (
+              <NotionKanban
+                columns={kanbanColumns}
+                items={filteredData}
+                statusKey="stage"
+                onAddItem={() => handleAddQuickClient()}
+                renderCard={(client) => (
+                  <div onClick={() => handleRowClick(client)} style={{ cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <h5 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>{client.name}</h5>
+                    </div>
+                    <p style={{ margin: '6px 0 8px 0', fontSize: '0.85rem', fontWeight: 700, color: '#0284c7' }}>
+                      Rp {(client.dealValue || 0).toLocaleString('id-ID')}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b' }}>
+                      <span>PIC: {client.pic}</span>
+                      <span>{client.services?.[0]}</span>
+                    </div>
+                  </div>
+                )}
+              />
+            );
+          }
+          return null;
+        }}
+      />
 
       {/* Detail Drawer */}
       <NotionDetailDrawer

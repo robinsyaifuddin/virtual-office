@@ -5,15 +5,37 @@ import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Mic, Video, CheckSquare, Plus, Link } from 'lucide-react';
 
+import { 
+  Icon3DClipboard, 
+  Icon3DCalendar, 
+  Icon3DTag, 
+  Icon3DFlag, 
+  Icon3DGear, 
+  Icon3DUser, 
+  Icon3DNotes 
+} from '../../../components/ui/Modern3DIcons';
+
 export default function RapatCatatan() {
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Terjadwal', 'Berlangsung', 'Selesai', 'Dibatalkan'];
+
+  // Filter rapat berdasarkan status rapat
+  const filteredMeetings = meetings.filter((m) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    return m.status === statusFilter;
+  });
 
   // Data Bar Chart: Jumlah Peserta Hadir per Topik Rapat
   const meetingBarData = meetings.slice(0, 5).map((m, idx) => {
     const pCount = Array.isArray(m.participants) ? m.participants.length : 2;
-    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#34d399', '#f59e0b'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
+    const rawTitle = (m.title && typeof m.title === 'string' && m.title.trim()) ? m.title : `Rapat ${idx+1}`;
     return {
-      label: m.title.split(' ').slice(0, 2).join(' ') || `Rapat ${idx+1}`,
+      label: rawTitle.split(' ').slice(0, 2).join(' ') || `Rapat ${idx+1}`,
       value: pCount,
       displayVal: `${pCount} Orang`,
       color: colors[idx % colors.length]
@@ -42,13 +64,89 @@ export default function RapatCatatan() {
   }));
 
   const columns = [
-    { key: 'title', label: 'Topik Rapat' },
-    { key: 'dateTime', label: 'Waktu Pelaksanaan' },
-    { key: 'type', label: 'Tipe Rapat' },
-    { key: 'participants', label: 'Peserta Hadir' },
+    { 
+      key: 'title', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Topik Rapat
+        </span>
+      ), 
+      minWidth: '220px' 
+    },
+    { 
+      key: 'dateTime', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DCalendar size={14} /> Tanggal Sesi
+        </span>
+      ),
+      minWidth: '135px',
+      render: (val, row, update) => (
+        <input
+          type="date"
+          value={val ? String(val).split(' ')[0] : ''}
+          onChange={(e) => update ? update(e.target.value) : updateMeeting(row.id, { dateTime: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontSize: '0.8rem',
+            fontFamily: 'inherit',
+            color: '#0f172a',
+            outline: 'none',
+            padding: '2px 4px',
+            cursor: 'pointer'
+          }}
+        />
+      )
+    },
+    { 
+      key: 'type', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Tipe Rapat
+        </span>
+      ),
+      minWidth: '160px',
+      render: (val, row, update) => (
+        <select
+          value={val || 'Internal Weekly Sync'}
+          onChange={(e) => update ? update(e.target.value) : updateMeeting(row.id, { type: e.target.value })}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          <option value="Internal Weekly Sync" style={{ color: '#0f172a', fontWeight: 500 }}>Internal Weekly Sync</option>
+          <option value="Client Kick-off" style={{ color: '#0f172a', fontWeight: 500 }}>Client Kick-off</option>
+          <option value="Review Sprint" style={{ color: '#0f172a', fontWeight: 500 }}>Review Sprint</option>
+          <option value="Evaluasi Klien" style={{ color: '#0f172a', fontWeight: 500 }}>Evaluasi Klien</option>
+          <option value="Strategi Bisnis" style={{ color: '#0f172a', fontWeight: 500 }}>Strategi Bisnis</option>
+        </select>
+      )
+    },
+    { 
+      key: 'participants', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DUser size={14} /> Peserta Hadir
+        </span>
+      ), 
+      minWidth: '160px' 
+    },
     {
       key: 'link',
-      label: 'Google Meet',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DNotes size={14} /> Google Meet
+        </span>
+      ),
+      minWidth: '120px',
       render: (val) => val ? (
         <a href={val} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
           <Video size={13} /> Link
@@ -56,8 +154,52 @@ export default function RapatCatatan() {
       ) : '-'
     },
     {
+      key: 'status',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Status
+        </span>
+      ),
+      minWidth: '140px',
+      render: (val, row, update) => {
+        const statusColors = {
+          'Terjadwal': '#0284c7',
+          'Berlangsung': '#d97706',
+          'Selesai': '#16a34a',
+          'Dibatalkan': '#dc2626'
+        };
+        const currentTextColor = statusColors[val] || '#0284c7';
+        return (
+          <select
+            value={val || 'Terjadwal'}
+            onChange={(e) => update ? update(e.target.value) : updateMeeting(row.id, { status: e.target.value })}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: currentTextColor,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="Terjadwal" style={{ color: '#0284c7', fontWeight: 600 }}>Terjadwal</option>
+            <option value="Berlangsung" style={{ color: '#d97706', fontWeight: 600 }}>Berlangsung</option>
+            <option value="Selesai" style={{ color: '#16a34a', fontWeight: 600 }}>Selesai</option>
+            <option value="Dibatalkan" style={{ color: '#dc2626', fontWeight: 600 }}>Dibatalkan</option>
+          </select>
+        );
+      }
+    },
+    {
       key: 'actionItems',
-      label: 'Action Items Selesai',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DGear size={14} /> Action Items
+        </span>
+      ),
+      minWidth: '130px',
       render: (val) => {
         if (!val || !val.length) return '-';
         const done = val.filter(a => a.done).length;
@@ -69,12 +211,13 @@ export default function RapatCatatan() {
   const handleAddMeeting = () => {
     const newM = {
       id: `MTG-${Date.now().toString().slice(-4)}`,
-      title: 'Koordinasi Internal Sinkronisasi Modul',
-      dateTime: '2026-10-18 10:00 WIB',
+      title: '',
+      dateTime: new Date().toISOString().split('T')[0],
       type: 'Internal Weekly Sync',
-      participants: ['Kevin Pratama', 'Maya Nirmala'],
-      link: 'https://meet.google.com/dgb-test',
-      summaryNotes: 'Sinkronisasi rancangan halaman dashboard baru.',
+      status: 'Terjadwal',
+      participants: [],
+      link: '',
+      summaryNotes: '',
       actionItems: []
     };
     addMeeting(newM);
@@ -85,7 +228,7 @@ export default function RapatCatatan() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div>
         <h2 className="ws-page-title">
-          Rapat & Notulensi Catatan
+          Rapat &amp; Catatan
         </h2>
       </div>
 
@@ -115,19 +258,24 @@ export default function RapatCatatan() {
           title="Kategori Jenis Rapat Internal"
           subtitle="Komposisi format koordinasi"
           data={meetingDonutData}
-          centerValue={`${meetings.length}`}
-          centerLabel="Sesi Rapat"
+          
         />
       </div>
 
       <NotionTable
         title="Daftar Rapat & Catatan"
-        data={meetings}
+        data={filteredMeetings}
         columns={columns}
         onAddRow={handleAddMeeting}
         onDeleteRow={deleteMeeting}
         onUpdateCell={(id, field, val) => updateMeeting(id, { [field]: val })}
         exportFileName="notulensi_rapat_digibooster.csv"
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
       />
     </div>
   );

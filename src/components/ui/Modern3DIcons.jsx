@@ -168,3 +168,20 @@ export function Icon3DNotes({ size = 16, className = '' }) {
     </svg>
   );
 }
+
+// 9. Icon 3D Download / Unduh Biru
+export function Icon3DDownload({ size = 16, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="downloadGradBlue" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#38bdf8" />
+          <stop offset="1" stopColor="#0284c7" />
+        </linearGradient>
+      </defs>
+      <path d="M12 3V15M12 15L7.5 10.5M12 15L16.5 10.5" stroke="url(#downloadGradBlue)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 17V19C4 20.1046 4.89543 21 6 21H18C19.1046 21 20 20.1046 20 19V17" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+

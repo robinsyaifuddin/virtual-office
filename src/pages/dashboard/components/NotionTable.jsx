@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Search, 
+  Info,
   Plus, 
   Download, 
   Trash2, 
@@ -14,10 +16,22 @@ import {
   CheckSquare,
   Square,
   MinusSquare,
-  Settings2
+    Settings2,
+  Table as TableIcon,
+  LayoutGrid,
+  CalendarDays,
+  Archive,
+  Clock,
+  Zap,
+  Calendar,
+  ChevronRight,
+  CheckCircle2,
+  FileText
 } from 'lucide-react';
 import CategoryManagerModal from './CategoryManagerModal';
 import UniversalDetailModal from './UniversalDetailModal';
+import { exportRowAsPdf, exportTableAsPdf } from '../../../utils/exportPdf';
+import { exportTableAsExcel } from '../../../utils/exportExcel';
 
 export default function NotionTable({
   title,
@@ -35,7 +49,24 @@ export default function NotionTable({
   activeCategory = 'ALL',
   onSelectCategory,
   categoryKey = 'category',
-  enableStickyFreeze = true
+  enableStickyFreeze = true,
+  // View Switcher Props (Tabel, Kanban, Kalender)
+  currentViewMode,
+  onChangeViewMode,
+  availableViewModes = [], // e.g. ['table', 'kanban', 'calendar']
+  // Status Filter Props
+  statusFilter,
+  onChangeStatusFilter,
+  statusOptions,
+  // Lifecycle Filter Props (Aktif, Semua, Arsip Bulan - backwards compatibility)
+  lifecycleFilter,
+  onChangeLifecycleFilter,
+  archiveMonth,
+  onChangeArchiveMonth,
+  availableArchiveMonths = [],
+  // Render function atau children saat mode selain table aktif (e.g. kanban, calendar)
+  renderCustomView,
+  children
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortCol, setSortCol] = useState(null);
@@ -50,6 +81,7 @@ export default function NotionTable({
 
   // Titik 3 Context Menu Action State
   const [activeMenuRowId, setActiveMenuRowId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
   const actionMenuRef = useRef(null);
 
   // Kotak Modal Lebar Notion (Universal Detail Modal)
@@ -61,23 +93,60 @@ export default function NotionTable({
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const catDropdownRef = useRef(null);
 
+  // Dropdown Popover View Selector (Sebelah kiri kotak pencarian)
+  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false);
+  const [isLayoutDropdownOpen, setIsLayoutDropdownOpen] = useState(false);
+  const [isArchiveAccordionOpen, setIsArchiveAccordionOpen] = useState(false);
+  const viewDropdownRef = useRef(null);
+  const layoutDropdownRef = useRef(null);
+
+  // In-table Accordion State: bulan mana saja yang sedang terbuka di dalam tabel saat mode Arsip
+  const [expandedArchiveMonths, setExpandedArchiveMonths] = useState(
+    archiveMonth ? [archiveMonth] : ['September 2026', 'Agustus 2026', 'Juli 2026']
+  );
+
+  const toggleArchiveMonthInTable = (monthName) => {
+    setExpandedArchiveMonths((prev) =>
+      prev.includes(monthName) ? prev.filter((m) => m !== monthName) : [...prev, monthName]
+    );
+  };
+
   // Ekstrak kategori unik
   const computedCategories = (categories && categories.length > 0)
     ? categories
     : Array.from(new Set(data.map(item => item[categoryKey] || item.category || item.pillar).filter(Boolean)));
 
-  // Tutup dropdown/menu saat klik di luar
+  // Tutup dropdown/menu saat klik di luar atau saat scroll/resize jendela
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (catDropdownRef.current && !catDropdownRef.current.contains(e.target)) {
         setIsCatDropdownOpen(false);
       }
+      if (viewDropdownRef.current && !viewDropdownRef.current.contains(e.target)) {
+        setIsViewDropdownOpen(false);
+      }
+      if (layoutDropdownRef.current && !layoutDropdownRef.current.contains(e.target)) {
+        setIsLayoutDropdownOpen(false);
+      }
       if (actionMenuRef.current && !actionMenuRef.current.contains(e.target)) {
         setActiveMenuRowId(null);
+        setMenuPosition(null);
       }
     };
+
+    const handleWindowChange = () => {
+      setActiveMenuRowId(null);
+      setMenuPosition(null);
+    };
+
     document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    window.addEventListener('scroll', handleWindowChange, true);
+    window.addEventListener('resize', handleWindowChange);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      window.removeEventListener('scroll', handleWindowChange, true);
+      window.removeEventListener('resize', handleWindowChange);
+    };
   }, []);
 
   // Filter Search & Category
@@ -111,6 +180,78 @@ export default function NotionTable({
     if (aVal > bVal) return sortAsc ? 1 : -1;
     return 0;
   });
+
+  // Helper untuk menentukan bulan dari baris data (dueDate, date, dateTime, updatedAt, publishDate)
+  const getRowMonthName = (row) => {
+    const rawDate = row.dueDate || row.date || row.dateTime || row.publishDate || row.updatedAt || row.createdAt;
+    if (!rawDate) return 'Lainnya';
+    const dateStr = String(rawDate);
+    if (dateStr.startsWith('2026-09') || dateStr.includes('-09-')) return 'September 2026';
+    if (dateStr.startsWith('2026-08') || dateStr.includes('-08-')) return 'Agustus 2026';
+    if (dateStr.startsWith('2026-07') || dateStr.includes('-07-')) return 'Juli 2026';
+    if (dateStr.startsWith('2026-06') || dateStr.includes('-06-')) return 'Juni 2026';
+    if (dateStr.startsWith('2026-10') || dateStr.includes('-10-')) return 'Oktober 2026';
+    return 'Bulan Lainnya';
+  };
+
+  // Status & Lifecycle Filter resolution
+  const activeStatusFilter = statusFilter !== undefined ? statusFilter : lifecycleFilter;
+  const onStatusFilterChange = onChangeStatusFilter || onChangeLifecycleFilter;
+
+  const resolvedStatusOptions = React.useMemo(() => {
+    if (statusOptions && statusOptions.length > 0) {
+      return statusOptions.map((opt) => {
+        if (typeof opt === 'string') {
+          return { value: opt, label: opt };
+        }
+        return opt;
+      });
+    }
+
+    // Auto-detect unique statuses if data has status or stage property
+    const sampleStatuses = Array.from(
+      new Set(data.map((d) => d.status || d.stage).filter(Boolean))
+    );
+    if (sampleStatuses.length > 0) {
+      return [
+        { value: 'Semua Status', label: 'Semua Status' },
+        ...sampleStatuses.map((s) => ({ value: s, label: s }))
+      ];
+    }
+
+    // Fallback default lifecycle options
+    return [
+      { value: 'all', label: 'Semua (Bulan Ini)' },
+      { value: 'active', label: 'Berjalan (Bulan Ini)' },
+      { value: 'completed', label: 'Selesai (Bulan Ini)' },
+      { value: 'archive', label: 'Arsip (Bulan Lalu)' }
+    ];
+  }, [statusOptions, data]);
+
+  // Pengelompokan baris arsip per bulan saat mode Arsip aktif
+  const archiveMonthOrder = (availableArchiveMonths && availableArchiveMonths.length > 0)
+    ? availableArchiveMonths
+    : ['September 2026', 'Agustus 2026', 'Juli 2026'];
+
+  const archiveGroupedData = React.useMemo(() => {
+    if (lifecycleFilter !== 'archive' && activeStatusFilter !== 'Arsip') return null;
+    const groups = {};
+    archiveMonthOrder.forEach((m) => {
+      groups[m] = [];
+    });
+
+    sortedData.forEach((row) => {
+      const monthName = getRowMonthName(row);
+      if (groups[monthName]) {
+        groups[monthName].push(row);
+      } else {
+        if (!groups[monthName]) groups[monthName] = [];
+        groups[monthName].push(row);
+      }
+    });
+
+    return groups;
+  }, [sortedData, lifecycleFilter, activeStatusFilter, archiveMonthOrder]);
 
   const handleSort = (colKey) => {
     if (sortCol === colKey) {
@@ -169,28 +310,338 @@ export default function NotionTable({
     }
   };
 
-  const handleExportCSV = () => {
-    if (!data.length) return;
-    const headers = columns.map(c => c.label).join(',');
-    const rows = sortedData.map(row => {
-      return columns.map(col => {
-        let val = row[col.key];
-        if (Array.isArray(val)) val = val.join('; ');
-        return `"${String(val || '').replace(/"/g, '""')}"`;
-      }).join(',');
-    }).join('\n');
+  const handleExportExcel = () => {
+    if (!sortedData || sortedData.length === 0) {
+      alert('Tidak ada data tabel untuk diekspor ke Excel.');
+      return;
+    }
+    const cleanFileName = exportFileName
+      ? (exportFileName.endsWith('.xlsx') ? exportFileName : `${exportFileName.replace(/\.[^/.]+$/, '')}.xlsx`)
+      : `${(title || 'Data_Export').toLowerCase().replace(/[^a-z0-9]+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-    const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", exportFileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    exportTableAsExcel(sortedData, columns, {
+      title: title || 'Laporan Data',
+      fileName: cleanFileName
+    });
+  };
+
+  // Handler Unduh Dokumen PDF Resmi untuk Satu Baris Data
+  const handleExportRowPdf = (row) => {
+    if (!row) return;
+    exportRowAsPdf(row, columns, { title });
+  };
+
+  // Handler Unduh Seluruh Tabel Data sebagai Matriks PDF
+  const handleExportTablePdf = () => {
+    if (!sortedData || sortedData.length === 0) {
+      alert('Tidak ada data tabel untuk diekspor ke PDF.');
+      return;
+    }
+    exportTableAsPdf(sortedData, columns, { title: title || 'Laporan Data Operasional' });
   };
 
   const wrapClass = isWrapEnabled ? 'ws-cell-wrap' : 'ws-cell-nowrap';
+
+  // Helper untuk merender satu baris data (dipakai di mode biasa maupun di dalam accordion arsip)
+  const renderRow = (row, idx) => {
+    const isRowSelected = selectedRowIds.includes(row.id);
+    return (
+      <tr
+        key={row.id || idx}
+        style={{
+          borderBottom: '1px solid #f1f5f9',
+          backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
+          transition: 'background-color 100ms ease',
+          position: activeMenuRowId === row.id ? 'relative' : 'static',
+          zIndex: activeMenuRowId === row.id ? 40 : 'auto'
+        }}
+        onMouseEnter={(e) => {
+          if (!isRowSelected) {
+            const rowEls = e.currentTarget.querySelectorAll('.ws-sticky-col-1, .ws-sticky-col-2');
+            rowEls.forEach(el => el.style.backgroundColor = '#f8fafc');
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isRowSelected) {
+            const rowEls = e.currentTarget.querySelectorAll('.ws-sticky-col-1, .ws-sticky-col-2');
+            rowEls.forEach(el => el.style.backgroundColor = idx % 2 === 0 ? '#ffffff' : '#fcfcfd');
+          }
+        }}
+      >
+        {/* Checkbox per Baris saat mode Tandai aktif */}
+        {isSelectModeActive && (
+          <td style={{
+            padding: '8px',
+            textAlign: 'center',
+            borderRight: '1px solid #e2e8f0',
+            backgroundColor: isRowSelected ? '#f0f9ff' : 'inherit'
+          }}>
+            <div 
+              onClick={() => handleToggleRowSelect(row.id)}
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {isRowSelected ? (
+                <CheckSquare size={16} color="#0284c7" />
+              ) : (
+                <Square size={16} color="#94a3b8" />
+              )}
+            </div>
+          </td>
+        )}
+
+        {/* Kolom 1 Membeku: Tombol Buka & Tombol Aksi Titik 3 Kecil */}
+        {enableStickyFreeze && (
+          <td className="ws-sticky-col-1 ws-table-action-col" style={{
+            padding: '4px 3px',
+            width: '42px',
+            minWidth: '42px',
+            maxWidth: '42px',
+            textAlign: 'center',
+            backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
+            borderRight: '1px solid #e2e8f0',
+            left: isSelectModeActive ? '38px' : 0,
+            boxSizing: 'border-box'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+              {/* Tombol Icon Buka */}
+              <button
+                onClick={() => handleOpenRowModal(row)}
+                title="Buka Detail Data"
+                className="ws-table-open-btn ws-btn-transition"
+                style={{
+                  padding: '4px',
+                  width: '26px',
+                  height: '24px',
+                  borderRadius: '6px',
+                  border: '1px solid #bfdbfe',
+                  backgroundColor: '#eff6ff',
+                  color: '#0284c7',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <ExternalLink size={13} className="ws-open-icon" />
+              </button>
+
+              {/* Tombol Aksi Titik 3 Berukuran Kecil di Bawah Tombol Icon Buka */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (activeMenuRowId === row.id) {
+                    setActiveMenuRowId(null);
+                    setMenuPosition(null);
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const menuHeight = 130;
+                    let topPos = rect.top + rect.height / 2;
+
+                    // Pastikan posisi popover tetap berada di dalam layar tanpa terpotong
+                    if (topPos + menuHeight / 2 > window.innerHeight - 12) {
+                      topPos = window.innerHeight - 12 - menuHeight / 2;
+                    }
+                    if (topPos - menuHeight / 2 < 12) {
+                      topPos = 12 + menuHeight / 2;
+                    }
+
+                    setMenuPosition({
+                      top: Math.round(topPos),
+                      left: Math.round(rect.right + 6)
+                    });
+                    setActiveMenuRowId(row.id);
+                  }
+                }}
+                title="Opsi Aksi Baris"
+                className="ws-btn-transition"
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '1px 3px',
+                  height: '16px',
+                  borderRadius: '4px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f1f5f9';
+                  e.currentTarget.style.color = '#334155';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#94a3b8';
+                }}
+              >
+                <MoreHorizontal size={12} />
+              </button>
+
+              {/* Popover Menu Aksi Titik 3 via Portal (Lapisan mengambang penuh di atas tabel) */}
+              {activeMenuRowId === row.id && menuPosition && createPortal(
+                <div
+                  ref={actionMenuRef}
+                  className="ws-row-action-menu"
+                  style={{
+                    position: 'fixed',
+                    ...(menuPosition.left !== undefined ? { left: `${menuPosition.left}px` } : { right: `${menuPosition.right}px` }),
+                    top: `${menuPosition.top}px`,
+                    transform: 'translateY(-50%)',
+                    width: '145px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.16), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+                    padding: '4px',
+                    zIndex: 99999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px'
+                  }}
+                >
+                  {/* Opsi Unduh PDF Paling Atas di Tab Menu Aksi */}
+                  <button
+                    onClick={() => {
+                      setActiveMenuRowId(null);
+                      setMenuPosition(null);
+                      handleExportRowPdf(row);
+                    }}
+                    className="ws-btn-transition"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: '#0284c7',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f9ff'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <FileText size={13} color="#0284c7" />
+                    <span>Unduh PDF</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveMenuRowId(null);
+                      setMenuPosition(null);
+                      handleOpenRowModal(row);
+                    }}
+                    className="ws-btn-transition"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: '#334155',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Edit2 size={13} color="#64748b" />
+                    <span>Edit Baris</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setActiveMenuRowId(null);
+                      setMenuPosition(null);
+                      if (window.confirm('Yakin ingin menghapus baris data ini?')) {
+                        if (onDeleteRow) onDeleteRow(row.id);
+                      }
+                    }}
+                    className="ws-btn-transition"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      color: '#dc2626',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Trash2 size={13} color="#dc2626" />
+                    <span>Hapus Baris</span>
+                  </button>
+                </div>,
+                document.body
+              )}
+            </div>
+          </td>
+        )}
+
+        {/* Kolom-kolom Nilai Data */}
+        {columns.map((col, colIdx) => {
+          const isStickyTitle = enableStickyFreeze && colIdx === 0;
+          return (
+            <td
+              key={col.key}
+              className={`${isStickyTitle ? 'ws-sticky-col-2' : ''} ${wrapClass}`}
+              style={{
+                padding: '8px 14px',
+                verticalAlign: 'middle',
+                color: '#1e293b',
+                backgroundColor: isStickyTitle ? (isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd')) : 'transparent',
+                borderRight: '1px solid #f1f5f9',
+                minWidth: col.minWidth || '140px',
+                maxWidth: col.maxWidth || 'none',
+                ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
+              }}
+            >
+              {col.render ? (
+                col.render(row[col.key], row, (newVal) => onUpdateCell && onUpdateCell(row.id, col.key, newVal))
+              ) : (
+                onUpdateCell ? (
+                  <div
+                    contentEditable
+                    suppressContentEditableWarning
+                    onBlur={(e) => onUpdateCell(row.id, col.key, e.currentTarget.innerText)}
+                    className="ws-cell-hover"
+                    style={{
+                      padding: '4px 6px',
+                      borderRadius: '4px',
+                      outline: 'none',
+                      cursor: 'text',
+                      fontWeight: colIdx === 0 ? 600 : 400
+                    }}
+                  >
+                    {String(row[col.key] || '')}
+                  </div>
+                ) : (
+                  String(row[col.key] || '-')
+                )
+              )}
+            </td>
+          );
+        })}
+
+      </tr>
+    );
+  };
 
   return (
     <div 
@@ -219,8 +670,304 @@ export default function NotionTable({
           backgroundColor: '#ffffff'
         }}
       >
-        {/* Left Toolbar: Search, Icon Dropdown Kategori, & Tombol Tandai */}
+        {/* Left Toolbar: View Selector Dropdown, Search, Icon Dropdown Kategori, & Tombol Tandai */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flex: 1, minWidth: '240px' }}>
+          {/* Dropdown 1: Filter Status (Disesuaikan per modul) */}
+          {onStatusFilterChange && (
+            <div style={{ position: 'relative' }} ref={viewDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsViewDropdownOpen(!isViewDropdownOpen)}
+                className="ws-btn-transition"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 11px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'
+                }}
+                title="Pilih Status Data"
+              >
+                {activeStatusFilter === 'archive' || activeStatusFilter === 'Arsip' ? (
+                  <Archive size={15} color="#0284c7" />
+                ) : (
+                  <CheckCircle2 size={15} color="#0284c7" />
+                )}
+                <span style={{ maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {(() => {
+                    const currentOption = resolvedStatusOptions.find(
+                      (opt) => opt.value === activeStatusFilter || opt.label === activeStatusFilter
+                    );
+                    if (currentOption) return currentOption.label;
+                    if (activeStatusFilter === 'all' || activeStatusFilter === 'ALL' || !activeStatusFilter || activeStatusFilter === 'Semua Status') {
+                      return 'Semua Status';
+                    }
+                    if (activeStatusFilter === 'active') return 'Berjalan';
+                    if (activeStatusFilter === 'completed') return 'Selesai';
+                    if (activeStatusFilter === 'archive') return 'Arsip';
+                    return String(activeStatusFilter);
+                  })()}
+                </span>
+                <ChevronDown
+                  size={13}
+                  color="#64748b"
+                  style={{
+                    transform: isViewDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                  }}
+                />
+              </button>
+
+              {/* Popover Menu Status */}
+              {isViewDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    left: 0,
+                    zIndex: 100,
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+                    minWidth: '220px',
+                    padding: '8px',
+                    animation: 'fadeIn 0.15s ease'
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#94a3b8',
+                      padding: '4px 8px 6px 8px'
+                    }}
+                  >
+                    Filter Status
+                  </div>
+
+                  {resolvedStatusOptions.map((opt) => {
+                    const isSelected = activeStatusFilter === opt.value || activeStatusFilter === opt.label;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          onStatusFilterChange(opt.value);
+                          setIsViewDropdownOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          border: 'none',
+                          backgroundColor: isSelected ? '#f0f9ff' : 'transparent',
+                          color: isSelected ? '#0284c7' : '#334155',
+                          cursor: 'pointer',
+                          fontSize: '0.8rem',
+                          fontWeight: isSelected ? 700 : 500,
+                          textAlign: 'left'
+                        }}
+                      >
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <CheckCircle2 size={14} color={isSelected ? '#0284c7' : '#94a3b8'} />
+                          <span>{opt.label}</span>
+                        </span>
+                        {isSelected && <Check size={14} color="#0284c7" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dropdown 2: Mode Tata Letak (Tabel View, Sprint Kanban, Kalender View) */}
+          {availableViewModes.length > 0 && (
+            <div style={{ position: 'relative' }} ref={layoutDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsLayoutDropdownOpen(!isLayoutDropdownOpen)}
+                className="ws-btn-transition"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 11px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'
+                }}
+                title="Pilih Mode Tata Letak Tampilan"
+              >
+                {currentViewMode === 'kanban' ? (
+                  <LayoutGrid size={15} color="#0284c7" />
+                ) : currentViewMode === 'calendar' ? (
+                  <CalendarDays size={15} color="#0284c7" />
+                ) : (
+                  <TableIcon size={15} color="#0284c7" />
+                )}
+                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {currentViewMode === 'kanban'
+                    ? 'Sprint Kanban'
+                    : currentViewMode === 'calendar'
+                    ? 'Kalender'
+                    : 'Tabel View'}
+                </span>
+                <ChevronDown
+                  size={13}
+                  color="#64748b"
+                  style={{
+                    transform: isLayoutDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease'
+                  }}
+                />
+              </button>
+
+              {/* Popover Menu Mode Tata Letak */}
+              {isLayoutDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 6px)',
+                    left: 0,
+                    zIndex: 100,
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+                    width: '190px',
+                    padding: '8px',
+                    animation: 'fadeIn 0.15s ease'
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      color: '#94a3b8',
+                      padding: '4px 8px 6px 8px'
+                    }}
+                  >
+                    Mode Tata Letak
+                  </div>
+
+                  {availableViewModes.includes('table') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onChangeViewMode) onChangeViewMode('table');
+                        setIsLayoutDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: currentViewMode === 'table' ? '#eff6ff' : 'transparent',
+                        color: currentViewMode === 'table' ? '#0284c7' : '#334155',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: currentViewMode === 'table' ? 700 : 500,
+                        textAlign: 'left'
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TableIcon size={14} color={currentViewMode === 'table' ? '#0284c7' : '#64748b'} />
+                        <span>Tabel View</span>
+                      </span>
+                      {currentViewMode === 'table' && <Check size={14} color="#0284c7" />}
+                    </button>
+                  )}
+
+                  {availableViewModes.includes('kanban') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onChangeViewMode) onChangeViewMode('kanban');
+                        setIsLayoutDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: currentViewMode === 'kanban' ? '#eff6ff' : 'transparent',
+                        color: currentViewMode === 'kanban' ? '#0284c7' : '#334155',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: currentViewMode === 'kanban' ? 700 : 500,
+                        textAlign: 'left'
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <LayoutGrid size={14} color={currentViewMode === 'kanban' ? '#0284c7' : '#64748b'} />
+                        <span>Sprint Kanban</span>
+                      </span>
+                      {currentViewMode === 'kanban' && <Check size={14} color="#0284c7" />}
+                    </button>
+                  )}
+
+                  {availableViewModes.includes('calendar') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onChangeViewMode) onChangeViewMode('calendar');
+                        setIsLayoutDropdownOpen(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 10px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        backgroundColor: currentViewMode === 'calendar' ? '#eff6ff' : 'transparent',
+                        color: currentViewMode === 'calendar' ? '#0284c7' : '#334155',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: currentViewMode === 'calendar' ? 700 : 500,
+                        textAlign: 'left'
+                      }}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CalendarDays size={14} color={currentViewMode === 'calendar' ? '#0284c7' : '#64748b'} />
+                        <span>Kalender View</span>
+                      </span>
+                      {currentViewMode === 'calendar' && <Check size={14} color="#0284c7" />}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Search Box */}
           <div style={{
             position: 'relative',
@@ -422,18 +1169,19 @@ export default function NotionTable({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '7px 11px',
-              borderRadius: '8px',
-              border: '1px solid',
-              borderColor: isSelectModeActive ? '#bfdbfe' : '#cbd5e1',
-              backgroundColor: isSelectModeActive ? '#eff6ff' : '#ffffff',
-              color: isSelectModeActive ? '#0284c7' : '#475569',
+              padding: '6px 8px',
+              borderRadius: '6px',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: isSelectModeActive ? '#0284c7' : '#64748b',
               cursor: 'pointer',
-              fontSize: '0.8rem',
+              fontSize: '0.82rem',
               fontWeight: 600
             }}
+            onMouseEnter={(e) => e.currentTarget.style.color = isSelectModeActive ? '#0369a1' : '#0f172a'}
+            onMouseLeave={(e) => e.currentTarget.style.color = isSelectModeActive ? '#0284c7' : '#64748b'}
           >
-            {isSelectModeActive ? <CheckSquare size={14} color="#0284c7" /> : <Square size={14} color="#64748b" />}
+            {isSelectModeActive ? <CheckSquare size={15} color="#0284c7" /> : <Square size={15} color="#64748b" />}
             <span>Tandai</span>
           </button>
 
@@ -446,28 +1194,30 @@ export default function NotionTable({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px',
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: '1px solid #fecaca',
-                backgroundColor: '#fef2f2',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: 'transparent',
                 color: '#dc2626',
                 cursor: 'pointer',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                boxShadow: '0 1px 3px rgba(220, 38, 38, 0.1)'
+                fontSize: '0.82rem',
+                fontWeight: 700
               }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#b91c1c'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#dc2626'}
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} color="#dc2626" />
               <span>Hapus ({selectedRowIds.length})</span>
             </button>
           )}
 
           {/* Mobile-Only Action Icons disamping tombol Tandai */}
           <div className="ws-mobile-only" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+
             <button
-              onClick={handleExportCSV}
+              onClick={handleExportExcel}
               className="ws-btn-transition"
-              title="Ekspor CSV"
+              title="Export Data ke Excel (.xlsx)"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -475,13 +1225,13 @@ export default function NotionTable({
                 width: '34px',
                 height: '34px',
                 borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#334155',
+                border: 'none',
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
                 cursor: 'pointer'
               }}
             >
-              <Download size={14} />
+              <Download size={14} color="#ffffff" />
             </button>
 
             {onAddRow && (
@@ -506,33 +1256,33 @@ export default function NotionTable({
               </button>
             )}
           </div>
-
-          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, paddingLeft: '4px' }}>
-            {sortedData.length} baris
-          </span>
         </div>
 
         {/* Right Toolbar: Export & Add Row (Desktop Only) */}
         <div className="ws-desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
-            onClick={handleExportCSV}
+            onClick={handleExportExcel}
             className="ws-btn-transition"
+            title="Export Data ke Excel (.xlsx)"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '7px 12px',
+              padding: '7px 14px',
               borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#334155',
+              border: 'none',
+              backgroundColor: '#0284c7',
+              color: '#ffffff',
               fontSize: '0.82rem',
-              fontWeight: 600,
-              cursor: 'pointer'
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
           >
-            <Download size={13} />
-            Ekspor CSV
+            <Download size={14} color="#ffffff" />
+            Export
           </button>
 
           {onAddRow && (
@@ -552,6 +1302,8 @@ export default function NotionTable({
                 fontWeight: 700,
                 cursor: 'pointer'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
             >
               <Plus size={14} />
               Baru
@@ -560,356 +1312,213 @@ export default function NotionTable({
         </div>
       </div>
 
-      {/* Table Canvas with Sticky Columns & Default Kemas Konten */}
-      <div className="ws-custom-scroll" style={{ overflowX: 'auto', maxHeight: '620px' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', position: 'sticky', top: 0, zIndex: 30 }}>
-              
-              {/* Checkbox Header saat mode Tandai aktif */}
-              {isSelectModeActive && (
-                <th style={{
-                  padding: '10px 8px',
-                  width: '38px',
-                  minWidth: '38px',
-                  textAlign: 'center',
-                  backgroundColor: '#f8fafc',
-                  borderRight: '1px solid #e2e8f0'
-                }}>
-                  <div 
-                    onClick={handleToggleSelectAll} 
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                    title={isAllSelected ? "Batal Tandai Semua" : "Tandai Semua Baris"}
-                  >
-                    {isAllSelected ? (
-                      <CheckSquare size={16} color="#0284c7" />
-                    ) : isSomeSelected ? (
-                      <MinusSquare size={16} color="#0284c7" />
-                    ) : (
-                      <Square size={16} color="#94a3b8" />
-                    )}
-                  </div>
-                </th>
-              )}
-
-              {/* Kolom 1 Membeku: Aksi (Buka Modal Lebar) */}
-              {enableStickyFreeze && (
-                <th className="ws-sticky-col-1 ws-table-action-th" style={{
-                  padding: '10px 6px',
-                  width: '42px',
-                  minWidth: '42px',
-                  maxWidth: '42px',
-                  textAlign: 'center',
-                  fontWeight: 700,
-                  backgroundColor: '#f8fafc',
-                  borderRight: '1px solid #e2e8f0',
-                  left: isSelectModeActive ? '38px' : 0,
-                  boxSizing: 'border-box'
-                }}>
-                  Aksi
-                </th>
-              )}
-
-              {/* Kolom-kolom data */}
-              {columns.map((col, index) => {
-                const isStickyTitle = enableStickyFreeze && index === 0;
-                return (
-                  <th
-                    key={col.key}
-                    onClick={() => handleSort(col.key)}
-                    className={isStickyTitle ? 'ws-sticky-col-2' : ''}
-                    style={{
-                      padding: '10px 14px',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      whiteSpace: 'nowrap',
-                      backgroundColor: '#f8fafc',
-                      borderRight: '1px solid #e2e8f0',
-                      minWidth: col.minWidth || '140px',
-                      maxWidth: col.maxWidth || 'none',
-                      ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {col.label}
-                      {sortCol === col.key && (
-                        <span style={{ fontSize: '0.72rem', color: '#0284c7' }}>{sortAsc ? '▲' : '▼'}</span>
+      {/* Content Area: Custom View (Kanban / Calendar) atau Table Canvas dengan Sticky Columns */}
+      {currentViewMode && currentViewMode !== 'table' && (renderCustomView || children) ? (
+        <div style={{ padding: '18px' }}>
+          {renderCustomView ? renderCustomView({ filteredData: sortedData, data: sortedData }) : children}
+        </div>
+      ) : (
+        <div className="ws-custom-scroll" style={{ overflowX: 'auto', maxHeight: '620px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', position: 'sticky', top: 0, zIndex: 30 }}>
+                
+                {/* Checkbox Header saat mode Tandai aktif */}
+                {isSelectModeActive && (
+                  <th style={{
+                    padding: '10px 8px',
+                    width: '38px',
+                    minWidth: '38px',
+                    textAlign: 'center',
+                    backgroundColor: '#f8fafc',
+                    borderRight: '1px solid #e2e8f0'
+                  }}>
+                    <div 
+                      onClick={handleToggleSelectAll} 
+                      style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title={isAllSelected ? "Batal Tandai Semua" : "Tandai Semua Baris"}
+                    >
+                      {isAllSelected ? (
+                        <CheckSquare size={16} color="#0284c7" />
+                      ) : isSomeSelected ? (
+                        <MinusSquare size={16} color="#0284c7" />
+                      ) : (
+                        <Square size={16} color="#94a3b8" />
                       )}
                     </div>
                   </th>
-                );
-              })}
+                )}
 
-              {/* Kolom Titik 3 (Aksi Edit & Hapus) */}
-              <th style={{
-                padding: '10px 12px',
-                width: '48px',
-                minWidth: '48px',
-                textAlign: 'center',
-                fontWeight: 700,
-                backgroundColor: '#f8fafc'
-              }}>
-                •••
-              </th>
-            </tr>
-          </thead>
+                {/* Kolom 1 Membeku: Aksi (Buka Modal Lebar) */}
+                {enableStickyFreeze && (
+                  <th className="ws-sticky-col-1 ws-table-action-th" style={{
+                    padding: '10px 6px',
+                    width: '42px',
+                    minWidth: '42px',
+                    maxWidth: '42px',
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    backgroundColor: '#f8fafc',
+                    borderRight: '1px solid #e2e8f0',
+                    left: isSelectModeActive ? '38px' : 0,
+                    boxSizing: 'border-box'
+                  }}>
+                    Aksi
+                  </th>
+                )}
 
-          <tbody>
-            {sortedData.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length + (isSelectModeActive ? 3 : 2)} style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
-                  Tidak ada data yang cocok dengan kriteria pencarian atau filter.
-                </td>
+                {/* Kolom-kolom data */}
+                {columns.map((col, index) => {
+                  const isStickyTitle = enableStickyFreeze && index === 0;
+                  return (
+                    <th
+                      key={col.key}
+                      onClick={() => handleSort(col.key)}
+                      className={isStickyTitle ? 'ws-sticky-col-2' : ''}
+                      style={{
+                        padding: '10px 14px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        whiteSpace: 'nowrap',
+                        backgroundColor: '#f8fafc',
+                        borderRight: '1px solid #e2e8f0',
+                        minWidth: col.minWidth || '140px',
+                        maxWidth: col.maxWidth || 'none',
+                        ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {col.label}
+                        {sortCol === col.key && (
+                          <span style={{ fontSize: '0.72rem', color: '#0284c7' }}>{sortAsc ? '▲' : '▼'}</span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
-            ) : (
-              sortedData.map((row, idx) => {
-                const isRowSelected = selectedRowIds.includes(row.id);
-                return (
-                  <tr
-                    key={row.id || idx}
-                    style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
-                      transition: 'background-color 100ms ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isRowSelected) {
-                        const rowEls = e.currentTarget.querySelectorAll('.ws-sticky-col-1, .ws-sticky-col-2');
-                        rowEls.forEach(el => el.style.backgroundColor = '#f8fafc');
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isRowSelected) {
-                        const rowEls = e.currentTarget.querySelectorAll('.ws-sticky-col-1, .ws-sticky-col-2');
-                        rowEls.forEach(el => el.style.backgroundColor = idx % 2 === 0 ? '#ffffff' : '#fcfcfd');
-                      }
-                    }}
-                  >
-                    {/* Checkbox per Baris saat mode Tandai aktif */}
-                    {isSelectModeActive && (
-                      <td style={{
-                        padding: '8px',
-                        textAlign: 'center',
-                        borderRight: '1px solid #e2e8f0',
-                        backgroundColor: isRowSelected ? '#f0f9ff' : 'inherit'
-                      }}>
-                        <div 
-                          onClick={() => handleToggleRowSelect(row.id)}
-                          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                        >
-                          {isRowSelected ? (
-                            <CheckSquare size={16} color="#0284c7" />
-                          ) : (
-                            <Square size={16} color="#94a3b8" />
-                          )}
-                        </div>
-                      </td>
-                    )}
+            </thead>
 
-                    {/* Kolom 1 Membeku: Tombol Buka (Membuka Kotak Modal Lebar) */}
-                    {enableStickyFreeze && (
-                      <td className="ws-sticky-col-1 ws-table-action-col" style={{
-                        padding: '6px 4px',
-                        width: '42px',
-                        minWidth: '42px',
-                        maxWidth: '42px',
-                        textAlign: 'center',
-                        backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
-                        borderRight: '1px solid #e2e8f0',
-                        left: isSelectModeActive ? '38px' : 0,
-                        boxSizing: 'border-box'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                          <button
-                            onClick={() => handleOpenRowModal(row)}
-                            title="Buka Modal Lebar Detail"
-                            className="ws-table-open-btn ws-btn-transition"
-                            style={{
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              border: '1px solid #bfdbfe',
-                              backgroundColor: '#eff6ff',
-                              color: '#0284c7',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            <span className="ws-open-text ws-desktop-only">Buka</span>
-                            <ExternalLink size={13} className="ws-open-icon" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
-
-                    {/* Kolom-kolom Nilai Data */}
-                    {columns.map((col, colIdx) => {
-                      const isStickyTitle = enableStickyFreeze && colIdx === 0;
-                      return (
-                        <td
-                          key={col.key}
-                          className={`${isStickyTitle ? 'ws-sticky-col-2' : ''} ${wrapClass}`}
-                          style={{
-                            padding: '8px 14px',
-                            verticalAlign: 'middle',
-                            color: '#1e293b',
-                            backgroundColor: isStickyTitle ? (isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd')) : 'transparent',
-                            borderRight: '1px solid #f1f5f9',
-                            minWidth: col.minWidth || '140px',
-                            maxWidth: col.maxWidth || 'none',
-                            ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
-                          }}
-                        >
-                          {col.render ? (
-                            col.render(row[col.key], row, (newVal) => onUpdateCell && onUpdateCell(row.id, col.key, newVal))
-                          ) : (
-                            onUpdateCell ? (
-                              <div
-                                contentEditable
-                                suppressContentEditableWarning
-                                onBlur={(e) => onUpdateCell(row.id, col.key, e.currentTarget.innerText)}
-                                className="ws-cell-hover"
-                                style={{
-                                  padding: '4px 6px',
-                                  borderRadius: '4px',
-                                  outline: 'none',
-                                  cursor: 'text',
-                                  fontWeight: colIdx === 0 ? 600 : 400
-                                }}
-                              >
-                                {String(row[col.key] || '')}
-                              </div>
-                            ) : (
-                              String(row[col.key] || '-')
-                            )
-                          )}
-                        </td>
-                      );
-                    })}
-
-                    {/* Kolom Titik 3: Tab Aksi Edit & Hapus */}
-                    <td style={{
-                      padding: '8px 10px',
-                      textAlign: 'center',
-                      position: 'relative',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuRowId(activeMenuRowId === row.id ? null : row.id);
-                        }}
-                        title="Opsi Baris"
-                        className="ws-btn-transition"
-                        style={{
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#64748b',
-                          cursor: 'pointer',
-                          padding: '4px 6px',
-                          borderRadius: '6px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        <MoreHorizontal size={15} />
-                      </button>
-
-                      {/* Popover Menu Aksi Titik 3 */}
-                      {activeMenuRowId === row.id && (
-                        <div
-                          ref={actionMenuRef}
-                          className="ws-drawer-animate"
-                          style={{
-                            position: 'absolute',
-                            right: '12px',
-                            top: 'calc(100% - 2px)',
-                            width: '150px',
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '10px',
-                            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.12)',
-                            padding: '4px',
-                            zIndex: 150,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '2px'
-                          }}
-                        >
-                          <button
-                            onClick={() => {
-                              setActiveMenuRowId(null);
-                              handleOpenRowModal(row); // Buka kotak modal lebar pengeditan penuh
-                            }}
-                            className="ws-btn-transition"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              padding: '7px 10px',
-                              borderRadius: '6px',
-                              border: 'none',
-                              backgroundColor: 'transparent',
-                              color: '#334155',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              textAlign: 'left'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            <Edit2 size={13} color="#0284c7" />
-                            <span>Edit Baris</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setActiveMenuRowId(null);
-                              if (window.confirm('Yakin ingin menghapus baris data ini?')) {
-                                if (onDeleteRow) onDeleteRow(row.id);
-                              }
-                            }}
-                            className="ws-btn-transition"
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              padding: '7px 10px',
-                              borderRadius: '6px',
-                              border: 'none',
-                              backgroundColor: 'transparent',
-                              color: '#dc2626',
-                              fontSize: '0.78rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              textAlign: 'left'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                          >
-                            <Trash2 size={13} color="#dc2626" />
-                            <span>Hapus Baris</span>
-                          </button>
-                        </div>
-                      )}
+            <tbody>
+              {/* Render Data: Mode Arsip (Accordion Bulan di Dalam Tabel) vs Mode Standar */}
+              {lifecycleFilter === 'archive' && archiveGroupedData ? (
+                // Tampilan Arsip: Grup per Bulan dengan Toggle Panah Bawah langsung di dalam tabel data
+                Object.keys(archiveGroupedData).length === 0 || Object.values(archiveGroupedData).every(arr => arr.length === 0) ? (
+                  <tr>
+                    <td colSpan={columns.length + (enableStickyFreeze ? 1 : 0) + (isSelectModeActive ? 1 : 0)} style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
+                      Belum ada data arsip yang tercatat pada periode ini.
                     </td>
-
                   </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                ) : (
+                  Object.entries(archiveGroupedData).map(([monthName, monthRows]) => {
+                    const isMonthExpanded = expandedArchiveMonths.includes(monthName);
+                    const totalCols = columns.length + (enableStickyFreeze ? 1 : 0) + (isSelectModeActive ? 1 : 0);
+
+                    return (
+                      <React.Fragment key={monthName}>
+                        {/* Baris Header Bulan dengan Toggle Panah ke Bawah */}
+                        <tr
+                          style={{
+                            backgroundColor: isMonthExpanded ? '#f0f9ff' : '#f8fafc',
+                            borderTop: '2px solid #bae6fd',
+                            borderBottom: '1px solid #e2e8f0',
+                            userSelect: 'none'
+                          }}
+                        >
+                          <td
+                            colSpan={totalCols}
+                            onClick={() => toggleArchiveMonthInTable(monthName)}
+                            className="ws-btn-transition"
+                            style={{
+                              padding: '10px 16px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                {/* Icon Panah Toggle Bawah / Kanan */}
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '6px',
+                                    backgroundColor: isMonthExpanded ? '#0284c7' : '#e2e8f0',
+                                    color: isMonthExpanded ? '#ffffff' : '#64748b',
+                                    transition: 'all 0.2s ease'
+                                  }}
+                                >
+                                  <ChevronDown
+                                    size={15}
+                                    style={{
+                                      transform: isMonthExpanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                      transition: 'transform 0.2s ease'
+                                    }}
+                                  />
+                                </div>
+
+                                {/* Label Bulan Arsip & Badge Jumlah */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <Archive size={16} color="#0284c7" />
+                                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>
+                                    Arsip Periode {monthName}
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: '0.72rem',
+                                      fontWeight: 700,
+                                      backgroundColor: isMonthExpanded ? '#e0f2fe' : '#e2e8f0',
+                                      color: isMonthExpanded ? '#0369a1' : '#475569',
+                                      padding: '2px 8px',
+                                      borderRadius: '999px'
+                                    }}
+                                  >
+                                    {monthRows.length} data arsip
+                                  </span>
+                                </div>
+                              </div>
+
+                              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#0284c7' }}>
+                                {isMonthExpanded ? 'Klik untuk ciutkan ▲' : 'Klik untuk buka arsip bulan ini ▼'}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Baris-baris Data Bulan Tersebut (Tampil jika Accordion Bulan Terbuka) */}
+                        {isMonthExpanded && (
+                          monthRows.length === 0 ? (
+                            <tr>
+                              <td colSpan={totalCols} style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', backgroundColor: '#f0f9ff', fontSize: '0.78rem' }}>
+                                Tidak ada data pada arsip {monthName}.
+                              </td>
+                            </tr>
+                          ) : (
+                            monthRows.map((row, rIdx) => renderRow(row, rIdx))
+                          )
+                        )}
+                      </React.Fragment>
+                    );
+                  })
+                )
+              ) : sortedData.length === 0 ? (
+                // Mode Biasa: Kosong
+                <tr>
+                  <td colSpan={columns.length + (enableStickyFreeze ? 1 : 0) + (isSelectModeActive ? 1 : 0)} style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
+                    Tidak ada data yang cocok dengan kriteria pencarian atau filter.
+                  </td>
+                </tr>
+              ) : (
+                // Mode Biasa: Render Baris Standar
+                sortedData.map((row, idx) => renderRow(row, idx))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Footer Info Tips */}
       <div style={{
@@ -924,8 +1533,9 @@ export default function NotionTable({
         flexWrap: 'wrap',
         gap: '8px'
       }}>
-        <span>
-          💡 <strong>Tip:</strong> Klik tombol <strong>Buka</strong> atau menu <strong>••• &gt; Edit</strong> untuk membuka kotak modal lebar pengeditan penuh.
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Info size={13} color="#0284c7" />
+          <span><strong>Tip:</strong> Klik tombol <strong>Buka</strong> atau menu <strong>••• &gt; Edit</strong> untuk membuka kotak modal lebar pengeditan penuh.</span>
         </span>
         {onAddRow && (
           <button

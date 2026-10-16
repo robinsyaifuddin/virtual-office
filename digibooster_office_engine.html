@@ -91,7 +91,7 @@ html, body {
   text-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-/* TOP CONTROLS & HUD (Transparansi 75% -> rgba 0.25) */
+/* TOP CONTROLS & HUD (Tanpa lapisan shape gelap, murni kotak putih transparan) */
 .hud-right {
   position: fixed;
   top: 18px;
@@ -102,59 +102,72 @@ html, body {
   z-index: 6;
 }
 .box {
-  background: rgba(15, 23, 42, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   pointer-events: auto;
 }
 .room-select {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 9px;
-  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  padding: 7px 14px;
   font: 700 12px 'Plus Jakarta Sans', sans-serif;
   outline: none;
   cursor: pointer;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: all .15s;
 }
 .room-select:hover, .room-select:focus {
-  border-color: #38bdf8;
-  background: rgba(255, 255, 255, 0.35);
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.32);
 }
 .room-select option {
   background: #0f172a;
   color: #f8fafc;
 }
 .btn {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
   font: 700 12px 'Plus Jakarta Sans', sans-serif;
-  padding: 6px 12px;
-  border-radius: 9px;
+  padding: 7px 14px;
+  border-radius: 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   transition: all .15s;
   white-space: nowrap;
 }
-.btn:hover { background: rgba(255, 255, 255, 0.38); }
+.btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: #ffffff;
+}
 .btn[aria-pressed="true"] {
-  background: rgba(2, 132, 199, 0.65);
+  background: rgba(255, 255, 255, 0.35);
   color: #fff;
-  border-color: #38bdf8;
+  border-color: #ffffff;
 }
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+}
+.btn-icon svg {
+  display: inline-block;
+  vertical-align: middle;
 }
 .btn-text {
   display: inline;
@@ -172,8 +185,12 @@ html, body {
   justify-content: space-between;
   padding: 6px 16px;
   font-size: 11.5px;
-  background: rgba(15, 23, 42, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 23, 42, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25) !important;
   color: #ffffff;
 }
 .footer-left {
@@ -265,10 +282,14 @@ html, body {
   background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  padding: 1.5px 7px 2px 5px;
+  padding: 2px 8px;
   font: 700 10.5px 'Plus Jakarta Sans', sans-serif;
   color: #fff;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+.agent-pill svg {
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* MODAL INSPEKSI AGENT FLOATING SINEMATIK */
@@ -541,37 +562,42 @@ dialog#agentDlg::backdrop {
 
 <!-- TOP CONTROLS -->
 <div class="hud-right">
-  <div class="box hud-box-select" style="padding: 3px 6px;">
+  <div class="hud-box-select" style="padding: 0;">
     <select id="roomSelect" class="room-select" title="Pilih Ruangan">
-      <option value="all">🏢 Semua Kantor (Overview)</option>
-      <option value="server">🖥️ Ruang Server & Infrastruktur</option>
-      <option value="ai_auto">🧠 Ruang AI & Automation</option>
-      <option value="rapat_besar">👥 Ruang Rapat Besar</option>
-      <option value="rapat_kecil">📋 Ruang Rapat Kecil</option>
-      <option value="produk_rd">🔬 Tim Produk & R&D</option>
-      <option value="marketing">📢 Tim Marketing</option>
-      <option value="penjualan">💼 Tim Penjualan</option>
-      <option value="kreatif">🎨 Ruang Kreatif</option>
-      <option value="finance_hr">💰 Ruang Finance & HR</option>
-      <option value="layanan_klien">🎧 Ruang Layanan Klien</option>
-      <option value="lobby">🏛️ Lobby & Resepsionis</option>
-      <option value="gerbang_utama">🚪 Pintu Gerbang Masuk Depan (2 Pintu)</option>
-      <option value="koridor_utama">🏛️ Koridor Utama (Grand Avenue)</option>
-      <option value="koridor_depan">🚶 Jalan Sepetak Fasilitas (Garden, Pantry, Mushola, Toilet)</option>
-      <option value="manajemen">👑 Kantor Manajemen</option>
-      <option value="digi_marketing">📱 Digital Marketing & SosMed</option>
-      <option value="it_dev">💻 Tim IT & Developer</option>
-      <option value="workshop">🎓 Ruang Workshop & Training</option>
-      <option value="eco_garden">🌱 Eco Garden & Pergola</option>
-      <option value="pantry">☕ Pantry (Outdoor Dining)</option>
-      <option value="mushola">🕌 Mushola</option>
-      <option value="toilet">🚻 Toilet</option>
-      <option value="gerbang">🚗 Pos Satpam & Parkir</option>
+      <option value="all">Semua Kantor (Overview)</option>
+      <option value="server">Ruang Server & Infrastruktur</option>
+      <option value="ai_auto">Ruang AI & Automation</option>
+      <option value="rapat_besar">Ruang Rapat Besar</option>
+      <option value="sports_hub">Mega Sports & Wellness Hub (All-in-One)</option>
+      <option value="gym_fitness">└─ Zona 1: Gym & Fitness Hub</option>
+      <option value="tennis_court">└─ Zona 2: Table Tennis Court</option>
+      <option value="esport_arena">└─ Zona 3: E-Sport Gaming Battle Pod</option>
+      <option value="karaoke_music">└─ Zona 4: Karaoke & Music Studio Lounge</option>
+      <option value="finance_hr">Ruang Finance & HR</option>
+      <option value="layanan_klien">Ruang Layanan Klien</option>
+      <option value="lobby">Lobby & Resepsionis</option>
+      <option value="gerbang_utama">Pintu Gerbang Masuk Depan</option>
+      <option value="koridor_utama">Koridor Utama (Grand Avenue)</option>
+      <option value="koridor_depan">Jalan Fasilitas (Garden, Pantry, Mushola, Toilet)</option>
+      <option value="manajemen">Kantor Manajemen</option>
+      <option value="digi_marketing">Digital Marketing & SosMed</option>
+      <option value="it_dev">Tim IT & Developer</option>
+      <option value="workshop">Ruang Workshop & Training</option>
+      <option value="eco_garden">Eco Garden & Pergola</option>
+      <option value="pantry">Pantry (Dining Area)</option>
+      <option value="mushola">Mushola</option>
+      <option value="toilet">Toilet</option>
+      <option value="gerbang">Pos Satpam & Parkir</option>
     </select>
   </div>
-  <div class="box hud-box-actions" style="padding: 3px 6px; display: flex; gap: 6px; align-items: center;">
+  <div class="hud-box-actions" style="padding: 0; display: flex; gap: 6px; align-items: center;">
     <button class="btn" id="toggleLabels" aria-pressed="true" title="Tampilkan / Sembunyikan Keterangan">
-      <span class="btn-icon">🏷️</span>
+      <span class="btn-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"></path>
+          <path d="M7 7h.01"></path>
+        </svg>
+      </span>
       <span class="btn-text">Keterangan</span>
     </button>
   </div>
@@ -591,7 +617,9 @@ dialog#agentDlg::backdrop {
 <!-- MODAL DIALOG INSPEKSI DETAIL AGENT & CINEMATIC VIEW -->
 <dialog id="agentDlg">
   <div class="dh">
-    <span id="dlgAvatar" style="font-size:24px">💻</span>
+    <div id="dlgAvatar" style="width:28px;height:28px;border-radius:8px;background:rgba(0,210,255,0.15);border:1px solid rgba(0,210,255,0.4);display:flex;align-items:center;justify-content:center;color:#38bdf8">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
     <div>
       <h3 id="dlgName">Kevin</h3>
       <div id="dlgRole" style="font-size:11.5px;color:var(--cyan);font-weight:700">Fullstack Developer</div>
@@ -608,10 +636,10 @@ dialog#agentDlg::backdrop {
     <!-- ITEM / BARANG YANG SEDANG DIPEGANG -->
     <div class="holding-box">
       <div style="font-size:10.5px;color:#7dd3fc;font-weight:800;letter-spacing:0.5px;margin-bottom:3px">
-        ⚡ SEDANG MEMEGANG / ALAT AKTIF:
+        SEDANG MEMEGANG / ALAT AKTIF:
       </div>
       <div id="dlgHolding" style="font-weight:800;color:#f8fafc;display:flex;align-items:center;gap:6px">
-        💻 Laptop DigiBooster (Code Matrix Engine)
+        Laptop DigiBooster (Code Matrix Engine)
       </div>
     </div>
 
@@ -638,10 +666,10 @@ dialog#agentDlg::backdrop {
     <!-- TOMBOL AKSI SINEMATIK -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px">
       <button class="btn" id="btnFocusCam" style="background:rgba(0,210,255,0.18);border-color:var(--cyan);color:var(--cyan);padding:7px;font-weight:800">
-        🎥 Sorot Sangat Dekat
+        Sorot Sangat Dekat
       </button>
       <button class="btn" id="btnResetCam" style="padding:7px;font-weight:700">
-        🏢 Reset Kantor
+        Reset Kamera
       </button>
     </div>
   </div>
@@ -818,7 +846,8 @@ const V_SKIRT    = 0x1e293b; // Skirting bawah navy
 const V_DARK     = 0x1e293b;
 const V_NAVY     = 0x0f172a;
 const V_WOOD     = 0xb47a46; // Kayu hangat oak
-const V_DARKWOOD = 0x5c381e; // Kayu gelap mewah meja direktur & rapat
+const V_DARKWOOD = 0x5c381e; // Kayu gelap mewah
+const V_OAK      = 0xd4a373; // Coklat muda kayu oak alami persis meja Tim Produk & R&D
 const V_CYAN     = 0x00b9f1;
 const V_STEEL    = 0x64748b;
 const V_CHROME   = 0x94a3b8;
@@ -829,30 +858,78 @@ const V_GREEN    = 0x16a34a; // Tanaman & daun
 // DAFTAR PINTU INTERAKTIF BUKA-TUTUP OTOMATIS
 const INTERACTIVE_DOORS = [];
 
+// Tekstur Pintu Klasik Dark Panel Emas (Sesuai Referensi Gambar)
+const doorTexLoader = new THREE.TextureLoader();
+const CLASSIC_DOOR_TEX = doorTexLoader.load('/classic_dark_door.png');
+CLASSIC_DOOR_TEX.colorSpace = THREE.SRGBColorSpace;
+
+const CLASSIC_DOOR_MAT = new THREE.MeshStandardMaterial({
+  map: CLASSIC_DOOR_TEX,
+  roughness: 0.45,
+  metalness: 0.15
+});
+
+// Tekstur Tembok Kasar (Rough Stucco Plaster) Sesuai Referensi Foto User
+const roughWallTexLoader = new THREE.TextureLoader();
+const ROUGH_WALL_TEX = roughWallTexLoader.load('/rough_stucco_wall.jpg');
+ROUGH_WALL_TEX.wrapS = THREE.RepeatWrapping;
+ROUGH_WALL_TEX.wrapT = THREE.RepeatWrapping;
+ROUGH_WALL_TEX.repeat.set(2, 2);
+ROUGH_WALL_TEX.colorSpace = THREE.SRGBColorSpace;
+
+const ROUGH_WALL_MAT = new THREE.MeshStandardMaterial({
+  map: ROUGH_WALL_TEX,
+  bumpMap: ROUGH_WALL_TEX,
+  bumpScale: 0.05,
+  roughness: 0.95,
+  metalness: 0.02,
+  color: 0xded8cc // Warm stucco off-white tone persis gambar referensi
+});
+
+// Material Kusen Hitam Elegan (Senada Daun Pintu)
+const DOOR_FRAME_MAT = new THREE.MeshStandardMaterial({
+  color: 0x18181b, // Charcoal black matte
+  roughness: 0.5,
+  metalness: 0.2
+});
+
+// Material Logam Kuningan Emas Mewah (Brushed Brass / Satin Gold)
+const V_BRASS_GOLD = new THREE.MeshStandardMaterial({
+  color: 0xd4af37, // Satin brass gold
+  metalness: 0.85,
+  roughness: 0.25
+});
+
 function makeInteractiveDoor(parent, x, z, angle, width = 1.3, height = 2.15, type = "wood") {
   const grp = new THREE.Group();
   grp.position.set(x, 0, z);
   grp.rotation.y = angle;
 
-  // Kusen gawang pintu kokoh (Door frame)
-  createBox(grp, 0.14, height + 0.12, 0.14, V_SKIRT, -width / 2, (height + 0.12) / 2, 0);
-  createBox(grp, 0.14, height + 0.12, 0.14, V_SKIRT, width / 2, (height + 0.12) / 2, 0);
-  createBox(grp, width + 0.14, 0.14, 0.14, V_SKIRT, 0, height + 0.07, 0);
+  // Kusen gawang pintu kokoh warna charcoal black senada pintu
+  createBox(grp, 0.12, height + 0.12, 0.14, DOOR_FRAME_MAT, -width / 2, (height + 0.12) / 2, 0);
+  createBox(grp, 0.12, height + 0.12, 0.14, DOOR_FRAME_MAT, width / 2, (height + 0.12) / 2, 0);
+  createBox(grp, width + 0.12, 0.12, 0.14, DOOR_FRAME_MAT, 0, height + 0.06, 0);
 
   // Engsel pivot pintu di sisi kiri
   const hinge = new THREE.Group();
   hinge.position.set(-width / 2 + 0.06, 0, 0);
 
-  const leafMat = type === "glass" ? GLASS_MAT : getMat(type === "white" ? 0xffffff : 0x6d4427);
   const leafW = width - 0.10;
   const leafH = height - 0.04;
 
-  const doorLeaf = createBox(hinge, leafW, leafH, 0.06, leafMat, leafW / 2, leafH / 2, 0);
+  // Daun Pintu Solid Bergaya Klasik 6-Panel Gelap dengan Tekstur Referensi
+  const doorLeaf = createBox(hinge, leafW, leafH, 0.06, CLASSIC_DOOR_MAT, leafW / 2, leafH / 2, 0);
 
-  // Gagang pintu handle logam chrome
-  createBox(doorLeaf, 0.04, 0.22, 0.09, V_CHROME, leafW - 0.16, 1.0, 0);
-  // Plat kunci
-  createBox(doorLeaf, 0.06, 0.28, 0.07, V_DARK, leafW - 0.16, 1.0, 0);
+  // Aksen Hardware Mewah (Satin Gold / Brushed Brass):
+  // 1. Gagang Pintu Tuas Emas (Lever Handle)
+  createBox(doorLeaf, 0.04, 0.18, 0.09, V_BRASS_GOLD, leafW - 0.14, 1.0, 0);
+  createBox(doorLeaf, 0.10, 0.03, 0.09, V_BRASS_GOLD, leafW - 0.11, 1.05, 0);
+
+  // 2. Plat Kunci / Rim Lock Box Emas di sisi samping
+  createBox(doorLeaf, 0.08, 0.10, 0.075, V_BRASS_GOLD, leafW - 0.14, 1.32, 0);
+
+  // 3. Mata Kucing / Peephole di tengah atas
+  createBox(doorLeaf, 0.03, 0.03, 0.07, V_BRASS_GOLD, leafW / 2, leafH * 0.72, 0);
 
   grp.add(hinge);
   parent.add(grp);
@@ -1165,7 +1242,7 @@ function makeVoxelBookshelf(parent, x, z, angle = 0, width = 1.4) {
   return grp;
 }
 
-// 8. Whiteboard Analitik & Sprint
+// 8. Whiteboard Analitik & Smart Board Monitor Dinding
 function makeVoxelWhiteboard(parent, x, y, z, angle = 0, type = "kanban") {
   const grp = new THREE.Group();
   grp.position.set(x, y, z);
@@ -1175,9 +1252,81 @@ function makeVoxelWhiteboard(parent, x, y, z, angle = 0, type = "kanban") {
 
   const wbTex = makeCanvasTex(512, 280, (ctx, w, h) => {
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#0f172a"; ctx.font = "bold 22px 'Plus Jakarta Sans', sans-serif";
+    ctx.fillStyle = "#0f172a"; ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
 
-    if (type === "analytics") {
+    if (type === "finance_hr") {
+      // Board Khusus Ruang Finance & HR
+      ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+      ctx.fillStyle = "#38bdf8"; ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText("💰 FINANCE & HR METRICS DASHBOARD", 20, 36);
+
+      // Kartu Mini Status
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(20, 50, 140, 60); ctx.fillRect(180, 50, 140, 60); ctx.fillRect(340, 50, 150, 60);
+      ctx.fillStyle = "#94a3b8"; ctx.font = "bold 12px sans-serif";
+      ctx.fillText("RUNWAY", 30, 70); ctx.fillText("HEADCOUNT", 190, 70); ctx.fillText("PAYROLL SLA", 350, 70);
+      ctx.fillStyle = "#10b981"; ctx.font = "bold 22px sans-serif";
+      ctx.fillText("24 Mos", 30, 98); ctx.fillText("48 Staff", 190, 98); ctx.fillText("100% OK", 350, 98);
+
+      // Grafik Bar Cashflow Q1 - Q4
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 13px sans-serif"; ctx.fillText("CASHFLOW INFLOW / OUTFLOW (IDR M)", 20, 135);
+      const finBars = [65, 90, 130, 115, 160, 140, 195];
+      finBars.forEach((val, i) => {
+        ctx.fillStyle = i % 2 === 0 ? "#10b981" : "#0284c7";
+        ctx.fillRect(30 + i * 65, h - 25 - val * 0.55, 48, val * 0.55);
+      });
+      ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 3; ctx.beginPath();
+      finBars.forEach((val, i) => {
+        const px = 54 + i * 65, py = h - 25 - val * 0.55;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+
+    } else if (type === "client_sla") {
+      // Board Khusus Layanan Klien
+      ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#10b981"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+      ctx.fillStyle = "#10b981"; ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText("🎧 CLIENT SERVICES & SLA HEALTH", 20, 36);
+
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(20, 52, 140, 55); ctx.fillRect(180, 52, 140, 55); ctx.fillRect(340, 52, 150, 55);
+      ctx.fillStyle = "#94a3b8"; ctx.font = "bold 12px sans-serif";
+      ctx.fillText("CSAT SCORE", 30, 72); ctx.fillText("TICKETS TODAY", 190, 72); ctx.fillText("AVG RESPONSE", 350, 72);
+      ctx.fillStyle = "#00d2ff"; ctx.font = "bold 22px sans-serif";
+      ctx.fillText("⭐ 4.96/5", 30, 96); ctx.fillText("142 Closed", 190, 96); ctx.fillText("1.8 Min", 350, 96);
+
+      // Antrian Tiket Pelayanan
+      ctx.fillStyle = "#38bdf8"; ctx.font = "bold 13px sans-serif"; ctx.fillText("LIVE TICKET QUEUE MONITORING", 20, 135);
+      const queueBars = [30, 60, 45, 90, 120, 85, 40];
+      queueBars.forEach((v, i) => {
+        ctx.fillStyle = "#0284c7"; ctx.fillRect(30 + i * 65, h - 25 - v * 0.6, 48, v * 0.6);
+      });
+
+    } else if (type === "dev_uptime") {
+      // Board Khusus Tim IT & Developer
+      ctx.fillStyle = "#0a101f"; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#00d2ff"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+      ctx.fillStyle = "#00d2ff"; ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+      ctx.fillText("⚡ SPRINT KANBAN & DEVOPS UPTIME", 20, 36);
+
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(20, 52, 140, 55); ctx.fillRect(180, 52, 140, 55); ctx.fillRect(340, 52, 150, 55);
+      ctx.fillStyle = "#94a3b8"; ctx.font = "bold 12px sans-serif";
+      ctx.fillText("UPTIME", 30, 72); ctx.fillText("ACTIVE NODES", 190, 72); ctx.fillText("DEPLOYMENT", 350, 72);
+      ctx.fillStyle = "#22c55e"; ctx.font = "bold 22px sans-serif";
+      ctx.fillText("99.99%", 30, 96); ctx.fillText("16 Nodes", 190, 96); ctx.fillText("CI/CD PASS", 350, 96);
+
+      ctx.strokeStyle = "#334155"; ctx.lineWidth = 2;
+      ctx.strokeRect(20, 125, 145, 135); ctx.strokeRect(180, 125, 145, 135); ctx.strokeRect(340, 125, 150, 135);
+      ctx.fillStyle = "#64748b"; ctx.font = "bold 13px sans-serif";
+      ctx.fillText("TODO (4)", 50, 145); ctx.fillText("DOING (3)", 210, 145); ctx.fillText("DEPLOYED (8)", 360, 145);
+      ctx.fillStyle = "#38bdf8"; ctx.fillRect(30, 158, 125, 28);
+      ctx.fillStyle = "#f59e0b"; ctx.fillRect(190, 158, 125, 28);
+      ctx.fillStyle = "#10b981"; ctx.fillRect(350, 158, 130, 28);
+
+    } else if (type === "analytics") {
       ctx.fillText("MARKETING & SALES PERFORMANCE", 25, 38);
       const bars = [40, 75, 110, 95, 140, 180, 220];
       bars.forEach((val, i) => {
@@ -1191,6 +1340,7 @@ function makeVoxelWhiteboard(parent, x, y, z, angle = 0, type = "kanban") {
         if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       });
       ctx.stroke();
+
     } else {
       ctx.fillText("SPRINT KANBAN BOARD", 25, 38);
       ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth = 3;
@@ -1680,61 +1830,271 @@ createBox(motoCanopy, 6.4, 0.08, 2.6, 0x0284c7, 0, 2.52, 0, false); // Atap biru
 createBox(motoCanopy, 6.2, 0.04, 2.4, 0x38bdf8, 0, 2.56, 0, false); // Strip glow cyan
 parkArea.add(motoCanopy);
 
-/* ================= 6. ECO GARDEN & PERGOLA ================= */
+/* ================= 6. ECO GARDEN & PERGOLA: MODERN SMART HYDROPONICS & ZEN OASIS ================= */
+// Area Eco Garden: X: -24.0 s/d -11.0 (lebar 13m), Z: 1.6 s/d 14.0 (panjang 12.4m)
+// Pintu Masuk: X = -17.5, Z = 1.6
 const ecoGarden = new THREE.Group();
-ecoGarden.position.set(-17.5, 0, 5.5);
+ecoGarden.position.set(0, 0, 0);
 world.add(ecoGarden);
 
-for (let i = 0; i < 3; i++) {
-  for (let j = 0; j < 2; j++) {
-    const bx = -2.5 + i * 2.5, bz = -3.2 + j * 2.6;
-    createBox(ecoGarden, 2.1, 0.35, 2.0, 0x78350f, bx, 0.18, bz);
-    createBox(ecoGarden, 1.8, 0.05, 1.7, 0x3d2817, bx, 0.36, bz, false);
-    for (let ci = -0.5; ci <= 0.5; ci += 0.5) {
-      for (let cj = -0.5; cj <= 0.5; cj += 0.5) {
-        const v = new THREE.Mesh(new THREE.DodecahedronGeometry(0.18, 0), getMat(0x22c55e));
-        v.position.set(bx + ci, 0.48, bz + cj);
-        ecoGarden.add(v);
+// A. LANTAI DASAR ALAMI: RUMPUT JEPANG HIJAU SUBUR MENUTUPI SELURUH AREA TAMAN
+const grassTex = makeCanvasTex(512, 512, (ctx, w, h) => {
+  ctx.fillStyle = "#15803d"; // Hijau rumput segar
+  ctx.fillRect(0, 0, w, h);
+  // Tekstur helai rumput organik
+  const blades = ["#16a34a", "#22c55e", "#14532d", "#4ade80", "#1e3a1f"];
+  for (let i = 0; i < 7000; i++) {
+    ctx.fillStyle = blades[Math.floor(Math.random() * blades.length)];
+    ctx.fillRect(Math.random() * w, Math.random() * h, 2.2, 4);
+  }
+});
+grassTex.wrapS = THREE.RepeatWrapping;
+grassTex.wrapT = THREE.RepeatWrapping;
+grassTex.repeat.set(5, 5);
+const grassMat = new THREE.MeshLambertMaterial({ map: grassTex });
+// Hamparan rumput menutupi ubin putih di Eco Garden (X: -24 s/d -11, Z: 1.6 s/d 14)
+createBox(ecoGarden, 12.8, 0.035, 12.2, grassMat, -17.5, 0.04, 7.8, false);
+
+// B. JALUR SETAPAK BATU ALAM & STEPPING STONES (Dari Pintu Masuk Z = 1.6 bercabang ke seluruh zona)
+// Jalur batu alam utama memanjang utara ke selatan
+for (let sz = 2.4; sz <= 13.0; sz += 1.1) {
+  createBox(ecoGarden, 1.15, 0.04, 0.75, 0xd1d5db, -17.5, 0.065, sz, false);
+}
+// Batu setapak cabang ke arah Barat (Hydroponics Farm)
+createBox(ecoGarden, 0.75, 0.04, 0.75, 0xd1d5db, -19.0, 0.065, 4.5, false);
+createBox(ecoGarden, 0.75, 0.04, 0.75, 0xd1d5db, -19.0, 8.5, false);
+// Batu setapak cabang ke arah Timur (Pergola Lounge)
+createBox(ecoGarden, 0.75, 0.04, 0.75, 0xd1d5db, -15.8, 0.065, 5.5, false);
+createBox(ecoGarden, 0.75, 0.04, 0.75, 0xd1d5db, -15.8, 0.065, 10.5, false);
+
+// C. PLANG NAMA "ECO GARDEN & SMART FARM" DENGAN DIGITAL IOT BADGE
+const ecoSignTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#22c55e"; ctx.lineWidth = 6; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#22c55e"; ctx.font = "bold 44px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("🌿 DigiBooster Eco Garden", 30, 68);
+  ctx.fillStyle = "#bae6fd"; ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("• Urban Hydroponics & Solar Oasis", 32, 115);
+  ctx.fillStyle = "#10b981"; ctx.font = "700 18px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("IOT SENSORS: ACTIVE • HUMIDITY 68% • PH 6.2", 32, 150);
+});
+createBox(ecoGarden, 2.6, 1.0, 0.12, new THREE.MeshLambertMaterial({ map: ecoSignTex }), -14.8, 1.45, 2.6);
+createBox(ecoGarden, 0.12, 1.45, 0.12, 0x1e293b, -15.9, 0.725, 2.6);
+createBox(ecoGarden, 0.12, 1.45, 0.12, 0x1e293b, -13.7, 0.725, 2.6);
+
+// D. ZONA 1: SMART HYDROPONIC FARMING (Sisi Barat X: -23.2 s/d -19.2)
+// 1. Rak Hidroponik A-Frame PVC Bertingkat (Sisi Barat Laut: X = -21.2, Z = 4.8)
+function makeHydroponicAFrame(x, z) {
+  const hg = new THREE.Group();
+  hg.position.set(x, 0, z);
+  // Rangka penyangga A-frame baja ringan putih
+  createBox(hg, 0.08, 1.55, 0.08, V_WHITE, -1.2, 0.775, -0.6);
+  createBox(hg, 0.08, 1.55, 0.08, V_WHITE, 1.2, 0.775, -0.6);
+  createBox(hg, 0.08, 1.55, 0.08, V_WHITE, -1.2, 0.775, 0.6);
+  createBox(hg, 0.08, 1.55, 0.08, V_WHITE, 1.2, 0.775, 0.6);
+  createBox(hg, 2.55, 0.06, 0.06, V_WHITE, 0, 1.55, 0); // Balok atas
+  createBox(hg, 2.55, 0.06, 0.06, V_WHITE, 0, 0.12, -0.6);
+  createBox(hg, 2.55, 0.06, 0.06, V_WHITE, 0, 0.12, 0.6);
+
+  // 4 Tingkat Pipa Hidroponik Putih dengan Tanaman Sayur Segar
+  const tiers = [0.45, 0.82, 1.18, 1.50];
+  tiers.forEach(ty => {
+    // 2 pipa per tingkat (sisi depan dan belakang)
+    for (const pz of [-0.35, 0.35]) {
+      const pipe = createCyl(hg, 0.075, 0.075, 2.4, V_WHITE, 0, ty, pz, 10);
+      pipe.rotation.z = Math.PI / 2;
+      // Deretan tanaman selada hidroponik bergelombang segar di atas lubang pipa
+      for (let px = -1.0; px <= 1.0; px += 0.30) {
+        const lettuce = new THREE.Mesh(new THREE.DodecahedronGeometry(0.09, 0), getMat(0x4ade80));
+        lettuce.position.set(px, ty + 0.09, pz);
+        hg.add(lettuce);
+        // Daun aksen hijau tua
+        const leaf2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.06, 0), getMat(0x16a34a));
+        leaf2.position.set(px + 0.04, ty + 0.12, pz + 0.02);
+        hg.add(leaf2);
       }
     }
+  });
+
+  // Bak Reservoir Nutrisi Air di Bawah (Nutrient Tank)
+  createBox(hg, 0.90, 0.38, 0.80, 0x0284c7, 0, 0.19, 0);
+  createBox(hg, 0.94, 0.04, 0.84, 0x0f172a, 0, 0.39, 0);
+  // Selang sirkulasi nutrisi biru
+  createCyl(hg, 0.02, 0.02, 1.25, 0x38bdf8, -0.9, 0.8, 0, 8);
+
+  ecoGarden.add(hg);
+}
+
+// 2 Unit Rak Hidroponik A-Frame Berjajar
+makeHydroponicAFrame(-21.2, 4.6);
+makeHydroponicAFrame(-21.2, 8.2);
+
+// 2. Vertical Tower Hydroponics (2 Menara Tanaman Vertikal di X = -21.2, Z = 11.8)
+function makeVerticalTower(x, z) {
+  const tg = new THREE.Group();
+  tg.position.set(x, 0, z);
+  // Pot reservoir silinder di dasar
+  createCyl(tg, 0.38, 0.38, 0.45, V_DARK, 0, 0.225, 0, 12);
+  // Tiang pipa silinder vertikal putih
+  createCyl(tg, 0.16, 0.16, 1.75, V_WHITE, 0, 1.10, 0, 12);
+  // Lubang tanam spiral dengan tanaman menggantung
+  for (let y = 0.55; y <= 1.85; y += 0.24) {
+    const ang = y * 4.5;
+    const tx = Math.cos(ang) * 0.18, tz = Math.sin(ang) * 0.18;
+    const vVeg = new THREE.Mesh(new THREE.DodecahedronGeometry(0.10, 0), getMat(0x22c55e));
+    vVeg.position.set(tx, y, tz);
+    tg.add(vVeg);
+  }
+  // LED Grow-Light Cap di puncak
+  createCyl(tg, 0.20, 0.12, 0.10, 0x38bdf8, 0, 2.02, 0, 10);
+  ecoGarden.add(tg);
+}
+makeVerticalTower(-22.4, 11.8);
+makeVerticalTower(-20.0, 11.8);
+
+// E. ZONA 2: MODERN TIMBER PERGOLA & RELAX POD (Sisi Timur X: -15.5 s/d -11.5, Z: 5.0 s/d 11.8)
+// 1. Lantai Dek Kayu Jati Mewah (Outdoor Teak Wood Decking)
+const woodDeckTex = makeCanvasTex(512, 512, (ctx, w, h) => {
+  ctx.fillStyle = "#854d0e"; // Kayu jati outdoor hangat
+  ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#451a03"; // Celah nat papan kayu
+  ctx.lineWidth = 4;
+  const plankW = 42;
+  for (let x = 0; x <= w; x += plankW) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  }
+});
+woodDeckTex.wrapS = THREE.RepeatWrapping;
+woodDeckTex.wrapT = THREE.RepeatWrapping;
+woodDeckTex.repeat.set(3, 4);
+const deckMat = new THREE.MeshLambertMaterial({ map: woodDeckTex });
+// Dek kayu terangkat sedikit di atas rumput
+createBox(ecoGarden, 4.4, 0.12, 7.2, deckMat, -13.7, 0.08, 8.4, false);
+
+// 2. Rangka Pergola Arsitektural Kayu Minimalis (Pergola Louvers dengan Tanaman Rambat)
+const perg = new THREE.Group();
+perg.position.set(-13.7, 0, 8.4);
+
+// 4 Tiang Balok Kayu Solid Elegan
+const pColMat = getMat(0x78350f);
+for (const cx of [-2.0, 2.0]) {
+  for (const cz of [-3.3, 3.3]) {
+    createBox(perg, 0.16, 2.40, 0.16, pColMat, cx, 1.20, cz);
+    createBox(perg, 0.22, 0.08, 0.22, 0x1e293b, cx, 0.04, cz); // Base sepatu tiang
+  }
+}
+// Balok Penopang Utama Horisontal
+createBox(perg, 0.18, 0.18, 7.0, 0x854d0e, -2.0, 2.40, 0);
+createBox(perg, 0.18, 0.18, 7.0, 0x854d0e, 2.0, 2.40, 0);
+
+// Kisi-Kisi Bilah Louver Kayu (Timber Slats Modern) - TIDAK ADA BLOK HIJAU TEBAL KAKU!
+for (let lz = -3.2; lz <= 3.2; lz += 0.60) {
+  createBox(perg, 4.4, 0.14, 0.08, 0xa16207, 0, 2.54, lz);
+  // Daun tanaman rambat menggantung alami di sela-sela bilah louver
+  if (Math.abs(lz) % 1.2 < 0.7) {
+    const ivy = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16, 0), getMat(0x16a34a));
+    ivy.position.set((Math.random() - 0.5) * 2.8, 2.42, lz);
+    perg.add(ivy);
+    const vineD = createCyl(perg, 0.015, 0.015, 0.35, 0x15803d, ivy.position.x, 2.22, lz, 6);
   }
 }
 
-// Plang Nama "Eco Garden" Kayu Elegan
-const ecoSignTex = makeCanvasTex(256, 96, (ctx, w, h) => {
-  ctx.fillStyle = "#14532d"; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#4ade80"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
-  ctx.fillStyle = "#ffffff"; ctx.font = "bold 28px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("🌿 Eco Garden", 30, 58);
-});
-createBox(ecoGarden, 2.4, 0.9, 0.1, new THREE.MeshLambertMaterial({ map: ecoSignTex }), 0, 1.2, -4.5);
-createBox(ecoGarden, 0.12, 1.2, 0.12, 0x78350f, -1.0, 0.6, -4.5);
-createBox(ecoGarden, 0.12, 1.2, 0.12, 0x78350f, 1.0, 0.6, -4.5);
+// 3. Furniture Santai: Sofa L-Shape Rotan Outdoor & Meja Kopi Kayu
+// Sofa Sudut L-Shape Mewah (Bantalan Krem Abu-abu Elegan + Aksen Cushion DigiBooster Cyan & Mustard)
+createBox(perg, 2.4, 0.35, 0.85, 0x1e293b, -0.6, 0.22, -2.2); // Rangka sofa utama
+createBox(perg, 2.3, 0.16, 0.80, 0xf1f5f9, -0.6, 0.44, -2.2); // Bantalan empuk duduk
+createBox(perg, 2.4, 0.40, 0.18, 0x1e293b, -0.6, 0.65, -2.6); // Sandaran belakang
+createBox(perg, 2.3, 0.30, 0.12, 0xe2e8f0, -0.6, 0.65, -2.48); // Bantal sandaran
 
-// Jalan setapak batu alam (Stone path) di sela-sela bedeng tanaman
-for (let p = -3.5; p <= 3.5; p += 1.2) {
-  createBox(ecoGarden, 1.1, 0.04, 0.8, 0xd1d5db, 0, 0.05, p, false);
+// Bagian sayap L-sofa (sisi barat)
+createBox(perg, 0.85, 0.35, 1.6, 0x1e293b, -1.4, 0.22, -1.0);
+createBox(perg, 0.80, 0.16, 1.5, 0xf1f5f9, -1.4, 0.44, -1.0);
+
+// Bantal-bantal aksen sofa (Cyan & Mustard Kuning)
+createBox(perg, 0.26, 0.26, 0.10, 0x00B9F1, -0.3, 0.56, -2.35).rotation.z = 0.1;
+createBox(perg, 0.26, 0.26, 0.10, 0xf59e0b, 0.2, 0.56, -2.35).rotation.z = -0.1;
+createBox(perg, 0.26, 0.26, 0.10, 0x00B9F1, -1.35, 0.56, -0.6).rotation.y = Math.PI / 2;
+
+// Meja Kopi Outdoor Skandinavia (Teak Coffee Table) di Tengah
+createBox(perg, 1.35, 0.38, 0.85, 0xd4a373, -0.3, 0.24, -1.0);
+createBox(perg, 1.40, 0.05, 0.90, V_DARKWOOD, -0.3, 0.43, -1.0); // Top table kayu
+// Cangkir teh & nampan di atas meja
+createBox(perg, 0.38, 0.03, 0.28, 0x0f172a, -0.3, 0.47, -1.0);
+createCyl(perg, 0.04, 0.03, 0.07, V_WHITE, -0.35, 0.52, -1.0, 8);
+createCyl(perg, 0.04, 0.03, 0.07, 0x38bdf8, -0.25, 0.52, -1.0, 8);
+
+// 2 Kursi Santai Armchair Rotan di Depan Meja (Menghadap Sofa)
+for (let czi = 1.0; czi <= 2.2; czi += 1.2) {
+  createBox(perg, 0.80, 0.32, 0.75, 0x1e293b, -0.3, 0.20, czi);
+  createBox(perg, 0.74, 0.14, 0.70, 0xf1f5f9, -0.3, 0.40, czi);
+  createBox(perg, 0.80, 0.38, 0.14, 0x1e293b, -0.3, 0.62, czi + 0.35); // Sandaran
 }
 
-const pergola = new THREE.Group();
-pergola.position.set(-17.5, 0, 12.5);
-createBox(pergola, 7.5, 0.08, 4.5, 0x475569, 0, 0.04, 0, false);
-for (let i = 0; i < 5; i++) {
-  createBox(pergola, 0.15, 2.5, 0.15, 0x854d0e, -3.2 + i * 1.6, 1.25, -2.0);
-  createBox(pergola, 0.15, 2.5, 0.15, 0x854d0e, -3.2 + i * 1.6, 1.25, 2.0);
-  createBox(pergola, 0.18, 0.15, 4.4, 0xa16207, -3.2 + i * 1.6, 2.55, 0);
-}
-createBox(pergola, 7.2, 0.25, 4.2, 0x16a34a, 0, 2.7, 0); // Atap tanaman rambat rimbun
+ecoGarden.add(perg);
 
-// Bangku santai kayu di bawah pergola
-for (const bz of [-1.1, 1.1]) {
-  createBox(pergola, 3.2, 0.45, 0.6, 0x78350f, 0, 0.25, bz);
-  createBox(pergola, 3.2, 0.45, 0.1, 0x78350f, 0, 0.65, bz > 0 ? bz + 0.3 : bz - 0.3);
-}
-// Meja kopi kayu santai di tengah pergola
-createBox(pergola, 2.4, 0.40, 0.8, 0xd4a373, 0, 0.22, 0);
+// F. ZONA 3: ZEN WATER FEATURE & AIR MANCUR BATU BERTINGKAT (Di Sudut Barat Daya: X = -21.8, Z = 2.8)
+function makeZenFountain(x, z) {
+  const fg = new THREE.Group();
+  fg.position.set(x, 0, z);
+  // Kolam dasar batu granit hitam segi-delapan
+  createCyl(fg, 0.95, 1.05, 0.35, 0x334155, 0, 0.175, 0, 8);
+  // Air kolam biru jernih berkilau
+  const waterMat = new THREE.MeshPhysicalMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.85,
+    roughness: 0.05,
+    transmission: 0.7
+  });
+  createCyl(fg, 0.88, 0.88, 0.04, waterMat, 0, 0.32, 0, 8);
+  // Susunan undakan batu alam vertikal (Tiered Fountain Spout)
+  createCyl(fg, 0.55, 0.60, 0.30, 0x475569, 0, 0.45, 0, 8);
+  createCyl(fg, 0.30, 0.35, 0.35, 0x64748b, 0, 0.75, 0, 8);
+  // Puncak air mancur memancar
+  createCyl(fg, 0.08, 0.04, 0.16, 0xbae6fd, 0, 1.00, 0, 8);
 
-world.add(pergola);
+  // Tanaman teratai mini di permukaan kolam
+  for (let ang = 0; ang < Math.PI * 2; ang += 2.0) {
+    const lx = Math.cos(ang) * 0.55, lz = Math.sin(ang) * 0.55;
+    const lPad = createCyl(fg, 0.12, 0.12, 0.015, 0x16a34a, lx, 0.33, lz, 8);
+    const lFlower = createCyl(fg, 0.04, 0.02, 0.05, 0xf43f5e, lx, 0.36, lz, 6);
+  }
+  ecoGarden.add(fg);
+}
+makeZenFountain(-21.8, 2.6);
+
+// G. POHON RINDANG TROPIS & BONSAI EXOTIC
+function makeGardenTree(x, z, scale = 1.0) {
+  const tg = new THREE.Group();
+  tg.position.set(x, 0, z);
+  tg.scale.set(scale, scale, scale);
+  // Pot semen modern bulat abu-abu
+  createCyl(tg, 0.45, 0.35, 0.55, 0x475569, 0, 0.275, 0, 10);
+  createCyl(tg, 0.40, 0.40, 0.05, 0x3d2817, 0, 0.52, 0, 8); // Tanah subur
+  // Batang pohon kayu meliuk estetik
+  createCyl(tg, 0.08, 0.10, 0.90, 0x5c381e, 0, 0.95, 0, 8);
+  createCyl(tg, 0.06, 0.07, 0.55, 0x5c381e, 0.12, 1.50, 0.08, 8).rotation.z = -0.25;
+  createCyl(tg, 0.06, 0.07, 0.55, 0x5c381e, -0.12, 1.50, -0.08, 8).rotation.z = 0.25;
+  // Kanopi daun rimbun berundak hijau segar
+  const c1 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.65, 1), getMat(0x15803d));
+  c1.position.set(0, 1.85, 0); tg.add(c1);
+  const c2 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 1), getMat(0x22c55e));
+  c2.position.set(0.25, 2.15, 0.15); tg.add(c2);
+  const c3 = new THREE.Mesh(new THREE.DodecahedronGeometry(0.48, 1), getMat(0x16a34a));
+  c3.position.set(-0.25, 2.10, -0.15); tg.add(c3);
+  ecoGarden.add(tg);
+}
+makeGardenTree(-14.2, 13.0, 1.25); // Pohon rindang di sudut tenggara taman
+makeGardenTree(-17.5, 13.0, 1.15); // Pohon pelindung di ujung jalan setapak
+makeGardenTree(-23.2, 7.0, 1.05);  // Pohon hias di samping hidroponik
+
+// H. LAMPU TAMAN SOLAR-POWERED MINIMALIS DI SEPANJANG JALAN SETAPAK
+for (let lz = 3.5; lz <= 12.0; lz += 2.8) {
+  // Tiang lampu hitam doff ramping
+  createBox(ecoGarden, 0.06, 0.85, 0.06, 0x0f172a, -16.7, 0.425, lz);
+  // Kepala lampu solar LED cyan bercahaya hangat
+  createBox(ecoGarden, 0.14, 0.12, 0.14, 0x00B9F1, -16.7, 0.88, lz, false);
+}
 
 /* ================= 7. KANTOR UTAMA: SISTEM TEMBOK & LANTAI KONSISTEN ================= */
 const officeGroup = new THREE.Group();
@@ -1743,25 +2103,42 @@ world.add(officeGroup);
 const WALL_H = 2.4;
 
 // 1. LANTAI UTAMA
-// TEKSTUR LANTAI SEMUA RUANGAN: PUTIH ELEGAN MODERN
-const floorTileTex = makeCanvasTex(512, 512, (ctx, w, h) => {
-  ctx.fillStyle = "#ffffff"; // Putih bersih porselen modern
-  ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#e2e8f0"; // Garis nat ubin abu-abu sangat halus & presisi
-  ctx.lineWidth = 3;
-  const gridSize = 64;
-  for (let x = 0; x <= w; x += gridSize) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-  }
-  for (let y = 0; y <= h; y += gridSize) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-  }
+// TEKSTUR LANTAI KERAMIK MOTIF VINTAGE / MOROCCAN TILE PERSIS GAMBAR
+const textureLoader = new THREE.TextureLoader();
+const floorTileTex = textureLoader.load('/moroccan_vintage_tile.png', (tex) => {
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(16, 10);
+  tex.needsUpdate = true;
 });
 floorTileTex.wrapS = THREE.RepeatWrapping;
 floorTileTex.wrapT = THREE.RepeatWrapping;
-floorTileTex.repeat.set(14, 9);
+floorTileTex.repeat.set(16, 10);
 
-const floorMat = new THREE.MeshLambertMaterial({ map: floorTileTex });
+const floorMat = new THREE.MeshLambertMaterial({ 
+  map: floorTileTex,
+  color: 0xf8fafc
+});
+
+// TEKSTUR KERAMIK MOSAIK BIRU-PUTIH ELEGAN (UNTUK KAMAR MANDI & PANTRY) PERSIS REFERENSI GAMBAR
+const blueMosaicTexLoader = new THREE.TextureLoader();
+const BLUE_MOSAIC_TILE_TEX = blueMosaicTexLoader.load('/blue_mosaic_tile.png', (tex) => {
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+});
+BLUE_MOSAIC_TILE_TEX.wrapS = THREE.RepeatWrapping;
+BLUE_MOSAIC_TILE_TEX.wrapT = THREE.RepeatWrapping;
+BLUE_MOSAIC_TILE_TEX.colorSpace = THREE.SRGBColorSpace;
+
+const BLUE_MOSAIC_MAT = new THREE.MeshStandardMaterial({
+  map: BLUE_MOSAIC_TILE_TEX,
+  bumpMap: BLUE_MOSAIC_TILE_TEX,
+  bumpScale: 0.035,
+  roughness: 0.35, // Kilap satin porselen / keramik basah
+  metalness: 0.05
+});
 // Dasar fondasi kantor
 createBox(officeGroup, 54.4, 0.40, 34.4, 0xdbe3ea, 3, -0.20, -3, false);
 const mainFloorMesh = createBox(officeGroup, 53.6, 0.05, 33.6, floorMat, 3, 0.02, -3, false);
@@ -1835,7 +2212,24 @@ createBox(parent, 0.16, 0.18, len, V_SKIRT, cx, WALL_H - 0.09, cz, false).rotati
     createBox(parent, 0.18, WALL_H + 0.10, 0.18, 0x1e293b, x2, (WALL_H + 0.10) / 2, z2, false);
 
   } else {
-    const w = createBox(parent, 0.28, WALL_H, len, V_WALL, cx, WALL_H / 2, cz);
+    // Tembok Kasar (Rough Stucco Plaster) dengan scale texture repeat presisi per bentang tembok
+    const wallTex = ROUGH_WALL_TEX.clone();
+    wallTex.needsUpdate = true;
+    wallTex.wrapS = THREE.RepeatWrapping;
+    wallTex.wrapT = THREE.RepeatWrapping;
+    // Skala tekstur: 1 pengulangan per 2.5 meter agar butiran plester tampak natural dan detail
+    wallTex.repeat.set(Math.max(1, len / 2.5), WALL_H / 2.2);
+
+    const wallMat = new THREE.MeshStandardMaterial({
+      map: wallTex,
+      bumpMap: wallTex,
+      bumpScale: 0.05,
+      roughness: 0.95,
+      metalness: 0.02,
+      color: 0xded8cc
+    });
+
+    const w = createBox(parent, 0.28, WALL_H, len, wallMat, cx, WALL_H / 2, cz);
     w.rotation.y = ang;
 
     const skirt = createBox(parent, 0.32, 0.14, len, V_SKIRT, cx, 0.07, cz, false);
@@ -1844,9 +2238,10 @@ createBox(parent, 0.16, 0.18, len, V_SKIRT, cx, WALL_H - 0.09, cz, false).rotati
     const topCap = createBox(parent, 0.36, 0.12, len + 0.04, V_RIM, cx, WALL_H + 0.06, cz, false);
     topCap.rotation.y = ang;
 
-    createBox(parent, 0.34, WALL_H + 0.12, 0.34, V_WALL, x1, (WALL_H + 0.12) / 2, z1, false);
+    // Pilar sambungan sudut dinding dengan tekstur plester kasar
+    createBox(parent, 0.34, WALL_H + 0.12, 0.34, ROUGH_WALL_MAT, x1, (WALL_H + 0.12) / 2, z1, false);
     createBox(parent, 0.38, 0.14, 0.38, V_RIM, x1, WALL_H + 0.07, z1, false);
-    createBox(parent, 0.34, WALL_H + 0.12, 0.34, V_WALL, x2, (WALL_H + 0.12) / 2, z2, false);
+    createBox(parent, 0.34, WALL_H + 0.12, 0.34, ROUGH_WALL_MAT, x2, (WALL_H + 0.12) / 2, z2, false);
     createBox(parent, 0.38, 0.14, 0.38, V_RIM, x2, WALL_H + 0.07, z2, false);
   }
 }
@@ -1865,31 +2260,29 @@ buildWall(officeGroup, 3.1, 14, 29, 14, "solid");   // Dinding depan sisi timur 
 buildWall(officeGroup, -24, -10.6, -18.5, -10.6, "glass");  // DEPAN SERVER: KACA ELEGAN KE JALAN
 buildWall(officeGroup, -18.5, -10.6, -10.5, -10.6, "glass"); // DEPAN RUANG AI: KACA ELEGAN KE JALAN
 buildWall(officeGroup, -10.5, -10.6, -3.0, -10.6, "glass");  // DEPAN RAPAT BESAR: KACA ELEGAN KE JALAN
-buildWall(officeGroup, -3.0, -10.6, 3.5, -10.6, "glass");    // DEPAN RAPAT KECIL: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 3.5, -10.6, 10.5, -10.6, "glass");    // DEPAN TIM PRODUK: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 10.5, -10.6, 17.5, -10.6, "glass");   // DEPAN MARKETING: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 17.5, -10.6, 23.5, -10.6, "glass");   // DEPAN TIM PENJUALAN: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 23.5, -10.6, 29.0, -10.6, "glass");   // DEPAN RUANG KREATIF: KACA ELEGAN KE JALAN
+// MEGA SPORTS & WELLNESS HUB (X: -3.0 s/d 29.0) - Fasad Kaca Panorama Modern Terbuka
+buildWall(officeGroup, -3.0, -10.6, 29.0, -10.6, "glass");   // DEPAN MEGA SPORTS & WELLNESS HUB: KACA PANORAMA MEWAH KE JALAN
 
 // 2. DINDING BELAKANG BARIS TENGAH (Z = -8.2, Menghadap ke Jalan Sepetak Belakang):
-buildWall(officeGroup, -24, -8.2, -17.0, -8.2, "glass");     // BELAKANG FINANCE: KACA ELEGAN KE JALAN
-buildWall(officeGroup, -17.0, -8.2, -9.5, -8.2, "glass");    // BELAKANG LAYANAN KLIEN: KACA ELEGAN
+// Seluruh baris tengah menggunakan dinding solid kokoh & backdrop premium seperti Lobby DigiBooster
+buildWall(officeGroup, -24, -8.2, -17.0, -8.2, "solid");    // BELAKANG FINANCE & HR: SOLID WALL ELEGAN
+buildWall(officeGroup, -17.0, -8.2, -9.5, -8.2, "solid");    // BELAKANG LAYANAN KLIEN: SOLID WALL ELEGAN
 buildWall(officeGroup, -9.5, -8.2, -2.0, -8.2, "solid");     // Dinding Logo Belakang Lobby
 // CATATAN: X = -2.0 s/d 4.5 TERBUKA TOTAL TANPA DINDING! (Akses Koridor Utama Tengah ke Jalan Belakang)
-buildWall(officeGroup, 4.5, -8.2, 11.5, -8.2, "glass");     // BELAKANG KANTOR MANAJEMEN: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 11.5, -8.2, 18.5, -8.2, "glass");    // BELAKANG DIGITAL MARKETING: KACA ELEGAN KE JALAN
-buildWall(officeGroup, 18.5, -8.2, 24.0, -8.2, "glass");    // BELAKANG TIM IT & DEV: KACA ELEGAN KE JALAN
+buildWall(officeGroup, 4.5, -8.2, 11.5, -8.2, "solid");     // BELAKANG KANTOR MANAJEMEN: SOLID WALL ELEGAN
+buildWall(officeGroup, 11.5, -8.2, 18.5, -8.2, "solid");    // BELAKANG DIGITAL MARKETING: SOLID WALL ELEGAN
+buildWall(officeGroup, 18.5, -8.2, 24.0, -8.2, "solid");    // BELAKANG TIM IT & DEV: SOLID WALL ELEGAN
 buildWall(officeGroup, 24.0, -8.2, 29.0, -8.2, "solid");    // Belakang Workshop
 
 // 3. DINDING DEPAN BARIS TENGAH (Z = -0.8, Menghadap ke Jalan Sepetak Fasilitas Depan):
-buildWall(officeGroup, -24, -0.8, -17.0, -0.8, "solid"); // Depan Finance & HR
+buildWall(officeGroup, -24, -0.8, -17.0, -0.8, "glass"); // DEPAN FINANCE & HR: KACA ELEGAN MENGHADAP JALAN SEPETAK & ECO GARDEN
 buildWall(officeGroup, -17.0, -0.8, -9.5, -0.8, "glass"); // DEPAN LAYANAN KLIEN: KACA ELEGAN
 buildWall(officeGroup, -9.5, -0.8, -2.0, -0.8, "glass");  // DEPAN LOBBY: KACA GANDA ELEGAN
 // CATATAN: X = -2.0 s/d 4.5 TERBUKA TOTAL TANPA DINDING! (Akses Koridor Utama Tengah ke Jalan Depan)
 buildWall(officeGroup, 4.5, -0.8, 11.5, -0.8, "glass");   // DEPAN KANTOR MANAJEMEN: KACA ELEGAN
 buildWall(officeGroup, 11.5, -0.8, 18.5, -0.8, "glass");  // DEPAN DIGITAL MARKETING: KACA ELEGAN
 buildWall(officeGroup, 18.5, -0.8, 24.0, -0.8, "glass");  // DEPAN TIM IT & DEV: KACA ELEGAN
-buildWall(officeGroup, 24.0, -0.8, 29.0, -0.8, "solid");  // Depan Workshop
+buildWall(officeGroup, 24.0, -0.8, 29.0, -0.8, "glass");  // DEPAN WORKSHOP: KACA ELEGAN MENGHADAP JALAN SEPETAK & TOILET
 
 // 4. DINDING BARIS FASILITAS BAWAH (Z = 1.6, Menghadap ke Jalan Sepetak Fasilitas):
 buildWall(officeGroup, -24, 1.6, -11.0, 1.6, "glass");   // DEPAN ECO GARDEN: KACA ELEGAN & PERGOLA
@@ -1900,31 +2293,33 @@ buildWall(officeGroup, -11.0, 1.6, -3.0, 1.6, "glass");  // DEPAN PANTRY: KACA E
 buildWall(officeGroup, 6.0, 1.6, 9.0, 1.6, "solid");     // Sisi barat pintu mushola
 buildWall(officeGroup, 10.6, 1.6, 13.5, 1.6, "solid");   // Sisi timur pintu mushola
 
-// DINDING DEPAN TOILET DENGAN BUKAAN PINTU KE JALAN SETAPAK (Pintu di tengah ruangan X: 21.25):
-buildWall(officeGroup, 13.5, 1.6, 20.35, 1.6, "solid");   // Sisi barat pintu toilet
-buildWall(officeGroup, 22.15, 1.6, 29.0, 1.6, "solid");   // Sisi timur pintu toilet
+// DINDING DEPAN TOILET DENGAN 2 BUKAAN PINTU (WANITA X: 17.5, PRIA X: 25.25):
+buildWall(officeGroup, 13.5, 1.6, 16.7, 1.6, "solid");   // Sisi kiri pintu Wanita
+buildWall(officeGroup, 18.3, 1.6, 21.0, 1.6, "solid");   // Antara pintu Wanita & sekat tengah
+buildWall(officeGroup, 21.5, 1.6, 24.4, 1.6, "solid");   // Antara sekat tengah & pintu Pria
+buildWall(officeGroup, 26.1, 1.6, 29.0, 1.6, "solid");   // Sisi kanan pintu Pria
+
+// SEKAT VERTIKAL TENGAH: MEMISAHKAN TOILET WANITA & TOILET PRIA (X: 21.25, Z: 1.6 s/d 14.0)
+buildWall(officeGroup, 21.25, 1.6, 21.25, 14.0, "solid");
 
 // SEKAT VERTIKAL BARIS ATAS
-buildWall(officeGroup, -18.5, -18, -18.5, -10.6, "glass"); // SEKAT SAMPING SERVER (KIRI-KANAN): KACA ELEGAN
+buildWall(officeGroup, -18.5, -18, -18.5, -10.6, "solid"); // SEKAT SAMPING SERVER (KIRI-KANAN): TEMBOK BIASA KOKOH
 buildWall(officeGroup, -10.5, -18, -10.5, -10.6, "solid"); // AI Auto | Rapat Besar
-buildWall(officeGroup, -3.0, -18, -3.0, -10.6, "solid");   // Rapat Besar | Rapat Kecil
-buildWall(officeGroup, 3.5, -18, 3.5, -10.6, "solid");     // Rapat Kecil | Produk R&D
-buildWall(officeGroup, 10.5, -18, 10.5, -10.6, "solid");   // Produk R&D | Marketing
-buildWall(officeGroup, 17.5, -18, 17.5, -10.6, "solid");   // Marketing | Penjualan
-buildWall(officeGroup, 23.5, -18, 23.5, -10.6, "solid");   // Penjualan | Kreatif
+buildWall(officeGroup, -3.0, -18, -3.0, -10.6, "solid");   // Rapat Besar | Mega Sports & Wellness Hub
+// SEKAT VERTIKAL RUANG RAPAT KECIL S/D RUANG KREATIF TELAH DIBONGKAR MENJADI 1 MEGA RUANGAN (32 METER BEBAS SEKAT)
 
 // SEKAT VERTIKAL BARIS TENGAH (Z: -8.2 s/d -0.8)
-buildWall(officeGroup, -17.0, -8.2, -17.0, -0.8, "glass"); // SEKAT FINANCE & LAYANAN KLIEN: KACA ELEGAN
-buildWall(officeGroup, -9.5, -8.2, -9.5, -0.8, "glass");   // SEKAT LAYANAN KLIEN & LOBBY: KACA ELEGAN
-buildWall(officeGroup, -2.0, -8.2, -2.0, -0.8, "glass");   // KIRI KORIDOR UTAMA (SISI LOBBY): KACA ELEGAN
-buildWall(officeGroup, 4.5, -8.2, 4.5, -0.8, "glass");    // KANAN KORIDOR UTAMA (SISI MANAJEMEN): KACA ELEGAN
+buildWall(officeGroup, -17.0, -8.2, -17.0, -0.8, "solid"); // SEKAT FINANCE & LAYANAN KLIEN: TEMBOK BIASA
+buildWall(officeGroup, -9.5, -8.2, -9.5, -0.8, "solid");   // SEKAT LAYANAN KLIEN & LOBBY: TEMBOK BIASA
+buildWall(officeGroup, -2.0, -8.2, -2.0, -0.8, "solid");   // SAMPING KORIDOR UTAMA (SISI LOBBY): TEMBOK BIASA KOKOH
+buildWall(officeGroup, 4.5, -8.2, 4.5, -0.8, "solid");    // SAMPING KORIDOR UTAMA (SISI MANAJEMEN): TEMBOK BIASA KOKOH
 buildWall(officeGroup, 11.5, -8.2, 11.5, -0.8, "solid");  // Manajemen | Dig. Marketing
 buildWall(officeGroup, 18.5, -8.2, 18.5, -0.8, "solid");  // Dig. Marketing | IT Dev
 buildWall(officeGroup, 24.0, -8.2, 24.0, -0.8, "solid");  // IT Dev | Workshop
 
 // SEKAT VERTIKAL BARIS FASILITAS BAWAH (Z: 1.6 s/d 14)
 buildWall(officeGroup, -11.0, 1.6, -11.0, 14, "solid"); // Eco Garden | Pantry
-buildWall(officeGroup, -3.0, 1.6, -3.0, 14, "glass");   // SEKAT PANTRY & SANTAI: KACA ELEGAN
+buildWall(officeGroup, -3.0, 1.6, -3.0, 14, "solid");   // SEKAT PANTRY & SANTAI: TEMBOK BIASA
 buildWall(officeGroup, 6.0, 1.6, 6.0, 14, "solid");     // Santai | Mushola
 buildWall(officeGroup, 13.5, 1.6, 13.5, 14, "solid");   // Mushola | Toilet (privasi)
 
@@ -1933,42 +2328,40 @@ buildWall(officeGroup, 13.5, 1.6, 13.5, 14, "solid");   // Mushola | Toilet (pri
 makeInteractiveDoor(officeGroup, -21.2, -10.6, 0, 1.3, 2.15, "glass"); // Server
 makeInteractiveDoor(officeGroup, -14.5, -10.6, 0, 1.4, 2.15, "glass"); // AI Auto
 makeInteractiveDoor(officeGroup, -6.7, -10.6, 0, 1.5, 2.15, "glass");  // Rapat Besar
-makeInteractiveDoor(officeGroup, 0.2, -10.6, 0, 1.3, 2.15, "glass");   // Rapat Kecil
-makeInteractiveDoor(officeGroup, 7.0, -10.6, 0, 1.3, 2.15, "glass");   // Tim Produk & R&D
-makeInteractiveDoor(officeGroup, 14.0, -10.6, 0, 1.3, 2.15, "glass");  // Tim Marketing
-makeInteractiveDoor(officeGroup, 20.5, -10.6, 0, 1.3, 2.15, "glass");  // Tim Penjualan
-makeInteractiveDoor(officeGroup, 26.2, -10.6, 0, 1.3, 2.15, "glass");  // Ruang Kreatif
+// Pintu Masuk Tunggal Mega Sports & Wellness Hub (Pintu Tepat di Tengah Ruangan, X: 13.0, Lebar 1.8m):
+makeInteractiveDoor(officeGroup, 13.0, -10.6, 0, 1.8, 2.25, "glass");  // Single Centered Main Entrance Sports & Wellness Hub
 
 // 2. PINTU BARIS TENGAH MENGARAH KE JALAN SEPETAK BELAKANG (Z = -8.2):
 makeInteractiveDoor(officeGroup, -20.5, -8.2, Math.PI, 1.3, 2.15, "glass"); // Finance & HR
-makeInteractiveDoor(officeGroup, -13.2, -8.2, Math.PI, 1.3, 2.15, "glass"); // Layanan Klien
+makeInteractiveDoor(officeGroup, -13.2, -8.2, Math.PI, 1.3, 2.15, "glass"); // Kantor Manajemen (Pindah ke Barat)
 makeInteractiveDoor(officeGroup, -5.7, -8.2, Math.PI, 1.4, 2.15, "glass");  // Akses Lobby ke Jalan Belakang
 // (X: -2.0 s/d 4.5 terbuka lapang sebagai Koridor Utama)
-makeInteractiveDoor(officeGroup, 8.0, -8.2, Math.PI, 1.4, 2.15, "glass");   // Kantor Manajemen
+makeInteractiveDoor(officeGroup, 8.0, -8.2, Math.PI, 1.4, 2.15, "glass");   // Ruang Layanan Klien (Pindah ke Timur)
 makeInteractiveDoor(officeGroup, 15.0, -8.2, Math.PI, 1.3, 2.15, "glass");  // Digital Marketing
 makeInteractiveDoor(officeGroup, 21.2, -8.2, Math.PI, 1.3, 2.15, "glass");  // IT Dev
-makeInteractiveDoor(officeGroup, 26.5, -8.2, Math.PI, 1.4, 2.15, "wood");   // Workshop
+makeInteractiveDoor(officeGroup, 26.5, -8.2, Math.PI, 1.4, 2.15, "wood");   // Ruang Server & Infrastruktur (Pindah ke Timur Bawah)
 
 // 3. PINTU BARIS TENGAH MENGARAH KE JALAN SEPETAK DEPAN (Z = -0.8):
-makeInteractiveDoor(officeGroup, -20.5, -0.8, 0, 1.3, 2.15, "glass"); // Finance & HR
-makeInteractiveDoor(officeGroup, -13.2, -0.8, 0, 1.3, 2.15, "glass"); // Layanan Klien
+makeInteractiveDoor(officeGroup, -20.5, -0.8, 0, 1.3, 2.15, "glass"); // Finance & HR (Pintu Kaca ke Jalan Sepetak & Eco Garden)
+makeInteractiveDoor(officeGroup, -13.2, -0.8, 0, 1.3, 2.15, "glass"); // Kantor Manajemen
 makeInteractiveDoor(officeGroup, -5.7, -0.8, 0, 1.4, 2.15, "glass");  // Lobby & Resepsionis
-makeInteractiveDoor(officeGroup, 8.0, -0.8, 0, 1.4, 2.15, "glass");   // Kantor Manajemen
+makeInteractiveDoor(officeGroup, 8.0, -0.8, 0, 1.4, 2.15, "glass");   // Ruang Layanan Klien
 makeInteractiveDoor(officeGroup, 15.0, -0.8, 0, 1.3, 2.15, "glass");  // Digital Marketing
 makeInteractiveDoor(officeGroup, 21.2, -0.8, 0, 1.3, 2.15, "glass");  // Tim IT & Dev
-makeInteractiveDoor(officeGroup, 26.5, -0.8, 0, 1.4, 2.15, "wood");   // Workshop
+makeInteractiveDoor(officeGroup, 26.5, -0.8, 0, 1.4, 2.15, "glass");  // Ruang Server & Infrastruktur
 
 // PINTU AKSES SAMPING KE KORIDOR UTAMA TENGAH (X: -2.0 & X: 4.5):
-makeInteractiveDoor(officeGroup, -2.0, -4.5, Math.PI / 2, 1.3, 2.15, "glass");  // Akses Lobby -> Koridor Utama
-makeInteractiveDoor(officeGroup, 4.5, -4.5, -Math.PI / 2, 1.3, 2.15, "glass"); // Akses Manajemen -> Koridor Utama
+makeInteractiveDoor(officeGroup, -2.0, -4.5, Math.PI / 2, 1.3, 2.15, "wood");  // Akses Pintu Samping Lobby -> Koridor Utama (Pintu Solid Elegan)
+makeInteractiveDoor(officeGroup, 4.5, -4.5, -Math.PI / 2, 1.3, 2.15, "wood"); // Akses Pintu Samping Layanan Klien -> Koridor Utama (Pintu Solid Elegan)
 
 // 4. PINTU BARIS FASILITAS BAWAH MENGARAH KE JALAN SEPETAK DEPAN (Z = 1.6):
 makeInteractiveDoor(officeGroup, -17.5, 1.6, Math.PI, 1.4, 2.15, "wood");  // Eco Garden (Pintu menghadap jalan sepetak)
 makeInteractiveDoor(officeGroup, -7.0, 1.6, Math.PI, 1.4, 2.15, "wood");   // Pantry (Pintu menghadap jalan sepetak)
 
-// PINTU MENGARAH KE JALAN SETAPAK (MUSHOLA & TOILET):
+// PINTU MENGARAH KE JALAN SETAPAK (MUSHOLA, TOILET WANITA & TOILET PRIA):
 makeInteractiveDoor(officeGroup, 9.8, 1.6, 0, 1.4, 2.15, "wood");    // Pintu Mushola ke Jalan Setapak
-makeInteractiveDoor(officeGroup, 21.25, 1.6, 0, 1.4, 2.15, "white");  // Pintu Toilet Utama ke Jalan Setapak (Tepat di Tengah Ruangan)
+makeInteractiveDoor(officeGroup, 17.5, 1.6, 0, 1.4, 2.15, "white");  // Pintu Masuk Executive Restroom (Wanita)
+makeInteractiveDoor(officeGroup, 25.25, 1.6, 0, 1.4, 2.15, "white"); // Pintu Masuk Executive Restroom (Pria)
 
 // Pintu Utama Selasar Tengah ditiadakan - Koridor Utama Tengah kini plong tanpa sekat hingga Gerbang Depan
 
@@ -2011,20 +2404,34 @@ makeInteractiveDoor(officeGroup, 2.2, 14.0, 0, 1.45, 2.35, "glass"); // Pintu Ge
 
 /* ================= 8. FURNITUR LENGKAP & PADAT 21 RUANGAN PERSIS GAMBAR ================= */
 
-// 1. RUANG SERVER & INFRASTRUKTUR (X: -21.2, Z: -13.5)
-// Lantai Raised Floor Slate Dark (Y = 0.055 agar terlihat nyata di atas ubin)
-for (let i = 0; i < 4; i++) {
-  makeVoxelServerRack(officeGroup, -22.6, -16.2 + i * 1.8, Math.PI / 2);
+// 1. RUANG WORKSHOP & TRAINING / ACADEMY (X: -21.2, Z: -13.5) - PINDAH KE BARIS ATAS
+const academyBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#a855f7"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#a855f7"; ctx.font = "bold 44px sans-serif"; ctx.fillText("🎓", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("DigiBooster Academy", 95, 75);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Interactive Training & Innovation Workshop", 97, 115);
+  ctx.fillStyle = "#c084fc"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Masterclass • Tech Upskilling • Live Presentation Hall", 97, 145);
+});
+createBox(officeGroup, 4.8, 2.2, 0.1, new THREE.MeshLambertMaterial({ map: academyBackTex }), -21.2, 1.4, -17.85);
+
+// Whiteboard & Presentation Screen
+makeVoxelWhiteboard(officeGroup, -23.4, 1.4, -14.0, Math.PI / 2, "kanban");
+
+// Podium Speaker Mewah Putih-Oak Modern
+createBox(officeGroup, 1.8, 1.0, 0.7, V_WHITE, -21.2, 0.50, -16.0);
+createBox(officeGroup, 1.84, 0.14, 0.74, V_OAK, -21.2, 1.02, -16.0);
+makeVoxelChair(officeGroup, -21.2, -16.8, 0, V_DARK); // Kursi pembicara
+// 3 Baris Bangku Peserta Pelatihan
+for (let r = 0; r < 3; r++) {
+  for (let c = 0; c < 3; c++) {
+    makeVoxelChair(officeGroup, -22.4 + c * 1.2, -14.2 + r * 1.3, Math.PI, V_NAVY);
+  }
 }
-// Meja terminal teknisi menghadap ke barat (-Math.PI / 2). Kursi di sebelah timur (x: -19.0) menghadap meja ke barat (-Math.PI / 2).
-makeVoxelDesk(officeGroup, -19.8, -15.5, -Math.PI / 2, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, -19.0, -15.5, -Math.PI / 2);
-makeVoxelDesk(officeGroup, -19.8, -12.5, -Math.PI / 2, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, -19.0, -12.5, -Math.PI / 2);
-makeVoxelCabinet(officeGroup, -20.2, -11.2, Math.PI);
-makeVoxelBookshelf(officeGroup, -19.2, -11.5, -Math.PI / 2, 1.2);
-makeVoxelPlant(officeGroup, -19.2, -17.2, 0.9);
-makeVoxelPlant(officeGroup, -22.4, -11.2, 0.85);
+makeVoxelBookshelf(officeGroup, -19.0, -13.5, -Math.PI / 2, 1.4);
+makeVoxelPlant(officeGroup, -19.0, -17.2, 0.9, "flower");
+makeVoxelPlant(officeGroup, -23.2, -11.2, 0.85);
+makeVoxelWaterDispenser(officeGroup, -19.0, -11.4);
 
 // 2. RUANG AI & AUTOMATION (X: -14.5, Z: -13.5)
 const aiBrainTex = makeCanvasTex(512, 280, (ctx, w, h) => {
@@ -2053,10 +2460,12 @@ makeVoxelPlant(officeGroup, -17.5, -16.8, 0.9);
 makeVoxelWaterDispenser(officeGroup, -11.2, -11.5);
 
 // 3. RUANG RAPAT BESAR (X: -6.7, Z: -13.5)
-createBox(officeGroup, 5.6, 0.08, 1.8, V_DARKWOOD, -6.7, 0.72, -13.5);
-createBox(officeGroup, 4.0, 0.02, 0.4, V_CYAN, -6.7, 0.77, -13.5);
+createBox(officeGroup, 5.6, 0.08, 1.8, V_OAK, -6.7, 0.72, -13.5); // Meja rapat besar coklat muda oak
+createBox(officeGroup, 5.64, 0.02, 0.06, 0xf1f5f9, -6.7, 0.75, -12.6, false); // Bevel lis putih bersih
+createBox(officeGroup, 5.64, 0.02, 0.06, 0xf1f5f9, -6.7, 0.75, -14.4, false);
+createBox(officeGroup, 4.0, 0.02, 0.35, 0x1e293b, -6.7, 0.76, -13.5); // Center cable grommet box slate
 for (const kx of [-9.2, -4.2]) {
-  createBox(officeGroup, 0.4, 0.70, 1.2, V_NAVY, kx, 0.35, -13.5);
+  createBox(officeGroup, 0.4, 0.70, 1.2, 0x1e293b, kx, 0.35, -13.5);
 }
 // Kursi sisi utara meja (z: -14.8) menghadap meja ke selatan (+Z -> angle: 0)
 // Kursi sisi selatan meja (z: -12.2) menghadap meja ke utara (-Z -> angle: Math.PI)
@@ -2081,104 +2490,428 @@ makeVoxelCabinet(officeGroup, -9.8, -11.5, 0);
 makeVoxelPlant(officeGroup, -9.6, -17.0, 1.1, "flower");
 makeVoxelPlant(officeGroup, -3.8, -17.0, 1.1);
 
-// 4. RUANG RAPAT KECIL (X: 0.2, Z: -13.5)
-createBox(officeGroup, 2.6, 0.08, 1.5, V_DARKWOOD, 0.2, 0.72, -13.5);
-createBox(officeGroup, 0.3, 0.70, 1.0, V_NAVY, 0.2, 0.35, -13.5);
-for (let i = -1; i <= 1; i++) {
-  makeVoxelChair(officeGroup, 0.2 + i * 0.9, -14.5, 0);
-  makeVoxelChair(officeGroup, 0.2 + i * 0.9, -12.5, Math.PI);
+// =====================================================================================
+// 4. MEGA SPORTS & WELLNESS ENTERTAINMENT HUB (X: -3.0 s/d 29.0, Z: -18.0 s/d -10.6)
+// Fasilitas Lengkap 4 Zona:
+// - Zona 1 (X: -3.0 s/d 5.5): Gym & Fitness Center (Treadmills, Dumbbell Rack, Bench Press, Yoga/Stretching Mat, Water Cooler)
+// - Zona 2 (X: 5.5 s/d 13.5): Tennis / Table Tennis Tournament Court (Table Tennis Court, Net, Rackets, Digital Scoreboard)
+// - Zona 3 (X: 13.5 s/d 21.5): E-Sport & Gaming Battle Station (Pro Arena Battle Station, 4x RGB Curved Setups, Stream TV)
+// - Zona 4 (X: 21.5 s/d 29.0): Karaoke & Music Studio Lounge (Curved Velvet Lounge, Giant TV, Sound System, Mic, Acoustic Panels)
+// =====================================================================================
+
+// =====================================================================================
+// 4. MEGA SPORTS & WELLNESS ENTERTAINMENT HUB (X: -3.0 s/d 29.0, Z: -18.0 s/d -10.6)
+// TATA LETAK BARU DENGAN 1 PINTU UTAMA TEPAT DI TENGAH (X: 13.0, Z: -10.6):
+// - Lantai: Full Interlocking Sports Rubber Mat (Matras Olahraga Khusus dengan Pola Grid & Warna Sporty)
+// - Foyer Masuk Utama Tengah (X: 11.5 s/d 14.5, Z: -10.6 s/d -13.5): Welcome Trophy Case, Info Screen, Rak Sepatu Sport & Minuman
+// - Sayap Kiri:
+//    * Zona 1: Gym & Fitness Studio (X: -3.0 s/d 4.5)
+//    * Zona 2: Table Tennis Tournament Arena (X: 4.5 s/d 11.5)
+// - Sayap Kanan:
+//    * Zona 3: E-Sport Gaming Pro Arena (X: 14.5 s/d 21.5)
+//    * Zona 4: Karaoke & Jamming Music Studio (X: 21.5 s/d 29.0)
+// =====================================================================================
+
+// --- A. LANTAI DASAR MATRAS OLAHRAGA (INTERLOCKING SPORTS MAT TILES) ---
+// 1. Dasar Matras Karet Gym / Sport Pad Hitam Charcoal Tebal & Empuk (Full Hall 32 x 7.4 m)
+createBox(officeGroup, 32.0, 0.03, 7.4, 0x1e293b, 13.0, 0.03, -14.3, false);
+
+// 2. Garis Grid Modul Interlocking Matras (Garis Alur Ubin Matras 2x2 meter)
+for (let mx = -2.0; mx <= 28.0; mx += 2.0) {
+  createBox(officeGroup, 0.04, 0.032, 7.3, 0x0f172a, mx, 0.032, -14.3, false);
 }
-makeVoxelChair(officeGroup, -1.3, -13.5, Math.PI / 2);
-makeVoxelChair(officeGroup, 1.7, -13.5, -Math.PI / 2);
-createBox(officeGroup, 2.2, 1.2, 0.08, new THREE.MeshBasicMaterial({ map: logoScreenTex }), 0.2, 1.6, -17.8);
-makeVoxelPlant(officeGroup, 2.8, -17.0, 1.0);
-makeVoxelPlant(officeGroup, -2.4, -17.0, 0.9, "flower");
-makeVoxelBookshelf(officeGroup, -2.2, -11.5, Math.PI / 2, 1.2);
+for (let mz = -17.5; mz <= -11.0; mz += 1.5) {
+  createBox(officeGroup, 31.8, 0.032, 0.04, 0x0f172a, 13.0, 0.032, mz, false);
+}
 
-// 5. TIM PRODUK & R&D (X: 7.0, Z: -13.5)
-// Meja atas (z: -15.2, rot: 0). Kursi di z: -14.2 harus menghadap ke utara (-Z -> Math.PI).
-makeVoxelDesk(officeGroup, 5.5, -15.2, 0, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 5.5, -14.2, Math.PI);
-makeVoxelDesk(officeGroup, 8.5, -15.2, 0, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 8.5, -14.2, Math.PI);
-// Meja bawah (z: -11.5, rot: Math.PI). Kursi di z: -12.5 harus menghadap ke selatan (+Z -> 0).
-makeVoxelDesk(officeGroup, 7.0, -11.5, Math.PI, false, SCREEN_CYAN);
-makeVoxelChair(officeGroup, 7.0, -12.5, 0);
-makeVoxelCabinet(officeGroup, 4.2, -12.0, Math.PI / 2);
-makeVoxelBookshelf(officeGroup, 9.8, -11.5, -Math.PI / 2, 1.4);
-makeVoxelWhiteboard(officeGroup, 7.0, 1.6, -17.8, 0, "kanban");
-makeVoxelPlant(officeGroup, 9.8, -17.0, 1.0, "flower");
-makeVoxelWaterDispenser(officeGroup, 4.2, -16.8);
+// 3. Matras Aksen Warna Olahraga Khusus Tiap Sub-Zona
+// Matras Gym Area (Rubber Slate dengan List Kuning Keamanan Sport)
+createBox(officeGroup, 7.4, 0.034, 7.0, 0x0f172a, 0.75, 0.033, -14.3, false);
+createBox(officeGroup, 0.08, 0.036, 7.0, 0xfacc15, 4.45, 0.035, -14.3, false); // Sport Yellow border
 
-// 6. TIM MARKETING (X: 14.0, Z: -13.5)
-// Meja atas (z: -15.2, rot: 0). Kursi di z: -14.2 harus menghadap utara (-Z -> Math.PI).
-makeVoxelDesk(officeGroup, 12.5, -15.2, 0, false, SCREEN_BLUE, true);
-makeVoxelChair(officeGroup, 12.5, -14.2, Math.PI);
-makeVoxelDesk(officeGroup, 15.5, -15.2, 0, false, SCREEN_BLUE, true);
-makeVoxelChair(officeGroup, 15.5, -14.2, Math.PI);
-// Meja bawah (z: -11.5, rot: Math.PI). Kursi di z: -12.5 harus menghadap selatan (+Z -> 0).
-makeVoxelDesk(officeGroup, 14.0, -11.5, Math.PI, false, SCREEN_BLUE);
-makeVoxelChair(officeGroup, 14.0, -12.5, 0);
-makeVoxelWhiteboard(officeGroup, 14.0, 1.6, -17.8, 0, "analytics");
-makeVoxelCabinet(officeGroup, 11.2, -12.0, Math.PI / 2);
-makeVoxelBookshelf(officeGroup, 16.8, -11.5, -Math.PI / 2, 1.3);
-makeVoxelPlant(officeGroup, 16.8, -17.0, 1.0);
-makeVoxelWaterDispenser(officeGroup, 11.2, -16.8);
+// Matras Lapangan Tenis Meja (Sport Vinyl Biru Elektrik dengan Garis Putih)
+createBox(officeGroup, 7.0, 0.034, 7.0, 0x0369a1, 8.0, 0.033, -14.3, false);
+createBox(officeGroup, 6.4, 0.036, 0.08, 0xffffff, 8.0, 0.035, -17.2, false);
+createBox(officeGroup, 6.4, 0.036, 0.08, 0xffffff, 8.0, 0.035, -11.4, false);
+createBox(officeGroup, 0.08, 0.036, 5.8, 0xffffff, 4.8, 0.035, -14.3, false);
+createBox(officeGroup, 0.08, 0.036, 5.8, 0xffffff, 11.2, 0.035, -14.3, false);
 
-// 7. TIM PENJUALAN (X: 20.5, Z: -13.5)
-// Meja atas (z: -14.5, rot: 0). Kursi di z: -13.5 harus menghadap utara (-Z -> Math.PI).
-makeVoxelDesk(officeGroup, 19.2, -14.5, 0, false, SCREEN_BLUE);
-makeVoxelChair(officeGroup, 19.2, -13.5, Math.PI);
-makeVoxelDesk(officeGroup, 21.8, -14.5, 0, false, SCREEN_BLUE);
-makeVoxelChair(officeGroup, 21.8, -13.5, Math.PI);
-// Meja tambahan & papan pipeline penjualan
-makeVoxelDesk(officeGroup, 21.8, -12.0, Math.PI, false, SCREEN_CYAN);
-makeVoxelChair(officeGroup, 21.8, -12.9, 0);
-makeVoxelWhiteboard(officeGroup, 20.5, 1.6, -17.8, 0, "analytics");
-makeVoxelCabinet(officeGroup, 18.2, -12.2, Math.PI / 2);
-makeVoxelPlant(officeGroup, 22.8, -17.0, 1.0, "flower");
-makeVoxelPlant(officeGroup, 18.2, -16.8, 0.9);
+// Matras Jalur Koridor Masuk Tengah (Sport Mat Emerald Hijau / Aksen Masuk)
+createBox(officeGroup, 3.2, 0.035, 7.0, 0x0f766e, 13.0, 0.034, -14.3, false);
+createBox(officeGroup, 0.08, 0.036, 7.0, 0x2dd4bf, 11.4, 0.035, -14.3, false);
+createBox(officeGroup, 0.08, 0.036, 7.0, 0x2dd4bf, 14.6, 0.035, -14.3, false);
 
-// 8. RUANG KREATIF (X: 26.2, Z: -13.5)
-// Karpet kreatif cyan & lounge santai brainstorming
-createBox(officeGroup, 4.4, 0.02, 4.0, 0x0284c7, 26.2, 0.03, -14.0, false);
-makeVoxelSofa(officeGroup, 26.2, -15.5, 0, 2.2, V_NAVY, V_YELLOW, V_CYAN);
-makeVoxelCoffeeTable(officeGroup, 26.2, -13.8, 1.4, 0.65);
-makeVoxelSofa(officeGroup, 24.6, -13.8, Math.PI / 2, 1.4, V_NAVY, V_BLUE, V_YELLOW);
-makeVoxelSofa(officeGroup, 27.8, -13.8, -Math.PI / 2, 1.4, V_NAVY, V_CYAN, V_WHITE);
-makeVoxelWhiteboard(officeGroup, 26.2, 1.6, -17.8, 0, "kanban");
-makeVoxelBookshelf(officeGroup, 24.2, -11.0, Math.PI / 2, 1.4);
+// Matras E-Sport Gaming Battle (Carbon Dark dengan Aksen Neon Cyan)
+createBox(officeGroup, 7.0, 0.034, 7.0, 0x090d16, 18.0, 0.033, -14.3, false);
+createBox(officeGroup, 6.8, 0.036, 0.08, 0x00d2ff, 18.0, 0.035, -17.2, false);
+createBox(officeGroup, 6.8, 0.036, 0.08, 0xa855f7, 18.0, 0.035, -11.4, false);
+createBox(officeGroup, 0.08, 0.036, 7.0, 0xa855f7, 21.5, 0.035, -14.3, false);
+
+// Matras Karaoke & Music Lounge (Matras Beludru Indigo & Karpet Bulu Mewah)
+createBox(officeGroup, 7.2, 0.034, 7.0, 0x311042, 25.2, 0.033, -14.3, false);
+createBox(officeGroup, 5.6, 0.038, 5.2, 0x6b21a8, 25.2, 0.036, -14.3, false);
+
+
+// ==================== B. FOYER MASUK UTAMA TENGAH (X: 11.5 s/d 14.5) ====================
+// Berada tepat di balik pintu masuk tunggal (X: 13.0, Z: -10.6)
+// 1. Matras Selamat Datang "WELCOME TO SPORTS HUB"
+const welcomeMatTex = makeCanvasTex(256, 128, (ctx, w, h) => {
+  ctx.fillStyle = "#042f2e"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#2dd4bf"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 20px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("SPORTS & WELLNESS", 22, 50);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "600 14px sans-serif";
+  ctx.fillText("DIGIBOOSTER HUB", 50, 85);
+});
+createBox(officeGroup, 2.0, 0.02, 1.2, new THREE.MeshLambertMaterial({ map: welcomeMatTex }), 13.0, 0.045, -11.5, false);
+
+// 2. Lemari Loker / Rak Sepatu Sport Voxel di samping pintu
+createBox(officeGroup, 0.45, 1.6, 1.8, 0x1e293b, 11.8, 0.80, -11.6);
+for (let lk = 0.3; lk <= 1.4; lk += 0.35) {
+  createBox(officeGroup, 0.46, 0.04, 1.7, 0x475569, 11.8, lk, -11.6, false);
+}
+// Sepatu gym & handuk di rak
+createBox(officeGroup, 0.28, 0.12, 0.35, 0xef4444, 11.8, 0.38, -12.0);
+createBox(officeGroup, 0.28, 0.12, 0.35, 0x38bdf8, 11.8, 0.38, -11.3);
+createBox(officeGroup, 0.28, 0.12, 0.35, 0x10b981, 11.8, 0.73, -11.6);
+
+// 3. Showcase Lemari Piala & Medali Turnamen Kaca (Trophy Display Case)
+createBox(officeGroup, 0.50, 1.8, 1.8, 0x0f172a, 14.2, 0.90, -11.6);
+createBox(officeGroup, 0.48, 1.4, 1.7, CANOPY_GLASS, 14.2, 0.95, -11.6, false);
+// Piala Emas Voxel di dalam showcase
+createBox(officeGroup, 0.20, 0.35, 0.20, 0xf59e0b, 14.2, 0.70, -11.9); // Piala Juara 1
+createBox(officeGroup, 0.18, 0.28, 0.18, 0x94a3b8, 14.2, 0.65, -11.3); // Piala Perak
+createBox(officeGroup, 0.22, 0.40, 0.22, 0xf59e0b, 14.2, 1.10, -11.6); // Piala Utama Esport/Tennis
+
+// 4. Kulkas Minuman Isotonik & Protein Shake (Glass Front Sports Drinks Cooler)
+const fridgeDrinkTex = makeCanvasTex(256, 256, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "bold 24px sans-serif"; ctx.fillText("⚡ ENERGIZE", 40, 45);
+  ctx.fillStyle = "#22c55e"; ctx.fillRect(20, 70, 40, 50);
+  ctx.fillStyle = "#38bdf8"; ctx.fillRect(80, 70, 40, 50);
+  ctx.fillStyle = "#f59e0b"; ctx.fillRect(140, 70, 40, 50);
+  ctx.fillStyle = "#ef4444"; ctx.fillRect(200, 70, 40, 50);
+  ctx.fillStyle = "#ffffff"; ctx.font = "600 14px sans-serif"; ctx.fillText("100% Electrolytes", 40, 160);
+});
+createBox(officeGroup, 0.65, 1.8, 0.85, 0x1e293b, 14.2, 0.90, -13.2);
+createBox(officeGroup, 0.05, 1.6, 0.75, new THREE.MeshLambertMaterial({ map: fridgeDrinkTex }), 13.9, 0.90, -13.2, false);
+
+// 5. Standing Digital Information Screen (Jadwal Pertandingan & Leaderboard)
+const infoScreenTex = makeCanvasTex(256, 384, (ctx, w, h) => {
+  ctx.fillStyle = "#090d16"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#00d2ff"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+  ctx.fillStyle = "#00d2ff"; ctx.font = "bold 24px sans-serif"; ctx.fillText("DAILY SCHEDULE", 25, 45);
+  ctx.fillStyle = "#f8fafc"; ctx.font = "16px sans-serif";
+  ctx.fillText("• 12:00 Pingpong Match", 20, 95);
+  ctx.fillText("• 15:30 Gym HIIT Session", 20, 135);
+  ctx.fillText("• 18:00 E-Sport Tournament", 20, 175);
+  ctx.fillText("• 20:00 Karaoke Jamming", 20, 215);
+  ctx.fillStyle = "#10b981"; ctx.font = "bold 16px sans-serif"; ctx.fillText("Status: OPEN 24/7", 25, 290);
+});
+createBox(officeGroup, 0.08, 1.7, 0.70, new THREE.MeshLambertMaterial({ map: infoScreenTex }), 11.8, 1.10, -13.2);
+createBox(officeGroup, 0.12, 0.25, 0.75, 0x0f172a, 11.8, 0.12, -13.2);
+
+
+// ==================== ZONA 1: FITNESS & GYM HUB (X: -3.0 s/d 4.5) ====================
+// 1. Cermin Dinding Besar Gym dengan Lampu LED Frame
+const mirrorTex = makeCanvasTex(512, 256, (ctx, w, h) => {
+  ctx.fillStyle = "#94a3b8"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#00d2ff"; ctx.lineWidth = 10; ctx.strokeRect(4, 4, w - 8, h - 8);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 24px sans-serif";
+  ctx.fillText("✨ HIGH-PERFORMANCE FITNESS MIRROR", 40, 50);
+});
+createBox(officeGroup, 6.6, 2.2, 0.05, new THREE.MeshLambertMaterial({ map: mirrorTex }), 0.75, 1.4, -17.85, false);
+
+// 2. Barisan 3 Treadmill Modern Menghadap Cermin
+[-1.5, 0.5, 2.5].forEach((tx) => {
+  createBox(officeGroup, 0.75, 0.16, 1.8, 0x0f172a, tx, 0.10, -14.6);
+  createBox(officeGroup, 0.60, 0.02, 1.6, 0x334155, tx, 0.18, -14.6);
+  createBox(officeGroup, 0.06, 1.0, 0.06, 0x64748b, tx - 0.32, 0.60, -15.4);
+  createBox(officeGroup, 0.06, 1.0, 0.06, 0x64748b, tx + 0.32, 0.60, -15.4);
+  createBox(officeGroup, 0.70, 0.06, 0.18, 0x1e293b, tx, 1.05, -15.4);
+  createBox(officeGroup, 0.45, 0.25, 0.04, SCREEN_CYAN, tx, 1.20, -15.4, false);
+});
+
+// 3. Sepeda Statis Spinning Bike Voxel
+createBox(officeGroup, 0.35, 0.85, 1.1, 0x0f172a, -2.4, 0.45, -15.5);
+createBox(officeGroup, 0.06, 0.45, 0.06, 0x64748b, -2.4, 0.80, -15.8);
+createBox(officeGroup, 0.45, 0.05, 0.25, 0xef4444, -2.4, 1.02, -15.8); // Handlebar merah
+createBox(officeGroup, 0.22, 0.08, 0.26, 0x1e293b, -2.4, 0.85, -15.2); // Sadel
+
+// 4. Dumbbell Rack Lengkap & Kettlebell
+const rackX = -2.4;
+createBox(officeGroup, 0.10, 0.90, 2.2, 0x1e293b, rackX, 0.45, -13.0);
+createBox(officeGroup, 0.60, 0.06, 2.2, 0x475569, rackX + 0.25, 0.35, -13.0);
+createBox(officeGroup, 0.60, 0.06, 2.2, 0x475569, rackX + 0.20, 0.70, -13.0);
+for (let db = -0.8; db <= 0.8; db += 0.4) {
+  createBox(officeGroup, 0.22, 0.12, 0.12, 0x0f172a, rackX + 0.25, 0.42, -13.0 + db);
+  createBox(officeGroup, 0.20, 0.10, 0.10, 0x00b9f1, rackX + 0.20, 0.77, -13.0 + db);
+}
+// Barisan Kettlebell Warna di lantai samping rak
+createCyl(officeGroup, 0.10, 0.12, 0.22, 0xef4444, rackX + 0.6, 0.14, -14.2, 10);
+createCyl(officeGroup, 0.11, 0.13, 0.24, 0x38bdf8, rackX + 0.6, 0.15, -13.7, 10);
+createCyl(officeGroup, 0.12, 0.14, 0.26, 0xf59e0b, rackX + 0.6, 0.16, -13.2, 10);
+
+// 5. Bench Press Station dengan Olympic Barbell
+createBox(officeGroup, 0.45, 0.42, 1.4, 0x0f172a, 3.8, 0.22, -14.6);
+createBox(officeGroup, 0.06, 1.15, 0.06, 0x64748b, 3.8 - 0.25, 0.60, -15.2);
+createBox(officeGroup, 0.06, 1.15, 0.06, 0x64748b, 3.8 + 0.25, 0.60, -15.2);
+createBox(officeGroup, 1.5, 0.05, 0.05, 0x94a3b8, 3.8, 1.10, -15.2);
+createBox(officeGroup, 0.06, 0.36, 0.36, 0x1e293b, 3.8 - 0.60, 1.10, -15.2);
+createBox(officeGroup, 0.06, 0.36, 0.36, 0x1e293b, 3.8 + 0.60, 1.10, -15.2);
+
+// 6. Matras Yoga / Stretching & Foam Roller
+createBox(officeGroup, 0.90, 0.02, 1.8, 0x06b6d4, -1.2, 0.045, -11.8, false);
+createBox(officeGroup, 0.90, 0.02, 1.8, 0xec4899, 0.5, 0.045, -11.8, false);
+createBox(officeGroup, 0.90, 0.02, 1.8, 0x8b5cf6, 2.2, 0.045, -11.8, false);
+// Foam Roller (Silinder Pijat Otot)
+createCyl(officeGroup, 0.08, 0.08, 0.45, 0x10b981, 0.5, 0.10, -12.5, 12).rotation.x = Math.PI / 2;
+
+// 7. Water Cooler & Towel Rack Sudut
+makeVoxelWaterDispenser(officeGroup, -2.4, -17.0);
+makeVoxelCabinet(officeGroup, 4.0, -17.0, Math.PI);
+makeVoxelPlant(officeGroup, -2.4, -11.4, 0.9, "flower");
+
+
+// ==================== ZONA 2: TABLE TENNIS TOURNAMENT ARENA (X: 4.5 s/d 11.5) ====================
+const ttX = 8.0;
+const ttZ = -14.3;
+// Meja Tenis Meja Tournament Standar
+createBox(officeGroup, 2.74, 0.08, 1.52, 0x1d4ed8, ttX, 0.74, ttZ);
+createBox(officeGroup, 2.76, 0.02, 0.04, 0xffffff, ttX, 0.785, ttZ - 0.74, false);
+createBox(officeGroup, 2.76, 0.02, 0.04, 0xffffff, ttX, 0.785, ttZ + 0.74, false);
+createBox(officeGroup, 0.04, 0.02, 1.52, 0xffffff, ttX - 1.35, 0.785, ttZ, false);
+createBox(officeGroup, 0.04, 0.02, 1.52, 0xffffff, ttX + 1.35, 0.785, ttZ, false);
+createBox(officeGroup, 2.74, 0.02, 0.02, 0xffffff, ttX, 0.785, ttZ, false);
+// Kaki-kaki Meja
+createBox(officeGroup, 0.08, 0.70, 0.08, 0x0f172a, ttX - 1.1, 0.35, ttZ - 0.55);
+createBox(officeGroup, 0.08, 0.70, 0.08, 0x0f172a, ttX + 1.1, 0.35, ttZ - 0.55);
+createBox(officeGroup, 0.08, 0.70, 0.08, 0x0f172a, ttX - 1.1, 0.35, ttZ + 0.55);
+createBox(officeGroup, 0.08, 0.70, 0.08, 0x0f172a, ttX + 1.1, 0.35, ttZ + 0.55);
+createBox(officeGroup, 2.4, 0.05, 0.05, 0x334155, ttX, 0.20, ttZ);
+// Net Jaring Tenis Meja
+createBox(officeGroup, 0.04, 0.16, 1.76, 0xffffff, ttX, 0.86, ttZ, false);
+createBox(officeGroup, 0.08, 0.18, 0.08, 0x0f172a, ttX, 0.85, ttZ - 0.88, false);
+createBox(officeGroup, 0.08, 0.18, 0.08, 0x0f172a, ttX, 0.85, ttZ + 0.88, false);
+// Raket & Bola
+createBox(officeGroup, 0.22, 0.02, 0.14, 0xef4444, ttX - 0.6, 0.79, ttZ - 0.3, false);
+createBox(officeGroup, 0.22, 0.02, 0.14, 0x1e293b, ttX + 0.6, 0.79, ttZ + 0.3, false);
+createBox(officeGroup, 0.05, 0.05, 0.05, 0xf97316, ttX - 0.2, 0.81, ttZ, false);
+
+// Papan Skor Digital Tenis Meja Dinding
+const scoreTex = makeCanvasTex(256, 128, (ctx, w, h) => {
+  ctx.fillStyle = "#020617"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4; ctx.strokeRect(4, 4, w - 8, h - 8);
+  ctx.fillStyle = "#22c55e"; ctx.font = "bold 44px monospace"; ctx.fillText("11", 35, 75);
+  ctx.fillStyle = "#f59e0b"; ctx.font = "bold 44px monospace"; ctx.fillText("09", 155, 75);
+  ctx.fillStyle = "#94a3b8"; ctx.font = "600 16px sans-serif"; ctx.fillText("MATCH POINT", 70, 110);
+});
+createBox(officeGroup, 1.4, 0.75, 0.08, new THREE.MeshLambertMaterial({ map: scoreTex }), ttX, 1.60, -17.85);
+
+// Kursi Wasit Tinggi & Kursi Penonton Pinggir Lapangan
+makeVoxelChair(officeGroup, ttX - 2.2, ttZ, Math.PI / 2, V_NAVY);
+makeVoxelChair(officeGroup, ttX + 2.2, ttZ, -Math.PI / 2, V_NAVY);
+// Rak Bola & Raket Cadangan
+createBox(officeGroup, 0.40, 0.75, 0.60, 0x1e293b, 5.2, 0.38, -16.8);
+createBox(officeGroup, 0.35, 0.10, 0.50, 0xf59e0b, 5.2, 0.78, -16.8, false); // Wadah bola
+
+
+// ==================== ZONA 3: E-SPORT GAMING PRO ARENA (X: 14.5 s/d 21.5) ====================
+const esX = 18.0;
+const esZ = -14.3;
+// Meja Battle Station Gaming Panjang (Carbon Black + Neon Ambient Trim)
+createBox(officeGroup, 5.2, 0.08, 1.4, 0x0b0f19, esX, 0.72, esZ);
+createBox(officeGroup, 5.2, 0.02, 0.04, 0x00d2ff, esX, 0.73, esZ - 0.69, false);
+createBox(officeGroup, 5.2, 0.02, 0.04, 0xa855f7, esX, 0.73, esZ + 0.69, false);
+createBox(officeGroup, 0.12, 0.70, 1.3, 0x1e293b, esX - 2.4, 0.35, esZ);
+createBox(officeGroup, 0.12, 0.70, 1.3, 0x1e293b, esX + 2.4, 0.35, esZ);
+createBox(officeGroup, 0.12, 0.70, 1.3, 0x1e293b, esX, 0.35, esZ);
+
+// 4 Rig Komputer Gaming Lengkap
+const rigOffsets = [-1.8, -0.6, 0.6, 1.8];
+rigOffsets.forEach((rx, idx) => {
+  const isFacingSouth = idx % 2 === 0;
+  const mZ = isFacingSouth ? esZ - 0.25 : esZ + 0.25;
+  const cZ = isFacingSouth ? esZ - 0.95 : esZ + 0.95;
+
+  createBox(officeGroup, 0.85, 0.015, 0.38, 0x18181b, esX + rx, 0.73, esZ + (isFacingSouth ? -0.35 : 0.35), false);
+  createBox(officeGroup, 0.40, 0.02, 0.15, 0x27272a, esX + rx - 0.10, 0.74, esZ + (isFacingSouth ? -0.40 : 0.40), false);
+  createBox(officeGroup, 0.08, 0.02, 0.12, 0x00d2ff, esX + rx + 0.25, 0.74, esZ + (isFacingSouth ? -0.40 : 0.40), false);
+  createBox(officeGroup, 0.75, 0.45, 0.04, (idx % 2 === 0 ? SCREEN_CYAN : SCREEN_BLUE), esX + rx, 1.05, mZ, false);
+  createBox(officeGroup, 0.10, 0.30, 0.08, 0x3f3f46, esX + rx, 0.86, mZ);
+  createBox(officeGroup, 0.22, 0.48, 0.42, 0x18181b, esX + rx + 0.38, 0.96, mZ);
+  createBox(officeGroup, 0.02, 0.40, 0.34, 0x00d2ff, esX + rx + 0.49, 0.96, mZ, false);
+  // Gaming Chair Racing Style
+  const chairColor = (idx % 2 === 0) ? 0xef4444 : 0x0284c7;
+  createBox(officeGroup, 0.50, 0.08, 0.50, chairColor, esX + rx, 0.46, cZ);
+  createBox(officeGroup, 0.46, 0.65, 0.10, chairColor, esX + rx, 0.80, cZ + (isFacingSouth ? -0.22 : 0.22));
+  createBox(officeGroup, 0.08, 0.42, 0.08, 0x18181b, esX + rx, 0.21, cZ);
+});
+
+// Big Tournament Spectator Display Screen di Dinding
+const streamTvTex = makeCanvasTex(512, 256, (ctx, w, h) => {
+  ctx.fillStyle = "#05070e"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#a855f7"; ctx.lineWidth = 6; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#00d2ff"; ctx.font = "bold 34px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("LIVE E-SPORT BROADCAST", 45, 70);
+  ctx.fillStyle = "#ef4444"; ctx.font = "bold 24px monospace";
+  ctx.fillText("🔴 STREAMING NOW • 4K 144FPS", 45, 115);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "600 20px monospace";
+  ctx.fillText("Score: TEAM CYAN [3] vs TEAM PURPLE [2]", 45, 160);
+});
+createBox(officeGroup, 3.4, 1.8, 0.08, new THREE.MeshLambertMaterial({ map: streamTvTex }), esX, 1.8, -17.85);
+
+// Standing Banner Turnamen & Standing Speaker
+createBox(officeGroup, 0.35, 1.2, 0.35, 0x18181b, 15.2, 0.60, -17.2);
+createBox(officeGroup, 0.35, 1.2, 0.35, 0x18181b, 20.8, 0.60, -17.2);
+
+
+// ==================== ZONA 4: KARAOKE & MUSIC STUDIO LOUNGE (X: 21.5 s/d 29.0) ====================
+const karX = 25.2;
+const karZ = -14.3;
+
+// 1. Dinding Belakang Panel Akustik Kayu Mewah (Wood Acoustic Slats)
+for (let sl = -2.6; sl <= 2.6; sl += 0.4) {
+  createBox(officeGroup, 0.22, 2.5, 0.06, V_DARKWOOD, karX + sl, 1.4, -17.85, false);
+}
+
+// 2. Mega TV Karaoke Screen 85-Inch Smart Display
+const tvKaraokeTex = makeCanvasTex(512, 280, (ctx, w, h) => {
+  ctx.fillStyle = "#09090b"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#ec4899"; ctx.lineWidth = 6; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#f43f5e"; ctx.font = "bold 32px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("🎤 DIGIBOOSTER KARAOKE & JAMMING", 25, 65);
+  ctx.fillStyle = "#fcd34d"; ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("♪ Bohemian Rhapsody - Queen", 25, 115);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "600 18px sans-serif";
+  ctx.fillText("♫ 'Mama, just killed a man, put a gun against his head...'", 25, 165);
+  ctx.fillStyle = "#10b981"; ctx.font = "bold 20px monospace";
+  ctx.fillText("SCORE: 98 PT ★★★★★ SUPERSTAR", 25, 215);
+});
+createBox(officeGroup, 3.4, 1.8, 0.08, new THREE.MeshLambertMaterial({ map: tvKaraokeTex }), karX, 1.75, -17.75);
+
+// Soundbar & Subwoofer Audio System
+createBox(officeGroup, 2.4, 0.16, 0.20, 0x18181b, karX, 0.78, -17.65);
+createBox(officeGroup, 0.35, 0.55, 0.35, 0x09090b, karX - 1.5, 0.28, -17.6);
+createBox(officeGroup, 0.35, 0.55, 0.35, 0x09090b, karX + 1.5, 0.28, -17.6);
+
+// 3. Sofa Melengkung Mewah U-Shape Velvet Sofa Lounge
+createBox(officeGroup, 3.4, 0.42, 0.75, 0x1e1b4b, karX, 0.25, karZ + 1.8);
+createBox(officeGroup, 3.4, 0.55, 0.24, 0x1e1b4b, karX, 0.65, karZ + 2.1);
+createBox(officeGroup, 0.75, 0.42, 2.2, 0x1e1b4b, karX - 1.6, 0.25, karZ + 0.8);
+createBox(officeGroup, 0.24, 0.55, 2.2, 0x1e1b4b, karX - 1.85, 0.65, karZ + 0.8);
+createBox(officeGroup, 0.75, 0.42, 2.2, 0x1e1b4b, karX + 1.6, 0.25, karZ + 0.8);
+createBox(officeGroup, 0.24, 0.55, 2.2, 0x1e1b4b, karX + 1.85, 0.65, karZ + 0.8);
+// Bantal Sofa Warna-warni Elegan
+createBox(officeGroup, 0.35, 0.35, 0.12, 0xf59e0b, karX - 1.0, 0.55, karZ + 1.95, false);
+createBox(officeGroup, 0.35, 0.35, 0.12, 0x00d2ff, karX + 1.0, 0.55, karZ + 1.95, false);
+createBox(officeGroup, 0.12, 0.35, 0.35, 0xec4899, karX - 1.65, 0.55, karZ + 0.8, false);
+
+// Meja Kopi Kaca Mewah
+createBox(officeGroup, 1.8, 0.06, 0.90, 0x0f172a, karX, 0.38, karZ + 0.6);
+createBox(officeGroup, 1.7, 0.04, 0.80, 0xf8fafc, karX, 0.42, karZ + 0.6, false);
+createBox(officeGroup, 0.24, 0.02, 0.16, 0x38bdf8, karX - 0.3, 0.45, karZ + 0.6, false);
+
+// 4. Stand Mikrofon Voxel & Gitar Akustik / Electric Stand
+createBox(officeGroup, 0.04, 1.25, 0.04, 0x94a3b8, karX - 1.2, 0.65, -16.0);
+createBox(officeGroup, 0.28, 0.04, 0.28, 0x0f172a, karX - 1.2, 0.02, -16.0);
+createBox(officeGroup, 0.08, 0.14, 0.08, 0x38bdf8, karX - 1.2, 1.30, -16.0, false);
+
+// Rakitan Gitar Akustik Voxel di Stand
+createBox(officeGroup, 0.28, 0.55, 0.10, 0xb45309, karX + 1.3, 0.55, -16.2);
+createBox(officeGroup, 0.06, 0.60, 0.04, 0x78350f, karX + 1.3, 1.05, -16.2);
+createBox(officeGroup, 0.08, 0.14, 0.05, 0x0f172a, karX + 1.3, 1.38, -16.2);
+
+// Tanaman Hias Eksotis & Lampu Sudut Warm
 makeVoxelPlant(officeGroup, 28.2, -17.0, 1.1, "flower");
 makeVoxelPlant(officeGroup, 28.2, -11.5, 1.0);
+makeVoxelBookshelf(officeGroup, 28.2, -14.2, -Math.PI / 2, 1.4);
 
-// 9. RUANG FINANCE & HR (X: -20.5, Z: -3.8)
-// Meja atas (z: -5.2, rot: 0). Kursi di z: -4.2 harus menghadap utara (-Z -> Math.PI).
-makeVoxelDesk(officeGroup, -21.8, -5.2, 0, true, SCREEN_BLUE);
-makeVoxelChair(officeGroup, -21.8, -4.2, Math.PI);
-makeVoxelDesk(officeGroup, -18.8, -5.2, 0, false, SCREEN_BLUE);
-makeVoxelChair(officeGroup, -18.8, -4.2, Math.PI);
-// Brankas dokumen logam kuat & lemari arsip audit
-createBox(officeGroup, 1.0, 1.3, 0.8, 0x1e293b, -22.5, 0.65, -7.0);
-createBox(officeGroup, 0.15, 0.15, 0.06, V_CHROME, -22.1, 0.85, -6.6); // Kunci roda kombinasi brankas
-makeVoxelCabinet(officeGroup, -23.2, -2.5, Math.PI / 2);
-makeVoxelCabinet(officeGroup, -23.2, -1.0, Math.PI / 2);
-makeVoxelBookshelf(officeGroup, -18.2, -1.2, 0, 1.5);
-makeVoxelPlant(officeGroup, -17.8, -7.0, 1.0);
-makeVoxelWaterDispenser(officeGroup, -23.0, -7.0);
+// 9. RUANG FINANCE & HR (X: -20.5, Z: -3.8) - STYLE PREMIUM ALA DIGIBOOSTER LOBBY
+// Dimensi: X: -24.0 s/d -17.0 (lebar 7m), Z: -8.2 s/d -0.8 (panjang 7.4m)
+// A. BACKDROP BRANDING NAVY & TEKS EMAS/CYAN (Persis Style Backdrop Lobby)
+const financeBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#00d2ff"; ctx.font = "bold 44px sans-serif"; ctx.fillText("💼", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Finance & HR", 95, 75);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Corporate Capital & People Operations", 97, 115);
+  ctx.fillStyle = "#10b981"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Audit Compliant • Payroll 100% On-Time • Zero Deficit", 97, 145);
+});
+createBox(officeGroup, 5.4, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: financeBackTex }), -20.5, 1.2, -8.0);
+// Lis Glow Cyan di bawah backdrop
+createBox(officeGroup, 5.4, 0.04, 0.22, 0x00B9F1, -20.5, 0.10, -8.0, false);
 
-// 10. RUANG LAYANAN KLIEN (X: -13.2, Z: -3.8)
-// Baris atas (r: 0, dz: -5.8, rot: 0). Kursi di z: -4.8 harus menghadap utara (-Z -> Math.PI).
-// Baris bawah (r: 1, dz: -2.6, rot: Math.PI). Kursi di z: -3.6 harus menghadap selatan (+Z -> 0).
-for (let r = 0; r < 2; r++) {
-  for (let c = 0; c < 2; c++) {
-    const dx = -14.8 + c * 2.8, dz = -5.8 + r * 3.2;
-    makeVoxelDesk(officeGroup, dx, dz, r === 0 ? 0 : Math.PI, false, SCREEN_CYAN);
-    makeVoxelChair(officeGroup, dx, dz + (r === 0 ? 1.0 : -1.0), r === 0 ? Math.PI : 0);
-  }
-}
-makeVoxelBookshelf(officeGroup, -10.2, -4.5, -Math.PI / 2, 1.8);
-makeVoxelPlant(officeGroup, -16.2, -7.0, 1.0, "flower");
-makeVoxelWaterDispenser(officeGroup, -10.2, -1.8);
+// B. SMART BOARD MONITOR DINDING KEUANGAN & RUNWAY (Sisi Barat X: -22.5)
+makeVoxelWhiteboard(officeGroup, -23.2, 1.4, -4.5, Math.PI / 2, "finance_hr");
+
+// C. WORKSTATION FINANCE & AKUNTANSI (Sisi Barat X: -21.6, Z: -4.8)
+createBox(officeGroup, 2.2, 0.85, 0.95, V_WHITE, -21.6, 0.425, -4.8);
+createBox(officeGroup, 2.24, 0.14, 0.99, V_OAK, -21.6, 0.86, -4.8); // Daun Meja Oak Coklat Muda Alami
+createBox(officeGroup, 0.05, 0.35, 0.85, 0x0284c7, -20.5, 1.05, -4.8); // Partisi privasi akrilik cyan
+makeVoxelChair(officeGroup, -21.6, -3.8, Math.PI, V_NAVY);
+// Dual monitor ultra-wide
+createBox(officeGroup, 0.65, 0.38, 0.04, 0x0f172a, -22.0, 1.15, -4.9);
+createBox(officeGroup, 0.62, 0.34, 0.02, 0x00d2ff, -22.0, 1.15, -4.87, false);
+createBox(officeGroup, 0.65, 0.38, 0.04, 0x0f172a, -21.2, 1.15, -4.9);
+createBox(officeGroup, 0.62, 0.34, 0.02, 0x38bdf8, -21.2, 1.15, -4.87, false);
+
+// Paper shredder machine di samping meja finance
+createBox(officeGroup, 0.38, 0.65, 0.38, 0x1e293b, -20.2, 0.325, -4.8);
+createBox(officeGroup, 0.28, 0.04, 0.03, 0x0f172a, -20.2, 0.66, -4.8, false);
+
+// Brankas baja berat berkunci kombinasi chrome
+createBox(officeGroup, 1.05, 1.45, 0.85, 0x0f172a, -23.2, 0.725, -6.8);
+createCyl(officeGroup, 0.12, 0.12, 0.06, V_CHROME, -22.65, 0.95, -6.8, 12).rotation.z = Math.PI / 2;
+
+// D. WORKSTATION HR & KONSULTASI KARYAWAN (Sisi Timur X: -18.6, Z: -4.8)
+createBox(officeGroup, 2.0, 0.85, 0.95, V_WHITE, -18.6, 0.425, -4.8);
+createBox(officeGroup, 2.04, 0.14, 0.99, V_OAK, -18.6, 0.86, -4.8); // Daun Meja Oak Coklat Muda Alami
+makeVoxelChair(officeGroup, -18.6, -3.8, Math.PI, V_NAVY);
+createBox(officeGroup, 0.65, 0.38, 0.04, 0x0f172a, -18.6, 1.15, -4.9);
+createBox(officeGroup, 0.62, 0.34, 0.02, 0x38bdf8, -18.6, 1.15, -4.87, false);
+
+// Meja Bundar Konsultasi Karyawan / HR Lounge Corner (Z: -2.0)
+createCyl(officeGroup, 0.75, 0.75, 0.06, V_OAK, -18.6, 0.72, -2.0); // Daun meja bundar oak
+createCyl(officeGroup, 0.10, 0.10, 0.70, V_DARK, -18.6, 0.35, -2.0);
+makeVoxelChair(officeGroup, -18.6, -2.8, 0, V_NAVY);
+makeVoxelChair(officeGroup, -18.6, -1.2, Math.PI, V_NAVY);
+
+// Kredenza Printer Laser & Lemari Arsip
+createBox(officeGroup, 0.80, 0.75, 0.60, 0x1e293b, -17.5, 0.375, -6.8);
+createBox(officeGroup, 0.60, 0.42, 0.50, V_WHITE, -17.5, 0.96, -6.8);
+makeVoxelBookshelf(officeGroup, -17.5, -3.8, -Math.PI / 2, 1.4);
+makeVoxelPlant(officeGroup, -23.2, -1.4, 1.1, "flower");
+makeVoxelWaterDispenser(officeGroup, -23.2, -7.5);
+
+
+// 10. KANTOR MANAJEMEN / CEO (X: -13.2, Z: -3.8) - PINDAH KE SISI BARAT (BERSEBELAHAN DENGAN LOBBY)
+// A. BACKDROP BRANDING MEWAH EKSEKUTIF (Dinding Belakang Z = -8.0)
+const ceoBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#f59e0b"; ctx.font = "bold 44px sans-serif"; ctx.fillText("👑", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Executive Management", 95, 75);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Chief Executive Officer & Board Suite", 97, 115);
+  ctx.fillStyle = "#fde047"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Strategic Vision • Corporate Leadership • AI Scale-Up", 97, 145);
+});
+createBox(officeGroup, 5.6, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: ceoBackTex }), -13.2, 1.2, -8.0);
+createBox(officeGroup, 5.6, 0.04, 0.22, 0xf59e0b, -13.2, 0.10, -8.0, false); // Lis Glow Emas
+
+// Meja Eksekutif CEO Mewah Putih & Daun Kayu Oak Alami
+createBox(officeGroup, 4.0, 0.95, 1.3, V_WHITE, -13.2, 0.475, -4.5);
+createBox(officeGroup, 4.04, 0.16, 1.34, V_OAK, -13.2, 0.96, -4.5);
+createBox(officeGroup, 2.2, 0.02, 0.6, 0x0f172a, -13.2, 1.05, -4.5); // Desk mat kulit hitam
+makeVoxelExecutiveChair(officeGroup, -13.2, -5.6, 0);
+// 2 Kursi Tamu Mewah di Depan
+makeVoxelChair(officeGroup, -14.2, -3.2, Math.PI, V_NAVY);
+makeVoxelChair(officeGroup, -12.2, -3.2, Math.PI, V_NAVY);
+// Sofa Tamu Eksekutif & Rak Buku
+makeVoxelSofa(officeGroup, -13.2, -1.8, Math.PI, 2.4, V_NAVY, V_WHITE, V_YELLOW);
+makeVoxelBookshelf(officeGroup, -10.0, -4.5, -Math.PI / 2, 1.8);
+makeVoxelPlant(officeGroup, -16.0, -7.2, 1.2, "flower");
+makeVoxelWaterDispenser(officeGroup, -16.0, -2.2);
+
 
 // 11. LOBBY CENTRAL & RESEPSIONIS (X: -5.7, Z: -3.8)
 const lobbyBackTex = makeCanvasTex(512, 180, (ctx, w, h, img) => {
@@ -2194,116 +2927,283 @@ const lobbyBackTex = makeCanvasTex(512, 180, (ctx, w, h, img) => {
 });
 createBox(officeGroup, 5.4, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: lobbyBackTex }), -5.7, 1.2, -8.0);
 createBox(officeGroup, 4.4, 1.0, 1.1, V_WHITE, -5.7, 0.5, -4.5);
-createBox(officeGroup, 4.44, 0.18, 1.14, V_CYAN, -5.7, 0.95, -4.5);
-// Kursi resepsionis di belakang meja resepsionis (z: -5.5) menghadap ke meja di selatan (+Z -> angle: 0)
+createBox(officeGroup, 4.44, 0.18, 1.14, V_OAK, -5.7, 0.95, -4.5); // Top counter oak coklat muda alami
 makeVoxelChair(officeGroup, -5.7, -5.5, 0, V_NAVY);
-// Sofa tunggu tamu di depan samping
 makeVoxelSofa(officeGroup, -8.0, -1.8, Math.PI, 1.8, V_NAVY, V_WHITE, V_CYAN);
 makeVoxelSofa(officeGroup, -3.4, -1.8, Math.PI, 1.8, V_NAVY, V_WHITE, V_YELLOW);
 makeVoxelPlant(officeGroup, -8.6, -7.0, 1.2, "flower");
 makeVoxelPlant(officeGroup, -2.8, -7.0, 1.2, "flower");
 makeVoxelWaterDispenser(officeGroup, -2.8, -3.0);
 
-// 12. KORIDOR UTAMA TENGAH (GRAND CENTRAL AVENUE - PENGGANTI RUANG MEETING)
-// Menghubungkan Pintu Utama Masuk Gedung langsung ke Jalan Sepetak Belakang (Z: -8.2 s/d 1.6, Lebar 6.5m)
-// Jalur tengah dibuat lapang, megah, dan bebas halangan dengan pot tanaman arsitektural di pinggir dinding kaca
+
+// 12. KORIDOR UTAMA TENGAH (GRAND CENTRAL AVENUE)
 makeVoxelPlant(officeGroup, -1.4, -6.5, 1.2, "flower");
 makeVoxelPlant(officeGroup, 3.9, -6.5, 1.2);
 makeVoxelPlant(officeGroup, -1.4, -1.5, 1.2);
 makeVoxelPlant(officeGroup, 3.9, -1.5, 1.2, "flower");
-// Standing Lampu Tiang Minimalis Modern di sepanjang selasar koridor utama
 createBox(officeGroup, 0.12, 2.2, 0.12, 0x0f172a, -1.4, 1.1, -4.0);
 createBox(officeGroup, 0.35, 0.25, 0.35, 0x00B9F1, -1.4, 2.2, -4.0, false);
 createBox(officeGroup, 0.12, 2.2, 0.12, 0x0f172a, 3.9, 1.1, -4.0);
 createBox(officeGroup, 0.35, 0.25, 0.35, 0x00B9F1, 3.9, 2.2, -4.0, false);
 
-// 13. KANTOR MANAJEMEN / CEO (X: 8.0, Z: -3.8)
-createBox(officeGroup, 3.2, 0.08, 1.5, V_DARKWOOD, 8.0, 0.74, -4.5);
-createBox(officeGroup, 0.3, 0.70, 1.1, V_NAVY, 6.7, 0.35, -4.5);
-createBox(officeGroup, 0.3, 0.70, 1.1, V_NAVY, 9.3, 0.35, -4.5);
-// Kursi eksekutif CEO di belakang meja (z: -5.5) menghadap ke meja (+Z -> 0)
-makeVoxelExecutiveChair(officeGroup, 8.0, -5.5, 0);
-// 2 Kursi tamu di depan meja (z: -3.2) menghadap ke meja (-Z -> Math.PI)
-makeVoxelChair(officeGroup, 7.2, -3.2, Math.PI, V_NAVY);
-makeVoxelChair(officeGroup, 8.8, -3.2, Math.PI, V_NAVY);
-makeVoxelBookshelf(officeGroup, 10.5, -5.5, Math.PI, 1.8);
-makeVoxelSofa(officeGroup, 8.0, -1.8, Math.PI, 2.2, V_NAVY, V_WHITE, V_YELLOW);
-makeVoxelPlant(officeGroup, 5.2, -7.5, 1.1, "flower");
-makeVoxelPlant(officeGroup, 10.5, -1.2, 1.1);
-makeVoxelWaterDispenser(officeGroup, 5.2, -2.5);
 
-// 14. DIGITAL MARKETING & SOSIAL MEDIA (X: 15.0, Z: -3.8)
-const sosmedTex = makeCanvasTex(512, 160, (ctx, w, h) => {
-  ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#38bdf8"; ctx.font = "bold 26px sans-serif"; ctx.fillText("SOCIAL MEDIA CHANNELS", 30, 45);
-  ctx.fillStyle = "#ef4444"; ctx.fillRect(30, 70, 70, 60); ctx.fillStyle = "#fff"; ctx.font = "bold 28px sans-serif"; ctx.fillText("YT", 48, 112);
-  ctx.fillStyle = "#e1306c"; ctx.fillRect(120, 70, 70, 60); ctx.fillStyle = "#fff"; ctx.fillText("IG", 140, 112);
-  ctx.fillStyle = "#000000"; ctx.fillRect(210, 70, 70, 60); ctx.fillStyle = "#fff"; ctx.fillText("TT", 230, 112);
-  ctx.fillStyle = "#1877f2"; ctx.fillRect(300, 70, 70, 60); ctx.fillStyle = "#fff"; ctx.fillText("FB", 320, 112);
+// 13. RUANG LAYANAN KLIEN (X: 8.0, Z: -3.8) - PINDAH KE SISI TIMUR (SEBELAH KORIDOR UTAMA)
+// A. BACKDROP BRANDING BESAR ELEGAN (Dinding Belakang Z = -8.0)
+const clientBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#10b981"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#10b981"; ctx.font = "bold 44px sans-serif"; ctx.fillText("🤝", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Client Services", 95, 75);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Omnichannel Helpdesk & Client Success", 97, 115);
+  ctx.fillStyle = "#4ade80"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("24/7 SLA Guarantee • CSAT 4.96/5 • VIP Client Support", 97, 145);
 });
-// Meja & Kursi
-makeVoxelDesk(officeGroup, 13.5, -4.5, 0, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 13.5, -3.5, Math.PI);
-makeVoxelDesk(officeGroup, 16.5, -4.5, 0, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 16.5, -3.5, Math.PI);
-makeVoxelBookshelf(officeGroup, 12.2, -4.5, Math.PI / 2, 1.4);
-makeVoxelCabinet(officeGroup, 17.8, -4.5, -Math.PI / 2);
-makeVoxelPlant(officeGroup, 12.2, -7.5, 1.0);
-makeVoxelPlant(officeGroup, 17.8, -7.5, 1.0, "flower");
-makeVoxelWaterDispenser(officeGroup, 17.8, -1.8);
+createBox(officeGroup, 5.4, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: clientBackTex }), 8.0, 1.2, -8.0);
+createBox(officeGroup, 5.4, 0.04, 0.22, 0x10b981, 8.0, 0.10, -8.0, false); // Lis Glow Hijau Zamrud
 
-// 15. TIM IT & DEVELOPER (X: 21.2, Z: -3.8)
-// Meja & Kursi
-makeVoxelDesk(officeGroup, 20.2, -4.5, 0, true, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 20.2, -3.5, Math.PI);
-makeVoxelDesk(officeGroup, 22.8, -4.5, 0, false, SCREEN_CYAN, true);
-makeVoxelChair(officeGroup, 22.8, -3.5, Math.PI);
-makeVoxelServerRack(officeGroup, 23.0, -7.0, Math.PI);
-makeVoxelBookshelf(officeGroup, 19.2, -4.5, Math.PI / 2, 1.5);
-makeVoxelPlant(officeGroup, 19.2, -7.5, 1.0, "flower");
-makeVoxelWaterDispenser(officeGroup, 23.0, -2.0);
+// Smart Board Monitor SLA di dinding barat (X = 4.8)
+makeVoxelWhiteboard(officeGroup, 4.8, 1.5, -4.5, Math.PI / 2, "client_sla");
 
-// 16. RUANG WORKSHOP & TRAINING (X: 26.5, Z: -3.8)
-// Meja podium pembicara di sebelah timur
-createBox(officeGroup, 1.4, 0.9, 0.6, 0x1e293b, 26.5, 0.45, -6.5);
-makeVoxelChair(officeGroup, 26.5, -7.2, 0, V_DARK); // Kursi pembicara menghadap peserta (+Z -> 0)
-// 3 Baris bangku peserta menghadap pembicara di utara
-for (let r = 0; r < 3; r++) {
-  for (let c = 0; c < 3; c++) {
-    makeVoxelChair(officeGroup, 25.2 + c * 1.1, -4.5 + r * 1.5, Math.PI, V_NAVY);
+// 4 Workstation Premium Customer Support Putih-Oak Modern
+for (let r = 0; r < 2; r++) {
+  for (let c = 0; c < 2; c++) {
+    const dx = 6.6 + c * 2.8, dz = -5.8 + r * 3.2;
+    createBox(officeGroup, 2.0, 0.85, 0.95, V_WHITE, dx, 0.425, dz);
+    createBox(officeGroup, 2.04, 0.14, 0.99, V_OAK, dx, 0.86, dz);
+    createBox(officeGroup, 0.05, 0.35, 0.85, 0x00B9F1, dx + 0.98, 1.05, dz);
+    makeVoxelChair(officeGroup, dx, dz + (r === 0 ? 1.0 : -1.0), r === 0 ? Math.PI : 0, V_NAVY);
+    createBox(officeGroup, 0.65, 0.38, 0.04, 0x0f172a, dx, 1.15, dz + (r === 0 ? -0.15 : 0.15));
+    createBox(officeGroup, 0.62, 0.34, 0.02, 0x00d2ff, dx, 1.15, dz + (r === 0 ? -0.12 : 0.12), false);
   }
 }
-makeVoxelPlant(officeGroup, 28.2, -7.5, 1.0);
-makeVoxelWaterDispenser(officeGroup, 28.2, -2.0);
+makeVoxelBookshelf(officeGroup, 11.2, -4.5, -Math.PI / 2, 1.8);
+makeVoxelPlant(officeGroup, 5.2, -7.2, 1.1, "flower");
+makeVoxelWaterDispenser(officeGroup, 11.2, -1.8);
 
-// 17. PANTRY OUTDOOR DINING (X: -7.0, Z: 7.8) - PADAT & LENGKAP
-createBox(officeGroup, 6.4, 0.9, 0.85, 0x451a03, -7.0, 0.45, 2.2);
-createBox(officeGroup, 6.4, 0.08, 0.90, V_WHITE, -7.0, 0.92, 2.2);
-createBox(officeGroup, 0.9, 0.06, 0.5, 0x94a3b8, -8.5, 0.93, 2.2);
-createCyl(officeGroup, 0.02, 0.02, 0.22, V_CHROME, -8.5, 1.05, 2.0, 8);
-createBox(officeGroup, 1.0, 2.1, 0.85, 0x94a3b8, -4.5, 1.05, 2.2);
-createBox(officeGroup, 0.96, 0.04, 0.88, V_DARK, -4.5, 1.15, 2.2);
-createBox(officeGroup, 0.04, 0.45, 0.04, V_CHROME, -4.05, 1.40, 2.65);
-createBox(officeGroup, 0.04, 0.45, 0.04, V_CHROME, -4.05, 0.65, 2.65);
-createBox(officeGroup, 0.65, 0.38, 0.42, V_DARK, -6.5, 1.15, 2.2);
-createBox(officeGroup, 0.45, 0.42, 0.38, 0xb91c1c, -5.5, 1.15, 2.2);
-createBox(officeGroup, 0.4, 0.65, 0.4, 0x16a34a, -10.2, 0.33, 2.2);
-createBox(officeGroup, 0.4, 0.65, 0.4, 0xf59e0b, -9.7, 0.33, 2.2);
-makeVoxelWaterDispenser(officeGroup, -9.2, 4.0);
-// 2 Set Meja Makan Kafe Bundar
-for (let i = 0; i < 2; i++) {
-  const mx = -8.5 + i * 3.2, mz = 8.5;
+
+// 14. DIGITAL MARKETING & SOSIAL MEDIA (X: 15.0, Z: -3.8) - STYLE PREMIUM DIGIBOOSTER
+// A. BACKDROP BRANDING SOSMED DENGAN LOGO PLATFORM POPULER (Dinding Belakang Z = -8.0)
+const mktBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#e1306c"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 34px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("DigiBooster Media", 25, 60);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 20px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Viral Marketing & Creative Studio", 25, 95);
+  // Badge icon platform
+  const badges = [
+    { name: "YT", col: "#ef4444" }, { name: "IG", col: "#e1306c" },
+    { name: "TT", col: "#000000" }, { name: "FB", col: "#1877f2" }, { name: "X", col: "#0284c7" }
+  ];
+  badges.forEach((b, i) => {
+    ctx.fillStyle = b.col; ctx.fillRect(25 + i * 95, 115, 80, 50);
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 24px sans-serif"; ctx.fillText(b.name, 45 + i * 95, 150);
+  });
+});
+createBox(officeGroup, 5.4, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: mktBackTex }), 15.0, 1.2, -8.0);
+createBox(officeGroup, 5.4, 0.04, 0.22, 0xe1306c, 15.0, 0.10, -8.0, false); // Lis Glow Magenta
+
+// Meja Workstation Marketing Putih-Oak Modern
+createBox(officeGroup, 3.8, 0.85, 1.0, V_WHITE, 15.0, 0.425, -4.5);
+createBox(officeGroup, 3.84, 0.14, 1.04, V_OAK, 15.0, 0.86, -4.5);
+makeVoxelChair(officeGroup, 13.8, -3.5, Math.PI, V_NAVY);
+makeVoxelChair(officeGroup, 16.2, -3.5, Math.PI, V_NAVY);
+// Layar monitor kreatif
+createBox(officeGroup, 0.70, 0.42, 0.04, 0x0f172a, 13.8, 1.15, -4.6);
+createBox(officeGroup, 0.66, 0.38, 0.02, 0x00d2ff, 13.8, 1.15, -4.57, false);
+createBox(officeGroup, 0.70, 0.42, 0.04, 0x0f172a, 16.2, 1.15, -4.6);
+createBox(officeGroup, 0.66, 0.38, 0.02, 0x38bdf8, 16.2, 1.15, -4.57, false);
+
+makeVoxelBookshelf(officeGroup, 12.2, -4.5, Math.PI / 2, 1.4);
+makeVoxelCabinet(officeGroup, 17.8, -4.5, -Math.PI / 2);
+makeVoxelPlant(officeGroup, 12.2, -7.2, 1.1, "flower");
+makeVoxelWaterDispenser(officeGroup, 17.8, -1.8);
+
+
+// 15. TIM IT & DEVELOPER (X: 21.2, Z: -3.8) - STYLE PREMIUM DIGIBOOSTER
+// A. BACKDROP BRANDING SOFTWARE ENGINEERING & CLOUD (Dinding Belakang Z = -8.0)
+const devBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#0c1527"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#00d2ff"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#00d2ff"; ctx.font = "bold 44px sans-serif"; ctx.fillText("💻", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("IT & Engineering", 95, 75);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Fullstack Dev, Cloud Cluster & AI Pipeline", 97, 115);
+  ctx.fillStyle = "#10b981"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Uptime 99.99% • CI/CD Automated • Microservices Live", 97, 145);
+});
+createBox(officeGroup, 5.0, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: devBackTex }), 21.2, 1.2, -8.0);
+createBox(officeGroup, 5.0, 0.04, 0.22, 0x00B9F1, 21.2, 0.10, -8.0, false); // Lis Glow Cyan
+
+// Smart Board DevOps & Sprint di Dinding Timur
+makeVoxelWhiteboard(officeGroup, 23.7, 1.5, -4.5, -Math.PI / 2, "dev_uptime");
+
+// Meja Developer Putih-Oak Modern
+createBox(officeGroup, 3.8, 0.85, 1.0, V_WHITE, 21.2, 0.425, -4.5);
+createBox(officeGroup, 3.84, 0.14, 1.04, V_OAK, 21.2, 0.86, -4.5);
+makeVoxelChair(officeGroup, 20.0, -3.5, Math.PI, V_NAVY);
+makeVoxelChair(officeGroup, 22.4, -3.5, Math.PI, V_NAVY);
+// Dual monitor programmer
+createBox(officeGroup, 0.65, 0.40, 0.04, 0x0f172a, 19.8, 1.15, -4.6);
+createBox(officeGroup, 0.62, 0.36, 0.02, 0x00d2ff, 19.8, 1.15, -4.57, false);
+createBox(officeGroup, 0.65, 0.40, 0.04, 0x0f172a, 20.6, 1.15, -4.6);
+createBox(officeGroup, 0.62, 0.36, 0.02, 0x38bdf8, 20.6, 1.15, -4.57, false);
+createBox(officeGroup, 0.65, 0.40, 0.04, 0x0f172a, 22.4, 1.15, -4.6);
+createBox(officeGroup, 0.62, 0.36, 0.02, 0x00d2ff, 22.4, 1.15, -4.57, false);
+
+makeVoxelServerRack(officeGroup, 23.4, -7.0, Math.PI);
+makeVoxelBookshelf(officeGroup, 19.0, -4.5, Math.PI / 2, 1.5);
+makeVoxelPlant(officeGroup, 19.0, -7.2, 1.1, "flower");
+makeVoxelWaterDispenser(officeGroup, 23.4, -2.0);
+
+
+// 16. RUANG SERVER & INFRASTRUKTUR (X: 26.5, Z: -3.8) - DEDICATED DATA CENTER CLUSTER
+// A. BACKDROP BRANDING DATA CENTER & SERVER (Dinding Belakang Z = -8.0)
+const serverBackTex = makeCanvasTex(512, 180, (ctx, w, h) => {
+  ctx.fillStyle = "#070d18"; ctx.fillRect(0, 0, w, h);
+  ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 4; ctx.strokeRect(6, 6, w - 12, h - 12);
+  ctx.fillStyle = "#38bdf8"; ctx.font = "bold 44px sans-serif"; ctx.fillText("🖥️", 30, 80);
+  ctx.fillStyle = "#ffffff"; ctx.font = "bold 38px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Data Center & Server", 95, 75);
+  ctx.fillStyle = "#00d2ff"; ctx.font = "700 22px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("Mission Critical Tier-3 Infrastructure", 97, 115);
+  ctx.fillStyle = "#10b981"; ctx.font = "600 16px 'Plus Jakarta Sans', sans-serif"; ctx.fillText("99.999% SLA • Dual Power Grid • Precision Cooling Active", 97, 145);
+});
+createBox(officeGroup, 4.4, 2.2, 0.2, new THREE.MeshLambertMaterial({ map: serverBackTex }), 26.5, 1.2, -8.0);
+createBox(officeGroup, 4.4, 0.04, 0.22, 0x00d2ff, 26.5, 0.10, -8.0, false); // Lis Glow Cyan
+
+// B. BARISAN RAK SERVER BANYAK (DIBALIK KE SISI BARAT / DEKAT SEKAT IT DEV X = 24.8)
+for (let i = 0; i < 4; i++) {
+  makeVoxelServerRack(officeGroup, 24.8, -6.6 + i * 1.5, Math.PI / 2);
+}
+
+// C. SMART BOARD MONITOR SERVER & UPTIME DISPLAY (DIBALIK KE DINDING TIMUR X = 28.6)
+makeVoxelWhiteboard(officeGroup, 28.6, 1.5, -4.5, -Math.PI / 2, "dev_uptime");
+
+// Lemari Peralatan Kabel/Tools Jaringan & Pendingin Presisi
+makeVoxelCabinet(officeGroup, 28.2, -7.0, -Math.PI / 2);
+makeVoxelPlant(officeGroup, 28.2, -1.8, 1.0);
+makeVoxelWaterDispenser(officeGroup, 24.8, -1.8);
+// 17. PANTRY & COFFEE LOUNGE (X: -7.0, Z: 7.8) - MEWAH, MEBET TEMBOK KIRI & AKSES PLONG
+// Area Ruangan: X: -11.0 s/d -3.0 (lebar 8m), Z: 1.6 s/d 14.0 (panjang 12.4m)
+// Akses Pintu Masuk: X = -7.0, Z = 1.6 (Area lorong masuk kini plong luas bebas halangan)
+
+// Hamparan Lantai Keramik Mosaik Biru-Putih Sesuai Referensi Gambar
+const pantryMosaicTex = BLUE_MOSAIC_TILE_TEX.clone();
+pantryMosaicTex.needsUpdate = true;
+pantryMosaicTex.wrapS = THREE.RepeatWrapping;
+pantryMosaicTex.wrapT = THREE.RepeatWrapping;
+pantryMosaicTex.repeat.set(6, 9); // Grid mosaik rapi proporsional
+const pantryMosaicMat = new THREE.MeshStandardMaterial({
+  map: pantryMosaicTex,
+  bumpMap: pantryMosaicTex,
+  bumpScale: 0.035,
+  roughness: 0.35,
+  metalness: 0.05
+});
+createBox(officeGroup, 7.8, 0.035, 12.2, pantryMosaicMat, -7.0, 0.04, 7.8, false);
+
+// A. KITCHEN BAR COUNTER & CABINET (Membujur Sepanjang Dinding Kiri X = -10.35, Z: 3.2 s/d 9.4)
+// Meja counter kayu jati walnut elegan dengan top table marmer putih
+createBox(officeGroup, 0.90, 0.90, 6.2, V_DARKWOOD, -10.35, 0.45, 6.3);
+createBox(officeGroup, 0.96, 0.08, 6.24, V_WHITE, -10.35, 0.92, 6.3); // Top table marmer putih
+// Lis aksen chrome di bibir counter
+createBox(officeGroup, 0.02, 0.04, 6.24, V_CHROME, -9.86, 0.92, 6.3, false);
+
+// Kabinet Pintu Bawah (Detail panel pintu kabinet kitchen set)
+for (let pz = 3.8; pz <= 8.8; pz += 1.0) {
+  createBox(officeGroup, 0.04, 0.65, 0.82, 0x3d2817, -9.88, 0.44, pz);
+  createCyl(officeGroup, 0.015, 0.015, 0.12, V_CHROME, -9.84, 0.60, pz + 0.28, 8); // Handle vertikal
+}
+
+// B. SINK CUCI PIRING STAINLESS & KERAN LEHER ANGSA CHROME (Z: 4.8)
+createBox(officeGroup, 0.58, 0.04, 0.90, 0x94a3b8, -10.35, 0.93, 4.8); // Bak cuci
+createBox(officeGroup, 0.50, 0.16, 0.78, 0x334155, -10.35, 0.84, 4.8); // Lubang sink
+const faucetK = createCyl(officeGroup, 0.02, 0.02, 0.28, V_CHROME, -10.65, 1.10, 4.8, 8);
+createBox(officeGroup, 0.04, 0.04, 0.16, V_CHROME, -10.58, 1.24, 4.8, false); // Moncong keran
+
+// C. MESIN ESPRESSO BARISTA PROFESIONAL & COFFEE GRINDER (Z: 6.5)
+// Mesin kopi espresso merah marun sporty + bodi stainless
+createBox(officeGroup, 0.55, 0.44, 0.65, 0x991b1b, -10.35, 1.18, 6.5); // Bodi utama
+createBox(officeGroup, 0.56, 0.14, 0.66, 0x0f172a, -10.35, 1.40, 6.5); // Bagian atas cup warmer
+createBox(officeGroup, 0.57, 0.12, 0.67, V_CHROME, -10.35, 1.00, 6.5); // Drip tray bawah
+createBox(officeGroup, 0.12, 0.06, 0.16, V_CHROME, -10.02, 1.18, 6.5); // Group head & portafilter
+createBox(officeGroup, 0.03, 0.03, 0.16, 0x0f172a, -9.92, 1.18, 6.5); // Gagang portafilter
+// Cangkir-cangkir espresso keramik di atas mesin kopi
+createCyl(officeGroup, 0.04, 0.03, 0.06, V_WHITE, -10.45, 1.50, 6.35, 8);
+createCyl(officeGroup, 0.04, 0.03, 0.06, V_WHITE, -10.25, 1.50, 6.35, 8);
+createCyl(officeGroup, 0.04, 0.03, 0.06, 0x00d2ff, -10.35, 1.50, 6.65, 8);
+
+// Coffee Grinder di sebelah mesin kopi (Z: 7.3)
+createBox(officeGroup, 0.26, 0.35, 0.26, 0x0f172a, -10.35, 1.14, 7.3);
+createCyl(officeGroup, 0.10, 0.06, 0.18, 0x38bdf8, -10.35, 1.40, 7.3, 10); // Hopper biji kopi
+
+// D. MICROWAVE & TOASTER OVEN (Z: 8.4)
+createBox(officeGroup, 0.48, 0.32, 0.60, 0x1e293b, -10.35, 1.12, 8.4);
+createBox(officeGroup, 0.02, 0.24, 0.42, 0x00d2ff, -10.09, 1.12, 8.35, false); // Kaca display
+createBox(officeGroup, 0.02, 0.24, 0.10, 0x334155, -10.09, 1.12, 8.62, false); // Tombol keypad
+
+// E. KULKAS 2 PINTU JUMBO (SMART DOUBLE-DOOR REFRIGERATOR) DI SUDUT BELAKANG KIRI (X: -10.3, Z: 10.4)
+createBox(officeGroup, 0.95, 2.20, 1.15, 0x1e293b, -10.35, 1.10, 10.4); // Bodi kulkas charcoal grey
+createBox(officeGroup, 0.04, 0.85, 1.10, 0x334155, -9.85, 1.65, 10.4);  // Pintu atas freezer
+createBox(officeGroup, 0.04, 1.15, 1.10, 0x334155, -9.85, 0.62, 10.4);  // Pintu bawah chiller
+// Handle vertikal stainless steel kulkas
+createBox(officeGroup, 0.04, 0.60, 0.04, V_CHROME, -9.81, 1.65, 10.88);
+createBox(officeGroup, 0.04, 0.80, 0.04, V_CHROME, -9.81, 0.65, 10.88);
+// Layar panel dispenser es/air di pintu kulkas
+createBox(officeGroup, 0.02, 0.28, 0.22, 0x00d2ff, -9.81, 1.55, 10.2, false);
+
+// F. DISPENSER AIR GALON BAWAH MODERN (WATER STATION) DEKAT PINTU (X: -10.35, Z: 2.3)
+makeVoxelWaterDispenser(officeGroup, -10.35, 2.3);
+
+// G. TEMPAT SAMPAH PILAH MODERN (RECYCLING & WASTE STATION) DI SAMPING DISPENSER (Z: 11.5)
+createBox(officeGroup, 0.38, 0.70, 0.36, 0x16a34a, -10.35, 0.35, 11.5); // Hijau: Organik
+createBox(officeGroup, 0.38, 0.70, 0.36, 0xf59e0b, -10.35, 0.35, 12.0); // Kuning: Anorganik
+createBox(officeGroup, 0.38, 0.70, 0.36, 0x0284c7, -10.35, 0.35, 12.5); // Biru: Kertas/Daur Ulang
+
+// H. AMBALAN DINDING KAYU GANTUNG DI ATAS KITCHEN COUNTER (Wall Shelves)
+createBox(officeGroup, 0.30, 0.05, 4.2, V_DARKWOOD, -10.75, 1.85, 6.3);
+// Toples-toples kaca & gelas kopi di rak gantung
+for (let sz = 4.8; sz <= 7.8; sz += 0.6) {
+  createCyl(officeGroup, 0.06, 0.06, 0.16, 0xbae6fd, -10.70, 1.96, sz, 8);
+}
+
+// I. 2 SET MEJA MAKAN KAFE BUNDAR & KURSI DI AREA LAPANG TENGAH-KANAN (X: -6.6 & X: -4.5)
+// Set 1: Meja Kafe Tengah Depan (X: -6.5, Z: 5.5)
+{
+  const mx = -6.5, mz = 5.5;
   createCyl(officeGroup, 0.85, 0.85, 0.08, V_WHITE, mx, 0.72, mz);
   createCyl(officeGroup, 0.10, 0.10, 0.70, V_DARK, mx, 0.35, mz);
-  makeVoxelChair(officeGroup, mx, mz - 1.1, 0);
-  makeVoxelChair(officeGroup, mx, mz + 1.1, Math.PI);
-  makeVoxelChair(officeGroup, mx - 1.1, mz, Math.PI / 2);
-  makeVoxelChair(officeGroup, mx + 1.1, mz, -Math.PI / 2);
-  createCyl(officeGroup, 0.05, 0.04, 0.12, V_WHITE, mx, 0.80, mz, 8);
-  createBox(officeGroup, 0.08, 0.08, 0.08, 0xef4444, mx, 0.88, mz);
+  createCyl(officeGroup, 0.40, 0.40, 0.04, V_DARK, mx, 0.02, mz);
+  makeVoxelChair(officeGroup, mx, mz - 1.15, 0);
+  makeVoxelChair(officeGroup, mx, mz + 1.15, Math.PI);
+  makeVoxelChair(officeGroup, mx - 1.15, mz, Math.PI / 2);
+  makeVoxelChair(officeGroup, mx + 1.15, mz, -Math.PI / 2);
+  // Vas bunga & teko di meja
+  createCyl(officeGroup, 0.06, 0.04, 0.14, V_WHITE, mx, 0.82, mz, 8);
+  createBox(officeGroup, 0.08, 0.08, 0.08, 0xef4444, mx, 0.90, mz);
 }
-makeVoxelPlant(officeGroup, -3.8, 12.8, 1.1, "flower");
-makeVoxelPlant(officeGroup, -10.2, 12.8, 1.0);
+
+// Set 2: Meja Kafe Tengah Belakang (X: -6.5, Z: 9.5)
+{
+  const mx = -6.5, mz = 9.5;
+  createCyl(officeGroup, 0.85, 0.85, 0.08, V_WHITE, mx, 0.72, mz);
+  createCyl(officeGroup, 0.10, 0.10, 0.70, V_DARK, mx, 0.35, mz);
+  createCyl(officeGroup, 0.40, 0.40, 0.04, V_DARK, mx, 0.02, mz);
+  makeVoxelChair(officeGroup, mx, mz - 1.15, 0);
+  makeVoxelChair(officeGroup, mx, mz + 1.15, Math.PI);
+  makeVoxelChair(officeGroup, mx - 1.15, mz, Math.PI / 2);
+  makeVoxelChair(officeGroup, mx + 1.15, mz, -Math.PI / 2);
+  createCyl(officeGroup, 0.06, 0.04, 0.14, V_WHITE, mx, 0.82, mz, 8);
+  createBox(officeGroup, 0.08, 0.08, 0.08, 0xf59e0b, mx, 0.90, mz);
+}
+
+// J. MEJA BAR COUNTER TINGGI DI DINDING KACA TIMUR (High Bar Table with Stools di X: -3.5, Z: 5.5 s/d 9.5)
+createBox(officeGroup, 0.45, 1.05, 3.8, V_DARKWOOD, -3.45, 0.525, 7.5);
+createBox(officeGroup, 0.52, 0.06, 3.86, V_WHITE, -3.45, 1.08, 7.5); // Top bar putih
+// 3 Kursi Bar Tinggi (Bar Stools) menghadap ke arah barat/pantry
+for (let bz = 6.2; bz <= 8.8; bz += 1.3) {
+  createCyl(officeGroup, 0.20, 0.20, 0.06, V_DARK, -3.95, 0.78, bz, 10); // Dudukan bulat bar stool
+  createCyl(officeGroup, 0.03, 0.03, 0.75, V_CHROME, -3.95, 0.39, bz, 8); // Kaki chrome
+  createCyl(officeGroup, 0.18, 0.18, 0.03, V_CHROME, -3.95, 0.02, bz, 8); // Base bulat
+}
+
+// K. DEKORASI TANAMAN INDOOR DI SUDUT RUANGAN
+makeVoxelPlant(officeGroup, -3.8, 12.8, 1.2, "flower");
+makeVoxelPlant(officeGroup, -3.8, 2.5, 1.0);
 
 // 18. GRAND ENTRANCE BOULEVARD & PROMENADE (BEKAS RUANG SANTAI - KINI JALAN UTAMA MENUJU GERBANG DEPAN)
 // Area ini kini menjadi selasar megah terbuka dengan pot tanaman arsitektural di pinggir koridor
@@ -2323,135 +3223,513 @@ createBox(officeGroup, 0.35, 0.25, 0.35, 0x00B9F1, -2.2, 2.2, 10.5, false);
 createBox(officeGroup, 0.12, 2.2, 0.12, 0x0f172a, 4.8, 1.1, 10.5);
 createBox(officeGroup, 0.35, 0.25, 0.35, 0x00B9F1, 4.8, 2.2, 10.5, false);
 
-// 19. MUSHOLA (X: 9.8, Z: 7.8) - OTENTIK & JELAS TERLIHAT
-const sajadahTex = makeCanvasTex(256, 256, (ctx, w, h) => {
-  ctx.fillStyle = "#15803d"; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#fde047"; ctx.lineWidth = 12;
-  for (let y = 30; y < h; y += 75) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+// 19. MUSHOLA EKSEKUTIF & SARANA IBADAH (X: 9.8, Z: 7.8) - INTERIOR ISLAMI OTENTIK & MODERN
+// Dimensi Ruangan: X: 6.0 s/d 13.5 (lebar 7.5m), Z: 1.6 s/d 14.0 (panjang 12.4m)
+// Arah Kiblat: Menghadap ke Barat (Dinding X = 6.0 / mushola mihrab ke arah barat)
+
+// A. LANTAI KARPET SAJADAH MASJID OTENTIK (Saf Sholat Menghadap Kiblat ke Dinding Barat)
+// Lengkungan kubah sajadah menghadap ke Barat (kiri/dinding kiblat) dengan warna kuning emas terang (#fde047)
+const sajadahTex = makeCanvasTex(512, 512, (ctx, w, h) => {
+  // Warna dasar beludru hijau zamrud mewah
+  ctx.fillStyle = "#064e3b";
+  ctx.fillRect(0, 0, w, h);
+
+  const safWidth = 128; // Lebar per saf sholat membentang utara-selatan
+  for (let x = 0; x < w; x += safWidth) {
+    // Garis saf sujud hijau
+    ctx.fillStyle = "#15803d";
+    ctx.fillRect(x + 6, 0, safWidth - 12, h);
+
+    // Border pembatas saf sholat vertikal warna kuning emas terang di sisi belakang saf
+    ctx.fillStyle = "#fde047";
+    ctx.fillRect(x + safWidth - 8, 0, 6, h);
+
+    // Ornamen lengkungan kubah sajadah menghadap ke KIRI / BARAT (menuju kiblat)
+    // Warna kuning terang menyala & kontras tinggi
+    ctx.strokeStyle = "#fef08a"; // Kuning sangat terang
+    ctx.lineWidth = 4;
+    const personHeight = 64;
+    for (let y = 0; y < h; y += personHeight) {
+      ctx.beginPath();
+      // Busur kubah sajadah menghadap ke Barat (puncak lengkungan di sisi kiri x + 24)
+      ctx.arc(x + 36, y + personHeight / 2, 18, Math.PI * 0.5, Math.PI * 1.5, false);
+      ctx.stroke();
+
+      // Detail aksen bintang kubah di ujung lengkungan
+      ctx.fillStyle = "#fde047";
+      ctx.beginPath();
+      ctx.arc(x + 18, y + personHeight / 2, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Garis halus pembatas per orang antar saf
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x + 6, y);
+      ctx.lineTo(x + safWidth - 10, y);
+      ctx.stroke();
+    }
   }
 });
 sajadahTex.wrapS = THREE.RepeatWrapping;
 sajadahTex.wrapT = THREE.RepeatWrapping;
-sajadahTex.repeat.set(2, 3);
-createBox(officeGroup, 5.2, 0.02, 6.5, new THREE.MeshLambertMaterial({ map: sajadahTex }), 9.8, 0.05, 8.5, false);
-createBox(officeGroup, 2.6, 2.3, 0.45, 0x166534, 9.8, 1.15, 2.0);
-createBox(officeGroup, 1.8, 1.8, 0.15, 0xfde047, 9.8, 1.0, 2.22);
-createBox(officeGroup, 0.7, 0.9, 0.6, 0x78350f, 12.2, 0.45, 2.4);
-// Rak Al-Qur'an dan Kitab Kayu di dekat Mihrab
-createBox(officeGroup, 1.2, 1.4, 0.35, 0x78350f, 7.4, 0.70, 2.2);
-for (let b = 0; b < 4; b++) {
-  createBox(officeGroup, 0.18, 0.22, 0.25, 0x15803d, 7.1 + b * 0.22, 0.85, 2.2);
-}
-createBox(officeGroup, 1.4, 0.7, 0.4, 0x78350f, 6.8, 0.35, 3.5);
-for (let s = 0; s < 3; s++) {
-  createBox(officeGroup, 0.25, 0.08, 0.16, 0x1e293b, 6.5 + s * 0.32, 0.40, 3.5);
-}
-const jamTex = makeCanvasTex(128, 64, (ctx, w, h) => {
-  ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = "#22c55e"; ctx.font = "bold 20px monospace"; ctx.fillText("12:05 OK", 14, 40);
-});
-createBox(officeGroup, 1.1, 0.6, 0.05, new THREE.MeshBasicMaterial({ map: jamTex }), 9.8, 2.1, 2.25);
-makeVoxelPlant(officeGroup, 12.4, 12.8, 1.1);
-makeVoxelPlant(officeGroup, 7.2, 12.8, 0.9);
+sajadahTex.repeat.set(4, 3);
 
-// 20. TOILET MODERN & TERATUR (X: 21.0, Z: 7.8) - BILIK TERTUTUP, URINOIR, WASTAFEL & CERMIN
-// Lantai ubin keramik anti-slip khusus toilet (warna abu-abu elegan)
-const toiletFloorTex = makeCanvasTex(256, 256, (ctx, w, h) => {
-  ctx.fillStyle = "#cbd5e1"; ctx.fillRect(0, 0, w, h);
-  ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2;
-  const sz = 32;
-  for (let x = 0; x <= w; x += sz) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+// Hamparan Karpet Sajadah Lembut Menutupi Seluruh Lantai Mushola Tanpa Celah (Full Floor Coverage)
+// Dimensi Penuh Lantai Mushola: X: 6.0 s/d 13.5 (lebar 7.5m), Z: 1.6 s/d 14.0 (panjang 12.4m)
+createBox(officeGroup, 7.5, 0.035, 12.4, new THREE.MeshLambertMaterial({ map: sajadahTex }), 9.75, 0.04, 7.8, false);
+
+// B. AREA KIBLAT & ORNAMEN ARSITEKTUR ISLAMI (Dinding Barat X = 6.0)
+// SAJADAH IMAM MEWAH PERSIS REFERENSI GAMBAR (Kubah Mihrab Bertingkat, Pola Geometris Arabesque & Rumbai)
+// Dirotasi menghadap ke Barat (kiblat): Lebar X: 1.35m, Panjang Z: 0.85m
+const imamMatTex = makeCanvasTex(512, 320, (ctx, w, h) => {
+  // Kanvas berorientasi horizontal: Kiri (X=0) adalah puncak kubah menghadap Barat/Kiblat, Kanan (X=w) adalah alas kaki
+  // Warna latar luar navy pekat
+  ctx.fillStyle = "#0c1538";
+  ctx.fillRect(0, 0, w, h);
+
+  // Border luar biru navy tua
+  ctx.strokeStyle = "#080e28";
+  ctx.lineWidth = 10;
+  ctx.strokeRect(6, 6, w - 12, h - 12);
+
+  // Bingkai Krem Emas / Beige Elegan di Sekeliling
+  ctx.strokeStyle = "#eedcba";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(18, 18, w - 36, h - 36);
+
+  // Pola Kisi Geometris Bintang Islami (Islamic Geometric Arabesque Lattice) di area bingkai
+  ctx.strokeStyle = "#d4b886";
+  ctx.lineWidth = 1.8;
+  const step = 28;
+  for (let x = 18; x < w - 18; x += step) {
+    for (let y = 18; y < h - 18; y += step) {
+      // Kotak rotasi diagonal (bintang 8 sisi)
+      ctx.strokeRect(x + 4, y + 4, step - 8, step - 8);
+      ctx.beginPath();
+      ctx.moveTo(x + step / 2, y + 4);
+      ctx.lineTo(x + step - 4, y + step / 2);
+      ctx.lineTo(x + step / 2, y + step - 4);
+      ctx.lineTo(x + 4, y + step / 2);
+      ctx.closePath();
+      ctx.stroke();
+    }
   }
-  for (let y = 0; y <= h; y += sz) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+
+  // BIDANG KUBAH MIHRAB TENGAH PERSIS GAMBAR (Lengkungan bertingkat dengan ujung runcing di sisi Barat/Kiri)
+  const mx = 48; // Ujung runcing kubah mihrab menghadap barat (kiri)
+  const rx = w - 40; // Batas bawah sajadah
+  const cy = h / 2; // Tengah sumbu Y
+
+  // Blok Navy Polos di dalam Lengkungan Kubah
+  ctx.fillStyle = "#0a1128";
+  ctx.beginPath();
+  ctx.moveTo(rx, 48);
+  ctx.lineTo(160, 48); // Dinding atas kubah
+  // Lengkungan bertingkat khas sajadah (Multi-tier Islamic Arch)
+  ctx.arc(140, 68, 20, Math.PI * 1.5, Math.PI, true);
+  ctx.arc(110, 88, 20, Math.PI * 1.5, Math.PI, true);
+  ctx.arc(80, 110, 22, Math.PI * 1.5, Math.PI, true);
+  // Puncak kubah runcing di kiri
+  ctx.quadraticCurveTo(55, cy - 10, mx, cy);
+  ctx.quadraticCurveTo(55, cy + 10, 80, cy + 50);
+  // Lengkungan simetris sisi bawah
+  ctx.arc(110, h - 88, 20, Math.PI, Math.PI * 0.5, true);
+  ctx.arc(140, h - 68, 20, Math.PI, Math.PI * 0.5, true);
+  ctx.lineTo(rx, h - 48);
+  ctx.closePath();
+  ctx.fill();
+
+  // Garis Kontur Kubah Krem Emas (Beige Trim)
+  ctx.strokeStyle = "#f3e7ce";
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  // Garis aksen emas kedua di dalam kubah
+  ctx.strokeStyle = "#e0c79b";
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Rumbai-rumbai benang emas/krem di tepi kiri (ujung kepala) dan tepi kanan (ujung kaki)
+  ctx.strokeStyle = "#fef3c7";
+  ctx.lineWidth = 1.5;
+  for (let y = 14; y <= h - 14; y += 4) {
+    // Rumbai kiri
+    ctx.beginPath();
+    ctx.moveTo(14, y);
+    ctx.lineTo(4, y);
+    ctx.stroke();
+    // Rumbai kanan
+    ctx.beginPath();
+    ctx.moveTo(w - 14, y);
+    ctx.lineTo(w - 4, y);
+    ctx.stroke();
   }
 });
-toiletFloorTex.wrapS = THREE.RepeatWrapping;
-toiletFloorTex.wrapT = THREE.RepeatWrapping;
-toiletFloorTex.repeat.set(4, 3);
-createBox(officeGroup, 15.0, 0.02, 12.0, new THREE.MeshLambertMaterial({ map: toiletFloorTex }), 21.2, 0.035, 7.8, false);
+imamMatTex.wrapS = THREE.ClampToEdgeWrapping;
+imamMatTex.wrapT = THREE.ClampToEdgeWrapping;
 
-// A. 3 Bilik Kubikel Toilet Tertutup dengan Pintu & Indikator Kunci (Di sisi barat toilet, X: 14.5 s/d 18.5)
-for (let i = 0; i < 3; i++) {
-  const bz = 4.2 + i * 3.4; // Jarak bilik teratur lega
-  // Partisi samping bilik (dinding pembatas kubikel)
-  createBox(officeGroup, 3.2, 2.1, 0.08, 0x94a3b8, 16.0, 1.05, bz - 1.7);
-  // Dinding depan bilik dengan bukaan pintu
-  createBox(officeGroup, 0.8, 2.1, 0.08, 0x94a3b8, 14.8, 1.05, bz + 1.6);
-  // Pintu bilik toilet UPVC dengan handle chrome
-  const cubicleDoor = createBox(officeGroup, 1.1, 1.95, 0.05, 0xffffff, 16.2, 1.0, bz + 1.6);
-  createBox(cubicleDoor, 0.04, 0.16, 0.08, V_CHROME, 0.40, 0, 0.04); // Handle
-  createBox(cubicleDoor, 0.06, 0.06, 0.02, 0x22c55e, 0.40, 0.18, 0.04, false); // Kunci indikator hijau (Vacant)
+// SAJADAH IMAM MEWAH (Sejajar Lurus Tepat dengan Sajadah ke-4 di Belakangnya: Z = 7.8)
+createBox(officeGroup, 1.35, 0.045, 0.85, new THREE.MeshLambertMaterial({ map: imamMatTex }), 6.8, 0.052, 7.8, false);
 
-  // Kloset Duduk Keramik Putih Mengilap di dalam bilik
-  createBox(officeGroup, 0.52, 0.44, 0.68, 0xffffff, 16.2, 0.22, bz - 0.8); // Base kloset
-  createBox(officeGroup, 0.48, 0.04, 0.48, 0xf1f5f9, 16.2, 0.46, bz - 0.7); // Tutup kloset
-  createBox(officeGroup, 0.52, 0.75, 0.26, 0xffffff, 16.2, 0.50, bz - 1.35); // Tangki air kloset
-  createCyl(officeGroup, 0.03, 0.03, 0.04, V_CHROME, 16.2, 0.89, bz - 1.35, 8); // Tombol flush ganda chrome
-  // Jet Shower Bidet & Gantungan Tisu Toilet
-  createCyl(officeGroup, 0.02, 0.02, 0.18, V_CHROME, 17.4, 0.60, bz - 0.9, 8);
-  createBox(officeGroup, 0.12, 0.14, 0.14, 0xffffff, 17.4, 0.75, bz - 0.9);
+// SAJADAH MAKMUM (2 BARIS x 7 SAJADAH LEBIH RAPAT, SAJADAH KE-4 SEJAJAR LURUS DENGAN IMAM DI Z: 7.8)
+// 3 Sajadah di Kiri (Z < 7.8), 1 Sajadah di Tengah (Z = 7.8 sejajar imam), 3 Sajadah di Kanan (Z > 7.8)
+// Jarak antar sajadah lebih rapat (spacing 1.25m): Z = 4.05, 5.30, 6.55, 7.80, 9.05, 10.30, 11.55
+const jamaahMatMat = new THREE.MeshLambertMaterial({ map: imamMatTex });
+const rowXs = [8.6, 10.2]; // 2 baris saf makmum ke belakang
+const colZs = [4.05, 5.30, 6.55, 7.80, 9.05, 10.30, 11.55]; // 7 sajadah per baris rapat (ke-4 tepat di 7.80)
+
+for (let r = 0; r < rowXs.length; r++) {
+  const rx = rowXs[r];
+  for (let c = 0; c < colZs.length; c++) {
+    const rz = colZs[c];
+    // Sajadah makmum berjejer rapat rapi sejajar lurus saf sholat
+    createBox(officeGroup, 1.30, 0.045, 0.85, jamaahMatMat, rx, 0.052, rz, false);
+  }
 }
 
-// B. Deretan Wastafel Marmer & Cermin LED Modern (Di dinding timur toilet, X: 27.8)
-createBox(officeGroup, 0.85, 0.82, 8.5, 0x1e293b, 27.8, 0.41, 7.8); // Countertop meja wastafel
-createBox(officeGroup, 0.88, 0.06, 8.55, 0xffffff, 27.8, 0.84, 7.8); // Top meja marmer putih
-for (let w = 0; w < 3; w++) {
-  const wz = 4.8 + w * 3.0;
-  // Bak wastafel keramik cekung putih
-  createBox(officeGroup, 0.55, 0.12, 0.65, 0x0284c7, 27.6, 0.84, wz);
-  createBox(officeGroup, 0.48, 0.10, 0.58, 0xffffff, 27.6, 0.86, wz);
-  // Kran air leher angsa sensor otomatis chrome
-  createCyl(officeGroup, 0.02, 0.02, 0.24, V_CHROME, 28.0, 1.02, wz, 8);
-  createBox(officeGroup, 0.02, 0.08, 0.12, V_CHROME, 27.95, 1.12, wz);
-  // Cermin Dinding LED Backlit Besar
-  createBox(officeGroup, 0.05, 1.35, 1.8, 0x93c5fd, 28.8, 1.80, wz);
-  createBox(officeGroup, 0.02, 1.40, 1.85, 0x00d2ff, 28.75, 1.80, wz, false); // Glow LED cermin
-  // Dispenser sabun dinding otomatis di samping wastafel
-  createBox(officeGroup, 0.08, 0.24, 0.14, V_CHROME, 28.8, 1.25, wz - 0.8);
+// ORNAMEN DINDING ISLAMI MEWAH (KALIGRAFI TIMBUL EMAS ALLAH & MUHAMMAD)
+for (const kz of [6.8, 8.8]) {
+  createBox(officeGroup, 0.04, 0.65, 0.65, 0x5c381e, 6.05, 1.65, kz); // Bingkai kayu jati tipis di dinding
+  createBox(officeGroup, 0.06, 0.52, 0.52, 0xd4af37, 6.06, 1.65, kz); // Pelat kaligrafi timbul emas
+  createBox(officeGroup, 0.07, 0.18, 0.18, 0x14532d, 6.07, 1.65, kz); // Aksen hijau zamrud
 }
 
-// C. 3 Urinoir Pria dengan Sekat Privasi (Di dinding selatan toilet, Z: 13.2, X: 20.0 s/d 25.0)
-for (let u = 0; u < 3; u++) {
-  const ux = 20.5 + u * 2.2;
-  // Urinoir gantung keramik putih
-  createBox(officeGroup, 0.42, 0.68, 0.32, 0xffffff, ux, 0.72, 13.4);
-  createCyl(officeGroup, 0.02, 0.02, 0.12, V_CHROME, ux, 1.12, 13.4, 8); // Pipa flush sensor
-  // Sekat partisi privasi antar urinoir
-  createBox(officeGroup, 0.06, 1.1, 0.55, 0x64748b, ux + 1.1, 0.85, 13.3);
+// C. LEMARI & RAK AL-QUR'AN MEPET DINDING (JELAS, RAPI, & ELEGAN)
+// 1. Rak Buku Kayu Jati Tingkat Mepet Dinding Utara (Z = 2.0, X: 7.2)
+createBox(officeGroup, 1.80, 1.65, 0.42, 0x5c381e, 7.5, 0.82, 2.0); // Bodi lemari kitab
+createBox(officeGroup, 1.84, 0.06, 0.46, 0xd4a373, 7.5, 1.66, 2.0); // Top crown lemari
+// Rak 3 Tingkat Isi Kitab Suci Al-Qur'an Rapi
+for (let shelf = 0; shelf < 3; shelf++) {
+  const sy = 0.35 + shelf * 0.45;
+  createBox(officeGroup, 1.70, 0.04, 0.38, 0x78350f, 7.5, sy, 2.0); // Papan ambalan
+  for (let q = 0; q < 6; q++) {
+    const qx = 6.9 + q * 0.24;
+    createBox(officeGroup, 0.06, 0.28, 0.26, (q % 2 === 0 ? 0x15803d : 0x854d0e), qx, sy + 0.15, 2.0); // Kitab Al-Qur'an
+    createBox(officeGroup, 0.062, 0.04, 0.26, 0xd4af37, qx, sy + 0.20, 2.0); // Kaligrafi emas pada punggung buku
+  }
 }
 
-// D. Fasilitas Kebersihan: Hand Dryer Otomatis & Tempat Sampah Pedal
-createBox(officeGroup, 0.14, 0.38, 0.28, 0xffffff, 28.8, 1.25, 2.5); // Hand dryer
-createBox(officeGroup, 0.35, 0.55, 0.35, V_STEEL, 26.5, 0.28, 2.5);   // Tempat sampah stainless
+// 2. Lemari Mukena, Sarung & Sajadah Cadangan Mepet Dinding Timur (X = 13.2, Z: 5.5)
+createBox(officeGroup, 0.45, 1.75, 1.60, 0x5c381e, 13.2, 0.88, 5.5);
+for (let d = 0; d < 2; d++) {
+  createBox(officeGroup, 0.02, 1.60, 0.72, 0xd4a373, 12.96, 0.88, 5.12 + d * 0.76); // Pintu kayu
+  createBox(officeGroup, 0.03, 0.10, 0.03, 0xd4af37, 12.94, 0.88, 5.12 + d * 0.76); // Handle gold
+}
+
+// 3. Meja Rak Rehal Al-Qur'an Kayu Lipat Mepet Dinding (X = 13.2, Z: 8.5)
+createBox(officeGroup, 0.45, 0.75, 1.40, 0x5c381e, 13.2, 0.38, 8.5);
+createBox(officeGroup, 0.48, 0.06, 1.44, 0xd4a373, 13.2, 0.76, 8.5);
+// 2 Rehal Al-Qur'an X-frame kayu lipat di atas meja
+for (let r = 0; r < 2; r++) {
+  const rz = 8.1 + r * 0.8;
+  createBox(officeGroup, 0.28, 0.12, 0.26, 0x78350f, 13.2, 0.84, rz);
+  createBox(officeGroup, 0.24, 0.04, 0.28, 0x166534, 13.2, 0.90, rz); // Mushaf hijau
+}
+
+// (Kotak lemari dekat pintu masuk telah dihapus agar area pintu masuk bersih dan plong)
+
+// D. JAM DIGITAL JADWAL SHOLAT RUNNING TEXT & WAKTU REAL-TIME WIB DI ATAS PINTU
+// Diletakkan tepat di atas bukaan pintu masuk Mushola (X: 9.8, Z: 1.6, menghadap ke dalam jalan setapak)
+const prayerClockCanvas = document.createElement("canvas");
+prayerClockCanvas.width = 256;
+prayerClockCanvas.height = 128;
+const prayerClockCtx = prayerClockCanvas.getContext("2d");
+
+const prayerClockTex = new THREE.CanvasTexture(prayerClockCanvas);
+prayerClockTex.minFilter = THREE.LinearFilter;
+prayerClockTex.magFilter = THREE.LinearFilter;
+
+// Bodi Frame Jam Digital Masjid Modern (Alumunium Hitam + Lis Emas)
+createBox(officeGroup, 1.50, 0.65, 0.14, 0x0f172a, 9.8, 2.15, 1.68);
+createBox(officeGroup, 1.54, 0.69, 0.04, 0xd4af37, 9.8, 2.15, 1.64); // Frame lis emas
+const prayerClockScreen = createBox(officeGroup, 1.42, 0.58, 0.02, new THREE.MeshBasicMaterial({ map: prayerClockTex }), 9.8, 2.15, 1.75, false);
+
+// Fungsi Update Jam Digital Real-time WIB
+function updatePrayerClockWIB() {
+  if (!prayerClockCtx) return;
+  const now = new Date();
+  // Hitung Waktu Indonesia Barat (WIB = UTC+7)
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const wibTime = new Date(utc + (3600000 * 7));
+
+  const hh = String(wibTime.getHours()).padStart(2, "0");
+  const mm = String(wibTime.getMinutes()).padStart(2, "0");
+  const ss = String(wibTime.getSeconds()).padStart(2, "0");
+  const timeStr = `${hh}:${mm}:${ss}`;
+
+  prayerClockCtx.fillStyle = "#020617";
+  prayerClockCtx.fillRect(0, 0, 256, 128);
+
+  // Header Jam WIB
+  prayerClockCtx.fillStyle = "#22c55e"; // Hijau LED masjid
+  prayerClockCtx.font = "bold 18px 'Plus Jakarta Sans', monospace";
+  prayerClockCtx.textAlign = "center";
+  prayerClockCtx.fillText("WAKTU SHOLAT • WIB", 128, 26);
+
+  // Angka Jam Besar Digital
+  prayerClockCtx.fillStyle = "#38bdf8"; // Cyan LED digital terang
+  prayerClockCtx.font = "bold 34px monospace";
+  prayerClockCtx.fillText(timeStr, 128, 68);
+
+  // Running Info Jadwal Sholat
+  prayerClockCtx.fillStyle = "#facc15"; // Kuning emas
+  prayerClockCtx.font = "bold 16px 'Plus Jakarta Sans', sans-serif";
+  prayerClockCtx.fillText("DIGIBOOSTER MUSHOLA", 128, 98);
+  prayerClockCtx.fillStyle = "#a7f3d0";
+  prayerClockCtx.font = "bold 13px monospace";
+  prayerClockCtx.fillText("DZUHUR 11:48 • ASHAR 15:02", 128, 118);
+
+  prayerClockTex.needsUpdate = true;
+}
+updatePrayerClockWIB();
+setInterval(updatePrayerClockWIB, 1000); // Update setiap 1 detik tepat
+
+// E. DETAIL TAMBAHAN: TANAMAN PALEM INDOOR BIOPHILIC DI SUDUT
+makeVoxelPlant(officeGroup, 12.6, 13.0, 1.25, "regular");
+makeVoxelPlant(officeGroup, 6.8, 13.0, 1.15, "flower");
+
+// 20. EXECUTIVE RESTROOM & LUXURY GROOMING SUITE (X: 13.5 s/d 29.0, Z: 1.6 s/d 14.0)
+// Desain Arsitektur Modern Dunia (Google / Apple Park Executive Level):
+// - Dinding Barat (X: 13.5) bersebelahan Mushola
+// - Dinding Timur (X: 29.0) menghadap luar/kanan
+// - Dinding Depan/Utara (Z: 1.6) dengan Pintu Masuk di X: 21.25
+// - Dinding Belakang/Selatan (Z: 14.0) dengan Spanduk/Kaca
+
+// A. LANTAI MARMER LUXURY ITALIAN TERRAZZO DENGAN ZONASI WET & DRY
+// 20. DUAL EXECUTIVE RESTROOMS (WANITA DI SISI BARAT & PRIA DI SISI TIMUR)
+// Pemisah Tembok Tengah di X: 21.25. Masing-masing ruangan berukuran lebar 7.5m x panjang 12.4m.
+// Keduanya memiliki fasilitas lengkap yang setara:
+// - Meja Vanity Marmer Tanam + Wastafel Keramik + Cermin LED Backlit
+// - Stasiun Grooming & Dyson Hair Dryer + Cermin Rias LED
+// - Hand Dryer Otomatis & Tempat Sampah Sensor
+// - 2 Bilik Smart Toilet Tertutup Penuh
+// - 1 Bilik Luxury Shower Stall Tempered Glass (Rain shower, hand spray & wall niche)
+// - Bangku Ganti Kayu Oak Solid Skandinavia dengan Tumpukan Handuk Bersih
+// - Keranjang Laundry Rattan & Loker Ganti Mini
+// - Tanaman Tropis Hias Biophilic Indoor
+
+// Lantai Toilet Wanita & Pria: Keramik Mosaik Biru-Putih Sesuai Referensi Gambar
+const restroomMosaicTex = BLUE_MOSAIC_TILE_TEX.clone();
+restroomMosaicTex.needsUpdate = true;
+restroomMosaicTex.wrapS = THREE.RepeatWrapping;
+restroomMosaicTex.wrapT = THREE.RepeatWrapping;
+restroomMosaicTex.repeat.set(6, 9); // Grid mosaik presisi proporsional
+
+const restroomMosaicMat = new THREE.MeshStandardMaterial({
+  map: restroomMosaicTex,
+  bumpMap: restroomMosaicTex,
+  bumpScale: 0.035,
+  roughness: 0.35,
+  metalness: 0.05
+});
+
+// Lantai Toilet Wanita (Barat: X: 13.5 s/d 21.25, Center X: 17.375)
+createBox(officeGroup, 7.5, 0.035, 12.2, restroomMosaicMat, 17.375, 0.04, 7.8, false);
+// Lantai Toilet Pria (Timur: X: 21.25 s/d 29.0, Center X: 25.125)
+createBox(officeGroup, 7.5, 0.035, 12.2, restroomMosaicMat, 25.125, 0.04, 7.8, false);
+
+// Material Kaca Shower Frosted Tempered Biru Transparan
+const showerGlassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xbde0fe,
+  transparent: true,
+  opacity: 0.45,
+  roughness: 0.12,
+  metalness: 0.1,
+  transmission: 0.65
+});
+
+// FUNGSI PEMBUAT SUITE RESTROOM LENGKAP DENGAN PROPORSI RAPI & PRESISI
+function buildExecutiveSuite(parent, isFemale, minX, maxX) {
+  const grp = new THREE.Group();
+  parent.add(grp);
+
+  const cx = (minX + maxX) / 2; // Tengah ruangan
+  const westX = minX;           // Dinding barat suite
+  const eastX = maxX;           // Dinding timur suite
+  const accentColor = isFemale ? 0xf43f5e : 0x0284c7; // Aksen Rose Gold / Cyan Sapphire
+
+  // 1. ZONA MEJA VANITY, DOUBLE WASTAFEL & STASIUN GROOMING (Di Dinding Timur Setiap Ruangan)
+  const vWallX = eastX - 0.12; // Dinding tempat cermin menempel
+  const vDeskX = eastX - 0.55; // Posisi meja vanity floating
+
+  // Meja Vanity Marmer Floating Mewah (Panjang 7.6m dari Z: 2.8 s/d 10.4)
+  createBox(grp, 0.85, 0.74, 7.6, 0x0f172a, vDeskX, 0.37, 6.6); // Kabinet bawah floating
+  createBox(grp, 0.90, 0.08, 7.7, 0xffffff, vDeskX, 0.78, 6.6);  // Slab marmer putih Carrara
+  createBox(grp, 0.92, 0.02, 7.74, 0xd4af37, vDeskX, 0.74, 6.6); // Trim gold luxury
+
+  // 2 Wastafel Tanam Mewah + Cermin LED Backlit
+  for (let w = 0; w < 2; w++) {
+    const wz = 4.2 + w * 2.4; // Z: 4.2 dan 6.6
+    // Cekungan wastafel keramik
+    createBox(grp, 0.52, 0.14, 0.70, 0x0284c7, vDeskX - 0.05, 0.74, wz);
+    createBox(grp, 0.46, 0.12, 0.62, 0xffffff, vDeskX - 0.05, 0.76, wz);
+    // Keran sensor leher angsa matte black
+    createCyl(grp, 0.022, 0.022, 0.28, 0x0f172a, vDeskX + 0.22, 0.96, wz, 10);
+    createBox(grp, 0.022, 0.12, 0.14, 0x0f172a, vDeskX + 0.16, 1.08, wz);
+    createBox(grp, 0.024, 0.02, 0.02, 0xef4444, vDeskX + 0.10, 0.90, wz, false); // Sensor LED
+    // Cermin LED Backlit Besar (Warm 3000K)
+    createBox(grp, 0.05, 1.40, 1.6, 0x93c5fd, vWallX, 1.78, wz);
+    createBox(grp, 0.02, 1.48, 1.68, 0xfde047, vWallX - 0.02, 1.78, wz, false);
+    // Botol dispenser sabun amber glass & sukulen
+    createCyl(grp, 0.035, 0.035, 0.13, 0x78350f, vDeskX, 0.88, wz - 0.50, 8);
+    createCyl(grp, 0.012, 0.012, 0.04, 0x0f172a, vDeskX, 0.96, wz - 0.50, 6);
+    createCyl(grp, 0.045, 0.04, 0.08, 0xffffff, vDeskX, 0.86, wz + 0.50, 8);
+    createBox(grp, 0.06, 0.08, 0.06, 0x16a34a, vDeskX, 0.93, wz + 0.50);
+  }
+
+  // STASIUN GROOMING & DYSON HAIR DRYER (Di ujung meja vanity Z: 9.2)
+  createBox(grp, 0.10, 0.30, 0.20, 0x0f172a, vWallX, 1.18, 9.2); // Base holder
+  const hDryer = new THREE.Group();
+  hDryer.position.set(vWallX - 0.12, 1.18, 9.2);
+  createCyl(hDryer, 0.03, 0.03, 0.18, 0x334155, 0, 0, 0, 10).rotation.z = Math.PI / 2;
+  createCyl(hDryer, 0.05, 0.05, 0.13, 0x0f172a, -0.09, 0.08, 0, 12).rotation.x = Math.PI / 2;
+  createCyl(hDryer, 0.042, 0.042, 0.03, isFemale ? 0xd946ef : 0x0284c7, -0.09, 0.08, 0.07, 10).rotation.x = Math.PI / 2;
+  createCyl(hDryer, 0.012, 0.012, 0.22, 0x0f172a, 0, -0.15, 0, 6);
+  grp.add(hDryer);
+  // Cermin Rias Ring Light LED bundar
+  createCyl(grp, 0.24, 0.24, 0.03, 0xffffff, vWallX, 1.68, 9.2, 16).rotation.z = Math.PI / 2;
+  createCyl(grp, 0.26, 0.26, 0.01, 0x00d2ff, vWallX - 0.02, 1.68, 9.2, 16, false).rotation.z = Math.PI / 2;
+  // Kursi Vanity Putih Ergonomis
+  createCyl(grp, 0.22, 0.22, 0.08, 0xffffff, vDeskX - 0.8, 0.46, 9.2, 12);
+  createCyl(grp, 0.03, 0.03, 0.42, 0x0f172a, vDeskX - 0.8, 0.23, 9.2, 8);
+  createCyl(grp, 0.20, 0.20, 0.03, 0x0f172a, vDeskX - 0.8, 0.03, 9.2, 10);
+
+  // Hand Dryer Jet Otomatis (Dekat pintu masuk Z: 2.2)
+  createBox(grp, 0.14, 0.48, 0.30, 0xffffff, vWallX, 1.25, 2.2);
+  createBox(grp, 0.04, 0.10, 0.22, 0x0f172a, vWallX - 0.08, 1.28, 2.2);
+  // Tempat Sampah Sensor Stainless Steel
+  createCyl(grp, 0.18, 0.18, 0.58, 0x94a3b8, vDeskX, 0.29, 2.2, 12);
+  createCyl(grp, 0.19, 0.19, 0.06, 0x0f172a, vDeskX, 0.60, 2.2, 12);
+
+  // 2. ZONA 2 BILIK SMART TOILET TERTUTUP RAPAT & AMAN (Di Dinding Barat Suite)
+  for (let c = 0; c < 2; c++) {
+    const cz = 3.6 + c * 2.8; // Z: 3.6 dan 6.4 (Interval 2.8m)
+    // Partisi bilik samping solid rapat
+    createBox(grp, 2.5, 2.15, 0.08, 0x334155, westX + 1.25, 1.08, cz - 1.4);
+    // Dinding depan bilik: tiang sisi kiri dan kanan kusen pintu
+    createBox(grp, 0.08, 2.15, 0.8, 0x334155, westX + 2.5, 1.08, cz - 1.0);  // Sisi atas/utara pintu
+    createBox(grp, 0.08, 2.15, 0.8, 0x334155, westX + 2.5, 1.08, cz + 1.0);  // Sisi bawah/selatan pintu
+    createBox(grp, 0.08, 0.15, 1.2, 0x334155, westX + 2.5, 2.075, cz);       // Balok atas ambang pintu rapat
+
+    // Daun Pintu Kubikel UPVC Tebal Rapat Presisi (Lebar 1.2m, menutup sempurna bukaan pintu)
+    const cDoor = createBox(grp, 0.06, 2.00, 1.20, 0xf8fafc, westX + 2.5, 1.00, cz);
+    createBox(cDoor, 0.08, 0.22, 0.04, 0x0f172a, 0.04, 0, 0.40); // Handle kokoh matte black
+    createBox(cDoor, 0.03, 0.06, 0.06, 0x22c55e, 0.04, 0.22, 0.40, false); // Indikator Kunci LED Hijau (Terkunci rapat aman)
+
+    // Smart Toilet Gantung Minimalis
+    createBox(grp, 0.52, 0.38, 0.44, 0xffffff, westX + 0.7, 0.35, cz);
+    createBox(grp, 0.48, 0.04, 0.42, 0xf1f5f9, westX + 0.7, 0.56, cz);
+    // Plat Dual Flush Dinding Emas
+    createBox(grp, 0.03, 0.16, 0.24, 0x0f172a, westX + 0.06, 1.05, cz);
+    createBox(grp, 0.035, 0.08, 0.08, 0xd4af37, westX + 0.08, 1.05, cz - 0.05);
+    createBox(grp, 0.035, 0.08, 0.05, 0xd4af37, westX + 0.08, 1.05, cz + 0.05);
+    // Bidet Spray & Tempat Tisu
+    createCyl(grp, 0.018, 0.018, 0.20, 0x0f172a, westX + 0.6, 0.62, cz - 0.4, 8);
+    createBox(grp, 0.12, 0.12, 0.16, 0x94a3b8, westX + 0.6, 0.78, cz - 0.4);
+  }
+  // Partisi selatan penutup bilik smart toilet rapat
+  createBox(grp, 2.5, 2.15, 0.08, 0x334155, westX + 1.25, 1.08, 7.8);
+
+  // 3. ZONA 1 BILIK LUXURY SHOWER STALL (Di Sudut Belakang Barat: Z: 8.0 s/d 13.6)
+  const shZ = 10.7;
+  // Dinding kaca tempered rapat dengan kusen frame aluminium hitam
+  createBox(grp, 0.06, 2.15, 1.4, showerGlassMat, westX + 2.5, 1.08, shZ - 0.85); // Kaca mati rapat
+  createBox(grp, 0.06, 2.15, 1.3, showerGlassMat, westX + 2.48, 1.08, shZ + 0.5); // Pintu geser rapat
+  createBox(grp, 0.06, 0.44, 0.04, 0x0f172a, westX + 2.52, 1.08, shZ + 0.15);    // Handle pintu shower
+
+  // Lantai Shower Anti-Slip Slate Gelap & Linear Drain
+  createBox(grp, 2.5, 0.03, 2.9, 0x334155, westX + 1.25, 0.05, shZ);
+  createBox(grp, 0.08, 0.01, 2.3, 0x0f172a, westX + 2.35, 0.07, shZ, false); // Linear drain
+
+  // Tiang Rain Shower Plafon Persegi Hitam Doff
+  createCyl(grp, 0.022, 0.022, 0.60, 0x0f172a, westX + 1.1, 2.1, shZ, 8);
+  createBox(grp, 0.40, 0.03, 0.40, 0x0f172a, westX + 1.1, 1.78, shZ);
+  // Tuas mixer & Hand shower
+  createBox(grp, 0.14, 0.20, 0.04, 0x0f172a, westX + 0.08, 1.15, shZ);
+  createCyl(grp, 0.015, 0.015, 0.22, 0x0f172a, westX + 0.12, 1.30, shZ + 0.25, 8);
+  // Wall niche ceruk sabun berlampu LED
+  createBox(grp, 0.06, 0.50, 0.90, 0x0f172a, westX + 0.06, 1.45, shZ);
+  createBox(grp, 0.01, 0.52, 0.92, 0xfde047, westX + 0.07, 1.45, shZ, false);
+  createCyl(grp, 0.032, 0.032, 0.12, 0x38bdf8, westX + 0.10, 1.30, shZ - 0.25, 8);
+  createCyl(grp, 0.032, 0.032, 0.12, 0x10b981, westX + 0.10, 1.30, shZ, 8);
+  createCyl(grp, 0.032, 0.032, 0.12, 0xf59e0b, westX + 0.10, 1.30, shZ + 0.25, 8);
+
+  // 4. FASILITAS MEPET DINDING (LEMARI LOKER, BANGKU & URINOIR MELEKAT PADA DINDING SELATAN)
+  // Lemari Loker Ganti Mini Menempel Rapat di Dinding Selatan (Z: 13.4, X: westX + 3.4)
+  createBox(grp, 1.00, 1.80, 0.45, 0x1e293b, westX + 3.4, 0.90, 13.5);
+  for (let l = 0; l < 2; l++) {
+    createBox(grp, 0.44, 1.70, 0.02, 0xd4a373, westX + 3.16 + l * 0.48, 0.90, 13.26); // Pintu kayu oak mepet
+    createBox(grp, 0.03, 0.10, 0.03, 0x0f172a, westX + 3.16 + l * 0.48, 0.90, 13.24); // Handle
+  }
+
+  // Khusus Pria: 2 Urinoir Gantung Mepet di Dinding Selatan (Z: 13.4, di sisi timur loker)
+  if (!isFemale) {
+    for (let u = 0; u < 2; u++) {
+      const ux = westX + 4.6 + u * 1.3;
+      createBox(grp, 0.38, 0.74, 0.32, 0xffffff, ux, 0.74, 13.55);
+      createCyl(grp, 0.02, 0.02, 0.14, 0x0f172a, ux, 1.18, 13.55, 8);
+      createBox(grp, 0.03, 0.03, 0.02, 0x00d2ff, ux, 1.14, 13.38, false);
+      createBox(grp, 0.05, 1.20, 0.55, showerGlassMat, ux + 0.65, 0.90, 13.45);
+    }
+  }
+
+  // Bangku Ganti Kayu Oak Solid Mepet Rapat di Sisi Dinding Selatan / Sudut (Tidak lagi di tengah ruangan!)
+  const benchX = isFemale ? (westX + 5.2) : (eastX - 1.8);
+  const bench = new THREE.Group();
+  bench.position.set(benchX, 0, 13.35); // Mepet dinding selatan Z: 13.35
+  createBox(bench, 1.6, 0.06, 0.44, 0xd4a373, 0, 0.44, 0); // Papan kayu mepet dinding
+  for (const bx of [-0.65, 0.65]) {
+    createBox(bench, 0.06, 0.44, 0.40, 0x0f172a, bx, 0.22, 0); // Kaki besi
+  }
+  // Lipatan handuk putih bersih di atas bangku
+  createBox(bench, 0.30, 0.08, 0.26, 0xffffff, -0.35, 0.52, 0);
+  createBox(bench, 0.28, 0.07, 0.24, 0xffffff, -0.35, 0.59, 0);
+  createBox(bench, 0.26, 0.06, 0.22, 0xffffff, -0.35, 0.65, 0);
+  grp.add(bench);
+
+  // Keranjang Laundry Rattan Anyaman Mepet di Samping Bangku / Dinding
+  createCyl(grp, 0.18, 0.15, 0.58, 0xb47a46, benchX - 1.05, 0.29, 13.35, 10);
+  createBox(grp, 0.20, 0.08, 0.16, 0xffffff, benchX - 1.05, 0.58, 13.35);
+
+  // Tanaman Biophilic Indoor Mepet di Sudut Dinding
+  makeVoxelPlant(grp, westX + 0.8, 2.2, 1.05, isFemale ? "flower" : "regular");
+  makeVoxelPlant(grp, eastX - 0.5, 13.1, 1.15, "flower");
+}
+
+// BANGUN KEDUA SUITE BERSEBELAHAN DENGAN SPESIFIKASI DAN KUALITAS KELAS DUNIA YANG SAMA
+// 1. Executive Restroom (Wanita) - Sisi Barat (X: 13.5 s/d 21.25)
+buildExecutiveSuite(officeGroup, true, 13.5, 21.25);
+
+// 2. Executive Restroom (Pria) - Sisi Timur (X: 21.25 s/d 29.0)
+buildExecutiveSuite(officeGroup, false, 21.25, 29.0);
 
 /* ================= 9. PLANG SIGNBOARD 3D 21 RUANGAN PERSIS GAMBAR ================= */
 const ROOM_MAP = {
-  server:        { x: -21.2, y: WALL_H + 0.35, z: -13.5, name: "Ruang Server & Infrastruktur" },
+  workshop:      { x: -21.2, y: WALL_H + 0.35, z: -13.5, name: "Ruang Workshop & Training" },
   ai_auto:       { x: -14.5, y: WALL_H + 0.35, z: -13.5, name: "Ruang AI & Automation", hero: true },
   rapat_besar:   { x: -6.7,  y: WALL_H + 0.35, z: -13.5, name: "Ruang Rapat Besar" },
-  rapat_kecil:   { x: 0.2,   y: WALL_H + 0.35, z: -13.5, name: "Ruang Rapat Kecil" },
-  produk_rd:     { x: 7.0,   y: WALL_H + 0.35, z: -13.5, name: "Tim Produk & R&D" },
-  marketing:     { x: 14.0,  y: WALL_H + 0.35, z: -13.5, name: "Tim Marketing" },
-  penjualan:     { x: 20.5,  y: WALL_H + 0.35, z: -13.5, name: "Tim Penjualan" },
-  kreatif:       { x: 26.2,  y: WALL_H + 0.35, z: -13.5, name: "Ruang Kreatif" },
+  sports_hub:    { x: 13.0,  y: WALL_H + 0.55, z: -13.5, name: "⚡ Mega Sports & Wellness Hub", hero: true },
+  gym_fitness:   { x: 1.25,  y: WALL_H + 0.35, z: -13.5, name: "Gym & Fitness Hub" },
+  tennis_court:  { x: 9.5,   y: WALL_H + 0.35, z: -13.5, name: "Table Tennis Court" },
+  esport_arena:  { x: 17.5,  y: WALL_H + 0.35, z: -13.5, name: "E-Sport Gaming Battle Pod" },
+  karaoke_music: { x: 25.3,  y: WALL_H + 0.35, z: -13.5, name: "Karaoke & Music Studio Lounge" },
   finance_hr:    { x: -20.5, y: WALL_H + 0.35, z: -3.8,  name: "Ruang Finance & HR" },
-  layanan_klien: { x: -13.2, y: WALL_H + 0.35, z: -3.8,  name: "Ruang Layanan Klien" },
+  manajemen:     { x: -13.2, y: WALL_H + 0.35, z: -3.8,  name: "Kantor Manajemen", hero: true },
   lobby:         { x: -5.7,  y: WALL_H + 0.35, z: -3.8,  name: "DigiBooster Indonesia (Lobby)", hero: true },
-  koridor_utama: { x: 1.25,  y: WALL_H + 0.35, z: -3.8,  name: "🏛️ Koridor Utama (Grand Avenue)", hero: true },
-  gerbang_utama: { x: 1.25,  y: WALL_H + 0.35, z: 14.0,  name: "🚪 Pintu Gerbang Masuk Depan (2 Pintu)", hero: true },
-  koridor_depan: { x: -7.0,  y: WALL_H + 0.35, z: 0.4,   name: "🚶 Jalan Sepetak Fasilitas" },
-  manajemen:     { x: 8.0,   y: WALL_H + 0.35, z: -3.8,  name: "Kantor Manajemen" },
+  koridor_utama: { x: 1.25,  y: WALL_H + 0.35, z: -3.8,  name: "Koridor Utama (Grand Avenue)", hero: true },
+  gerbang_utama: { x: 1.25,  y: WALL_H + 0.35, z: 14.0,  name: "Pintu Gerbang Masuk Depan (2 Pintu)", hero: true },
+  koridor_depan: { x: -7.0,  y: WALL_H + 0.35, z: 0.4,   name: "Jalan Sepetak Fasilitas" },
+  layanan_klien: { x: 8.0,   y: WALL_H + 0.35, z: -3.8,  name: "Ruang Layanan Klien" },
   digi_marketing:{ x: 15.0,  y: WALL_H + 0.35, z: -3.8,  name: "Digital Marketing & Sosial Media" },
   it_dev:        { x: 21.2,  y: WALL_H + 0.35, z: -3.8,  name: "Tim IT & Developer" },
-  workshop:      { x: 26.5,  y: WALL_H + 0.35, z: -3.8,  name: "Ruang Workshop & Training" },
+  server:        { x: 26.5,  y: WALL_H + 0.35, z: -3.8,  name: "Ruang Server & Infrastruktur" },
   eco_garden:    { x: -17.5, y: 2.2,             z: 5.5,   name: "Eco Garden" },
   pantry:        { x: -7.0,  y: WALL_H + 0.35, z: 7.8,   name: "Pantry" },
   
-  mushola:       { x: 9.8,   y: WALL_H + 0.35, z: 7.8,   name: "Mushola" },
-  toilet:        { x: 21.25, y: WALL_H + 0.35, z: 7.8,   name: "Toilet" },
+  mushola:       { x: 9.8,   y: WALL_H + 0.35, z: 7.8,   name: "Executive Prayer Suite" },
+  toilet_wanita: { x: 17.37, y: WALL_H + 0.35, z: 7.8,   name: "Executive Restroom (Wanita)" },
+  toilet_pria:   { x: 25.12, y: WALL_H + 0.35, z: 7.8,   name: "Executive Restroom (Pria)" },
   gerbang:       { x: -6.2,  y: 3.2,             z: 23.5,  name: "Pos Satpam & Parkir" }
 };
 
@@ -2472,10 +3750,10 @@ const AGENTS = [
     name: "Kevin",
     role: "Fullstack Developer",
     gender: "male",
-    avatar: "💻",
+    iconSvg: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`,
     badge: "LAKI-LAKI • VOXEL SPECIALIST",
     image: "/assets/agents/kevin.jpg",
-    holding: "💻 Laptop DigiBooster (Code Matrix Engine)",
+    holding: "Laptop DigiBooster (Code Matrix Engine)",
     holdingDesc: "Memegang laptop hitam berlogo DigiBooster dengan layar terbuka menampilkan kode real-time.",
     room: "it_dev",
     bubble: "Deploy fitur baru engine DigiBooster",
@@ -2489,14 +3767,14 @@ const AGENTS = [
     name: "Alexandria",
     role: "Chief Orchestrator",
     gender: "female",
-    avatar: "👩‍💼",
+    iconSvg: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`,
     badge: "PEREMPUAN • LEAD ORCHESTRATOR",
     image: "/assets/agents/alexandria.svg",
-    holding: "📋 Hologram Command Slate (AI Task Router)",
+    holding: "Hologram Command Slate (AI Task Router)",
     holdingDesc: "Memegang tablet komando pintar dengan hologram biru routing multi-agent 24 jam.",
     room: "manajemen",
     bubble: "Monitoring seluruh operasi kantor 24 jam",
-    pos: { x: 8.0, y: 0.0, z: -3.8 },
+    pos: { x: -13.2, y: 0.0, z: -3.8 },
     rotY: 0,
     color: 0x00d2ff,
     tasksDone: 72
@@ -2506,10 +3784,10 @@ const AGENTS = [
     name: "Vanya",
     role: "AI & Automation Lead",
     gender: "female",
-    avatar: "🧠",
+    iconSvg: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>`,
     badge: "PEREMPUAN • AI ARCHITECT",
     image: "/assets/agents/vanya.svg",
-    holding: "🧠 Glowing AI Neural Core (Gemini 2.0)",
+    holding: "Glowing AI Neural Core (Gemini 2.0)",
     holdingDesc: "Menopang kubus kristal AI kuantum yang berputar melayang di atas telapak tangannya.",
     room: "ai_auto",
     bubble: "Mengatur routing webhook & agen AI",
@@ -2523,10 +3801,10 @@ const AGENTS = [
     name: "Nadira",
     role: "Social Media Strategist",
     gender: "female",
-    avatar: "📱",
+    iconSvg: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>`,
     badge: "PEREMPUAN • GROWTH STRATEGIST",
     image: "/assets/agents/nadira.svg",
-    holding: "📢 Smart Media Megaphone & Reach Hub",
+    holding: "Smart Media Megaphone & Reach Hub",
     holdingDesc: "Memegang megafon neon digital dan gimbal analitik engagement media sosial.",
     room: "digi_marketing",
     bubble: "Publishing konten TikTok & Instagram",
@@ -2540,10 +3818,10 @@ const AGENTS = [
     name: "Lia",
     role: "Front Desk & Client Relations",
     gender: "female",
-    avatar: "🤝",
+    iconSvg: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
     badge: "PEREMPUAN (HIJAB) • CLIENT RELATIONS",
     image: "/assets/agents/lia.svg",
-    holding: "📱 WhatsApp Multi-Agent Smart Terminal",
+    holding: "WhatsApp Multi-Agent Smart Terminal",
     holdingDesc: "Memegang smartphone interaktif dengan floating hologram centang hijau WhatsApp melayang.",
     room: "lobby",
     bubble: "Menyambut klien & integrasi WhatsApp",
@@ -2763,7 +4041,7 @@ function buildVoxelAgent(agent) {
     <div class="agent-bubble">${agent.bubble}</div>
     <div class="agent-pill">
       <i class="dot"></i>
-      <span>${agent.avatar} ${agent.name}</span>
+      <span style="display:flex;align-items:center;gap:4px;">${agent.iconSvg || ""} ${agent.name}</span>
     </div>
   `;
   tag.onclick = (e) => {
@@ -2822,7 +4100,8 @@ function openAgentModal(agent) {
   const dlg = document.getElementById("agentDlg");
   if (!dlg) return;
 
-  document.getElementById("dlgAvatar").textContent = agent.avatar;
+  const dlgAvatarEl = document.getElementById("dlgAvatar");
+  if (dlgAvatarEl) dlgAvatarEl.innerHTML = agent.iconSvg || `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
   document.getElementById("dlgName").textContent = agent.name;
   document.getElementById("dlgRole").textContent = agent.role;
   document.getElementById("dlgBadgeGender").textContent = agent.badge || "VOXEL SPECIALIST";
@@ -2895,44 +4174,44 @@ function movePlayerTo(targetX, targetZ) {
   targetRingMat.opacity = 0.9;
 
   if (controlledAgent.userData.bubbleEl) {
-    controlledAgent.userData.bubbleEl.textContent = "🚶‍♂️ Berjalan ke lokasi tujuan...";
+    controlledAgent.userData.bubbleEl.textContent = "Berjalan ke lokasi tujuan...";
   }
 }
 
 /* ================= 10C. SISTEM ROAMING & AKTIVITAS OTOMATIS SELURUH AGENT ================= */
 const AGENT_ROUTINES = {
   kevin: [
-    { name: "IT Desk", bubble: "💻 Coding fitur AI & backend engine", pts: [{ x: 21.2, z: -4.5 }], rot: -0.6, dur: 10 },
-    { name: "IT Board", bubble: "📋 Cek Sprint Kanban & status deployment", pts: [{ x: 21.2, z: -6.5 }], rot: Math.PI, dur: 7 },
-    { name: "Server Room", bubble: "🖥️ Maintenance server node & check throughput", pts: [{ x: 21.2, z: -8.2 }, { x: 21.2, z: -9.4 }, { x: -21.2, z: -9.4 }, { x: -21.2, z: -10.6 }, { x: -19.8, z: -13.5 }], rot: -Math.PI / 2, dur: 9 },
-    { name: "Pantry Coffee", bubble: "☕ Seduh kopi espresso di Pantry", pts: [{ x: -21.2, z: -10.6 }, { x: -21.2, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: 0.4 }, { x: -7.0, z: 0.4 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 3.5 }], rot: 0, dur: 8 },
-    { name: "Return IT", bubble: "🚶‍♂️ Kembali ke meja kerja IT & Developer", pts: [{ x: -7.0, z: 3.5 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 0.4 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: -9.4 }, { x: 21.2, z: -9.4 }, { x: 21.2, z: -8.2 }, { x: 21.2, z: -4.5 }], rot: -0.6, dur: 2 }
+    { name: "IT Desk", bubble: "Coding fitur AI & backend engine", pts: [{ x: 21.2, z: -4.5 }], rot: -0.6, dur: 10 },
+    { name: "IT Board", bubble: "Cek Sprint Kanban & status deployment", pts: [{ x: 21.2, z: -6.5 }], rot: Math.PI, dur: 7 },
+    { name: "Server Room", bubble: "Maintenance server node & check throughput", pts: [{ x: 21.2, z: -8.2 }, { x: 21.2, z: -9.4 }, { x: 26.5, z: -9.4 }, { x: 26.5, z: -8.2 }, { x: 26.5, z: -5.0 }], rot: -Math.PI / 2, dur: 9 },
+    { name: "Pantry Coffee", bubble: "Seduh kopi espresso di Pantry", pts: [{ x: 26.5, z: -8.2 }, { x: 26.5, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: 0.4 }, { x: -7.0, z: 0.4 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 4.5 }, { x: -9.0, z: 6.5 }], rot: -Math.PI / 2, dur: 8 },
+    { name: "Return IT", bubble: "Kembali ke meja kerja IT & Developer", pts: [{ x: -9.0, z: 6.5 }, { x: -7.0, z: 4.5 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 0.4 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: -9.4 }, { x: 21.2, z: -9.4 }, { x: 21.2, z: -8.2 }, { x: 21.2, z: -4.5 }], rot: -0.6, dur: 2 }
   ],
   alexandria: [
-    { name: "Management Desk", bubble: "👑 Orchestrating 24/7 AI multi-agent workflows", pts: [{ x: 8.0, z: -3.8 }], rot: 0, dur: 10 },
-    { name: "Rapat Besar", bubble: "👥 Memimpin daily standup di Ruang Rapat Besar", pts: [{ x: 8.0, z: -8.2 }, { x: 8.0, z: -9.4 }, { x: -6.7, z: -9.4 }, { x: -6.7, z: -10.6 }, { x: -6.7, z: -13.5 }], rot: 0, dur: 9 },
-    { name: "Koridor Utama", bubble: "🏛️ Memantau operasional lewat Koridor Utama", pts: [{ x: -6.7, z: -10.6 }, { x: -6.7, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: -3.8 }], rot: 0, dur: 8 },
-    { name: "Return Desk", bubble: "🚶‍♀️ Kembali ke Kantor Manajemen", pts: [{ x: 1.25, z: -3.8 }, { x: 1.25, z: -8.2 }, { x: 1.25, z: -9.4 }, { x: 8.0, z: -9.4 }, { x: 8.0, z: -8.2 }, { x: 8.0, z: -3.8 }], rot: 0, dur: 2 }
+    { name: "Management Desk", bubble: "Orchestrating 24/7 AI multi-agent workflows", pts: [{ x: -13.2, z: -3.8 }], rot: 0, dur: 10 },
+    { name: "Rapat Besar", bubble: "Memimpin daily standup di Ruang Rapat Besar", pts: [{ x: -13.2, z: -8.2 }, { x: -13.2, z: -9.4 }, { x: -6.7, z: -9.4 }, { x: -6.7, z: -10.6 }, { x: -6.7, z: -13.5 }], rot: 0, dur: 9 },
+    { name: "Koridor Utama", bubble: "Memantau operasional lewat Koridor Utama", pts: [{ x: -6.7, z: -10.6 }, { x: -6.7, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: -3.8 }], rot: 0, dur: 8 },
+    { name: "Return Desk", bubble: "Kembali ke Kantor Manajemen", pts: [{ x: 1.25, z: -3.8 }, { x: 1.25, z: -8.2 }, { x: 1.25, z: -9.4 }, { x: -13.2, z: -9.4 }, { x: -13.2, z: -8.2 }, { x: -13.2, z: -3.8 }], rot: 0, dur: 2 }
   ],
   vanya: [
-    { name: "AI Desk", bubble: "🧠 Fine-tuning model Gemini 2.0 autonomous routing", pts: [{ x: -14.5, z: -14.5 }], rot: 0.5, dur: 10 },
-    { name: "Server Rack", bubble: "⚡ Monitoring GPU temperature & cluster AI", pts: [{ x: -14.5, z: -10.6 }, { x: -14.5, z: -9.4 }, { x: -21.2, z: -9.4 }, { x: -21.2, z: -10.6 }, { x: -22.6, z: -14.5 }], rot: Math.PI / 2, dur: 8 },
-    { name: "AI Whiteboard", bubble: "💡 Merancang arsitektur agentic memory pipeline", pts: [{ x: -21.2, z: -10.6 }, { x: -21.2, z: -9.4 }, { x: -14.5, z: -9.4 }, { x: -14.5, z: -10.6 }, { x: -14.5, z: -16.5 }], rot: 0, dur: 7 },
-    { name: "Rapat Kecil", bubble: "📋 Sync sprint AI bersama tim R&D", pts: [{ x: -14.5, z: -10.6 }, { x: -14.5, z: -9.4 }, { x: 0.2, z: -9.4 }, { x: 0.2, z: -10.6 }, { x: 0.2, z: -13.5 }], rot: Math.PI / 2, dur: 8 },
-    { name: "Return AI", bubble: "🚶‍♀️ Kembali ke AI Neural Core", pts: [{ x: 0.2, z: -10.6 }, { x: 0.2, z: -9.4 }, { x: -14.5, z: -9.4 }, { x: -14.5, z: -10.6 }, { x: -14.5, z: -14.5 }], rot: 0.5, dur: 2 }
+    { name: "AI Desk", bubble: "Fine-tuning model Gemini 2.0 autonomous routing", pts: [{ x: -14.5, z: -14.5 }], rot: 0.5, dur: 10 },
+    { name: "Server Rack", bubble: "Monitoring GPU temperature & cluster AI", pts: [{ x: -14.5, z: -10.6 }, { x: -14.5, z: -9.4 }, { x: -21.2, z: -9.4 }, { x: -21.2, z: -10.6 }, { x: -21.2, z: -14.0 }], rot: Math.PI / 2, dur: 8 },
+    { name: "AI Whiteboard", bubble: "Merancang arsitektur agentic memory pipeline", pts: [{ x: -21.2, z: -10.6 }, { x: -21.2, z: -9.4 }, { x: -14.5, z: -9.4 }, { x: -14.5, z: -10.6 }, { x: -14.5, z: -16.5 }], rot: 0, dur: 7 },
+    { name: "Sports & Wellness Hub", bubble: "Bermain tenis meja & refreshing di Sports Hub", pts: [{ x: -14.5, z: -10.6 }, { x: -14.5, z: -9.4 }, { x: 13.0, z: -9.4 }, { x: 13.0, z: -10.6 }, { x: 8.0, z: -12.5 }], rot: 0, dur: 9 },
+    { name: "Return AI", bubble: "Kembali ke AI Neural Core", pts: [{ x: 8.0, z: -12.5 }, { x: 13.0, z: -10.6 }, { x: 13.0, z: -9.4 }, { x: -14.5, z: -9.4 }, { x: -14.5, z: -10.6 }, { x: -14.5, z: -14.5 }], rot: 0.5, dur: 2 }
   ],
   nadira: [
-    { name: "Marketing Desk", bubble: "📱 Scheduling konten viral TikTok & Instagram", pts: [{ x: 15.0, z: -4.5 }], rot: -0.4, dur: 10 },
-    { name: "Workshop", bubble: "🎓 Menyiapkan materi workshop digital marketing", pts: [{ x: 15.0, z: -8.2 }, { x: 15.0, z: -9.4 }, { x: 26.5, z: -9.4 }, { x: 26.5, z: -8.2 }, { x: 26.5, z: -5.5 }], rot: 0, dur: 8 },
-    { name: "Gerbang Depan", bubble: "🌟 Menyambut tamu VIP & creator di Gerbang Depan (2 Pintu)", pts: [{ x: 26.5, z: -8.2 }, { x: 26.5, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: 12.0 }], rot: 0, dur: 9 },
-    { name: "Return Marketing", bubble: "🚶‍♀️ Kembali ke Meja Digital Marketing", pts: [{ x: 1.25, z: 12.0 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: -9.4 }, { x: 15.0, z: -9.4 }, { x: 15.0, z: -8.2 }, { x: 15.0, z: -4.5 }], rot: -0.4, dur: 2 }
+    { name: "Marketing Desk", bubble: "Scheduling konten viral TikTok & Instagram", pts: [{ x: 15.0, z: -4.5 }], rot: -0.4, dur: 10 },
+    { name: "Workshop", bubble: "Menyiapkan materi workshop di DigiBooster Academy", pts: [{ x: 15.0, z: -8.2 }, { x: 15.0, z: -9.4 }, { x: -21.2, z: -9.4 }, { x: -21.2, z: -10.6 }, { x: -21.2, z: -14.0 }], rot: 0, dur: 8 },
+    { name: "Gerbang Depan", bubble: "Menyambut tamu VIP & creator di Gerbang Depan (2 Pintu)", pts: [{ x: -21.2, z: -10.6 }, { x: -21.2, z: -9.4 }, { x: 1.25, z: -9.4 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: 12.0 }], rot: 0, dur: 9 },
+    { name: "Return Marketing", bubble: "Kembali ke Meja Digital Marketing", pts: [{ x: 1.25, z: 12.0 }, { x: 1.25, z: 0.4 }, { x: 1.25, z: -9.4 }, { x: 15.0, z: -9.4 }, { x: 15.0, z: -8.2 }, { x: 15.0, z: -4.5 }], rot: -0.4, dur: 2 }
   ],
   lia: [
-    { name: "Lobby Desk", bubble: "🤝 Menyambut klien & integrasi WhatsApp bot", pts: [{ x: -5.7, z: -3.2 }], rot: 0.2, dur: 10 },
-    { name: "Layanan Klien", bubble: "🎧 Menangani konsultasi onboarding klien bisnis", pts: [{ x: -5.7, z: -8.2 }, { x: -5.7, z: -9.4 }, { x: -13.2, z: -9.4 }, { x: -13.2, z: -8.2 }, { x: -13.2, z: -4.5 }], rot: 0, dur: 8 },
-    { name: "Pantry Dining", bubble: "☕ Menyiapkan welcome drink & teh kafe", pts: [{ x: -5.7, z: -3.2 }, { x: -5.7, z: -0.8 }, { x: -5.7, z: 0.4 }, { x: -7.0, z: 0.4 }, { x: -7.0, z: 1.6 }, { x: -8.5, z: 6.5 }], rot: 0, dur: 7 },
-    { name: "Eco Garden", bubble: "🌱 Menikmati udara segar di Eco Garden", pts: [{ x: -8.5, z: 6.5 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 0.4 }, { x: -17.5, z: 0.4 }, { x: -17.5, z: 1.6 }, { x: -17.5, z: 5.5 }], rot: 0, dur: 7 },
-    { name: "Return Lobby", bubble: "🚶‍♀️ Kembali ke Meja Resepsionis Lobby", pts: [{ x: -17.5, z: 5.5 }, { x: -17.5, z: 1.6 }, { x: -17.5, z: 0.4 }, { x: -5.7, z: 0.4 }, { x: -5.7, z: -0.8 }, { x: -5.7, z: -3.2 }], rot: 0.2, dur: 2 }
+    { name: "Lobby Desk", bubble: "Menyambut klien & integrasi WhatsApp bot", pts: [{ x: -5.7, z: -3.2 }], rot: 0.2, dur: 10 },
+    { name: "Layanan Klien", bubble: "Menangani konsultasi onboarding klien bisnis", pts: [{ x: -5.7, z: -8.2 }, { x: -5.7, z: -9.4 }, { x: 8.0, z: -9.4 }, { x: 8.0, z: -8.2 }, { x: 8.0, z: -4.5 }], rot: 0, dur: 8 },
+    { name: "Pantry Dining", bubble: "Menyiapkan welcome drink & teh kafe", pts: [{ x: 8.0, z: -4.5 }, { x: 8.0, z: -0.8 }, { x: 8.0, z: 0.4 }, { x: -7.0, z: 0.4 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 4.5 }, { x: -6.5, z: 5.5 }], rot: 0, dur: 7 },
+    { name: "Eco Garden", bubble: "Menikmati udara segar di Eco Garden", pts: [{ x: -6.5, z: 5.5 }, { x: -7.0, z: 4.5 }, { x: -7.0, z: 1.6 }, { x: -7.0, z: 0.4 }, { x: -17.5, z: 0.4 }, { x: -17.5, z: 1.6 }, { x: -17.5, z: 5.5 }], rot: 0, dur: 7 },
+    { name: "Return Lobby", bubble: "Kembali ke Meja Resepsionis Lobby", pts: [{ x: -17.5, z: 5.5 }, { x: -17.5, z: 1.6 }, { x: -17.5, z: 0.4 }, { x: -5.7, z: 0.4 }, { x: -5.7, z: -0.8 }, { x: -5.7, z: -3.2 }], rot: 0.2, dur: 2 }
   ]
 };
 

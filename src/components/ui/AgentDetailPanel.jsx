@@ -8,7 +8,9 @@ import {
   ShieldCheck, 
   Zap, 
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  User,
+  Bot
 } from 'lucide-react';
 import { useOfficeStore } from '../../store/officeStore';
 import { STATUS_COLORS } from '../../data/agents';
@@ -34,7 +36,9 @@ export function AgentDetailPanel() {
       {/* Panel Header */}
       <div className="panel-header">
         <div className="panel-title-group">
-          <span className="agent-avatar-badge">{agent.avatar}</span>
+          <span className="agent-avatar-badge" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Bot size={18} color="#00B9F1" />
+          </span>
           <div>
             <h2 className="agent-name">{agent.name}</h2>
             <div className="agent-role">{agent.role}</div>

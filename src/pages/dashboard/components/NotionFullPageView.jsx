@@ -13,7 +13,12 @@ import {
   AlertCircle,
   Folder,
   Layers,
-  Sparkles
+  Sparkles,
+  FileText,
+  AlignLeft,
+  Flag,
+  Target,
+  CheckCircle
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
@@ -126,7 +131,9 @@ export default function NotionFullPageView({ taskId, onClose }) {
       <div style={{ padding: '32px 36px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {/* Title Area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ fontSize: '2rem' }}>📋</div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <FileText size={32} color="#0284c7" />
+          </div>
           <input
             type="text"
             value={task.title}
@@ -160,7 +167,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
           {/* Keterangan / Deskripsi */}
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', alignItems: 'flex-start', padding: '6px 0' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>☰</span> Keterangan
+              <AlignLeft size={14} color="#0284c7" /> Keterangan
             </span>
             <textarea
               rows={3}
@@ -235,7 +242,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
           {/* Prioritas */}
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', alignItems: 'center', padding: '6px 0' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🚩</span> Prioritas
+              <Flag size={14} color="#0284c7" /> Prioritas
             </span>
             <select
               value={task.priority || 'P2'}
@@ -307,7 +314,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
           {/* Output / Hasil */}
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', alignItems: 'center', padding: '6px 0' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🎯</span> Output / Hasil
+              <Target size={14} color="#0284c7" /> Output / Hasil
             </span>
             <input
               type="text"
@@ -328,7 +335,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
           {/* Tanggal Selesai */}
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', alignItems: 'center', padding: '6px 0' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🏁</span> Tanggal Selesai
+              <CheckCircle size={14} color="#0284c7" /> Tanggal Selesai
             </span>
             <input
               type="date"
@@ -374,7 +381,9 @@ export default function NotionFullPageView({ taskId, onClose }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '0.8rem' }}>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Dibuat Oleh</span>
-              <span style={{ fontWeight: 600, color: '#0f172a' }}>👤 {task.createdBy || 'Executive Owner'}</span>
+              <span style={{ fontWeight: 600, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <User size={13} color="#64748b" /> {task.createdBy || 'Executive Owner'}
+              </span>
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Dibuat</span>
@@ -382,7 +391,9 @@ export default function NotionFullPageView({ taskId, onClose }) {
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Terakhir Diedit Oleh</span>
-              <span style={{ fontWeight: 600, color: '#0284c7' }}>👤 {task.updatedBy || 'Executive Owner'}</span>
+              <span style={{ fontWeight: 600, color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <User size={13} color="#0284c7" /> {task.updatedBy || 'Executive Owner'}
+              </span>
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Terakhir Diedit</span>

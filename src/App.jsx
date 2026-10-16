@@ -7,7 +7,13 @@ import { useWorkspaceStore } from './store/workspaceStore';
 function App() {
   // Routes: 'office3d' | 'login' | 'dashboard'
   const [currentRoute, setCurrentRoute] = useState('office3d');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return localStorage.getItem('digibooster_auth_session') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const { setActiveModule } = useWorkspaceStore();
 
   // Deteksi path URL saat ini (sinkron direct link browser)
@@ -56,12 +62,22 @@ function App() {
   }, [isAuthenticated]);
 
   const handleLoginSuccess = () => {
+    try {
+      localStorage.setItem('digibooster_auth_session', 'true');
+    } catch (e) {
+      console.error(e);
+    }
     setIsAuthenticated(true);
     setCurrentRoute('dashboard');
     window.history.pushState({}, '', '/dashboard');
   };
 
   const handleLogout = () => {
+    try {
+      localStorage.removeItem('digibooster_auth_session');
+    } catch (e) {
+      console.error(e);
+    }
     setIsAuthenticated(false);
     setCurrentRoute('office3d');
     window.history.pushState({}, '', '/');

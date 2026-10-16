@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Send, Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, ChevronUp, ChevronDown, X } from 'lucide-react';
 import './styles/virtualOffice.css';
 
 export default function Office3D() {
@@ -11,27 +11,27 @@ export default function Office3D() {
     e.preventDefault();
     if (!waInput.trim()) return;
 
-    setToastMessage(`⚡ Perintah WhatsApp diterima! Agent DigiBooster sedang memproses: "${waInput}"`);
+    setToastMessage(`Perintah WhatsApp diterima! Agent DigiBooster sedang memproses: "${waInput}"`);
     setTimeout(() => setToastMessage(null), 5000);
   };
 
   const [activeRoom, setActiveRoom] = useState(null);
 
-  // Titik Interaktif Ruangan (Persis Gambar 2)
+  // Titik Interaktif Ruangan
   const roomHotspots = [
-    { id: 'eco_garden', name: '🌿 Eco Garden', top: '44%', left: '14%', desc: 'Taman hidroponik & pergola santai asri' },
-    { id: 'client_vip', name: '🛋️ Ruang Layanan Klien / VIP Lounge', top: '28%', left: '36%', desc: 'Sofa kulit mewah & presentasi klien' },
-    { id: 'lobby', name: '🏢 Lobi & Resepsionis', top: '41%', left: '45%', desc: 'Meja resepsionis kurva modern & foyer' },
-    { id: 'rapat_besar', name: '📊 Ruang Rapat Besar', top: '18%', left: '46%', desc: 'Meja rapat eksekutif 8-10 orang' },
-    { id: 'rapat_kecil', name: '💼 Ruang Rapat Kecil', top: '10%', left: '60%', desc: 'Ruang meeting fokus 3-4 orang' },
-    { id: 'core_8staff', name: '💻 Ruang Kerja Utama (Tim Inti 8 Karyawan)', top: '35%', left: '61%', desc: 'Workstation 8 staf inti lengkap dual monitor' },
-    { id: 'agent_ai', name: '🧠 Ruang AI & Automation / Dedicated Agent Command Center', top: '22%', left: '71%', desc: 'Layar dashboard kurva raksasa status operasional agent' },
-    { id: 'server_room', name: '⚡ Ruang Server & Infrastruktur', top: '32%', left: '84%', desc: 'Rak server tertutup, steril, dan bebas pipa air' },
-    { id: 'pantry', name: '☕ Pantry & Coffee Bar', top: '46%', left: '76%', desc: 'Barista bar, espresso machine & dining table' },
-    { id: 'musholla', name: '🕌 Musholla & Wudhu', top: '62%', left: '71%', desc: 'Karpet sajadah hijau tenang & tempat wudhu bersih' },
-    { id: 'lounge', name: '🎮 Ruang Santai & Breakout Lounge', top: '53%', left: '85%', desc: 'Sofa santai, beanbag & TV hiburan' },
-    { id: 'toilet', name: '🚻 Toilet', top: '41%', left: '93%', desc: 'Bilik toilet tertutup bersih & wastafel modern' },
-    { id: 'satpam', name: '🛡️ Pos Satpam & Portal Masuk', top: '76%', left: '52%', desc: 'Pos keamanan dengan palang otomatis' },
+    { id: 'eco_garden', name: 'Eco Garden & Smart Farm', top: '44%', left: '14%', desc: 'Smart hydroponic A-frame & vertical towers, teak wood deck timber pergola, zen fountain & lush garden pod' },
+    { id: 'client_vip', name: 'Ruang Layanan Klien / VIP Lounge', top: '28%', left: '36%', desc: 'Sofa kulit mewah & presentasi klien' },
+    { id: 'lobby', name: 'Lobi & Resepsionis', top: '41%', left: '45%', desc: 'Meja resepsionis kurva modern & foyer' },
+    { id: 'rapat_besar', name: 'Ruang Rapat Besar', top: '18%', left: '46%', desc: 'Meja rapat eksekutif 8-10 orang' },
+    { id: 'sports_hub', name: 'Mega Sports & Wellness Hub', top: '12%', left: '68%', desc: 'Hall 32 meter all-in-one: Gym & Fitness Hub, Table Tennis Tournament Court, E-Sport Gaming Battle Pod, dan Karaoke & Music Studio Lounge' },
+    { id: 'agent_ai', name: 'Ruang AI & Automation / Dedicated Agent Command Center', top: '22%', left: '71%', desc: 'Layar dashboard kurva raksasa status operasional agent' },
+    { id: 'server_room', name: 'Ruang Server & Infrastruktur', top: '32%', left: '84%', desc: 'Rak server tertutup, steril, dan bebas pipa air' },
+    { id: 'pantry', name: 'Pantry & Coffee Lounge', top: '46%', left: '76%', desc: 'Kitchen bar walnut marmer, mesin espresso barista, smart double-door fridge, dispenser galon, microwave & cafe dining area' },
+    { id: 'musholla', name: 'Executive Prayer Suite', top: '62%', left: '71%', desc: 'Karpet sajadah saf masjid full, sajadah imam otentik, kaligrafi emas & jam jadwal sholat real-time WIB' },
+    { id: 'lounge', name: 'Ruang Santai & Breakout Lounge', top: '53%', left: '85%', desc: 'Sofa santai, beanbag & TV hiburan' },
+    { id: 'toilet_wanita', name: 'Executive Restroom (Wanita)', top: '41%', left: '88%', desc: 'Kamar mandi shower kaca, smart toilet gantung, double vanity marmer & Dyson grooming suite' },
+    { id: 'toilet_pria', name: 'Executive Restroom (Pria)', top: '41%', left: '94%', desc: 'Kamar mandi shower kaca, smart toilet gantung, double vanity, urinoir sensor & grooming suite' },
+    { id: 'satpam', name: 'Pos Satpam & Portal Masuk', top: '76%', left: '52%', desc: 'Pos keamanan dengan palang otomatis' },
   ];
 
   return (
@@ -51,13 +51,13 @@ export default function Office3D() {
         }}
       />
 
-      {/* WhatsApp Command Simulator (Collapsible & Compact) */}
+      {/* WhatsApp Command Simulator (Modern White Chatbot UI) */}
       <div
-        className="glassmorphism wa-command-box"
+        className="wa-command-box"
         style={{
-          width: isWaOpen ? '320px' : 'auto',
-          maxWidth: 'calc(100vw - 20px)',
-          padding: isWaOpen ? '12px' : '6px 12px'
+          width: isWaOpen ? '340px' : 'auto',
+          maxWidth: 'calc(100vw - 24px)',
+          padding: isWaOpen ? '14px 16px' : '9px 14px',
         }}
       >
         <div
@@ -65,29 +65,55 @@ export default function Office3D() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '8px',
-            marginBottom: isWaOpen ? '8px' : 0,
-            cursor: 'pointer'
+            gap: '10px',
+            marginBottom: isWaOpen ? '12px' : 0,
+            cursor: 'pointer',
           }}
           onClick={() => setIsWaOpen(!isWaOpen)}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-            <MessageSquare size={15} color="#38bdf8" style={{ filter: 'drop-shadow(0 0 6px rgba(56,189,248,0.7))' }} />
-            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#ffffff', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
-              {isWaOpen ? 'SIMULASI WHATSAPP' : 'Kirim Perintah WhatsApp'}
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '24px',
+                height: '24px',
+                borderRadius: '50%',
+                background: '#25D366',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                boxShadow: '0 2px 6px rgba(37, 211, 102, 0.4)'
+              }}
+            >
+              <MessageSquare size={13} fill="#ffffff" stroke="none" />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                {isWaOpen ? 'AI WhatsApp Assistant' : 'Kirim Perintah WhatsApp'}
+              </div>
+              {isWaOpen && (
+                <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }}></span>
+                  Online 24/7 Multi-Agent
+                </div>
+              )}
+            </div>
           </div>
           <button
             type="button"
-            title={isWaOpen ? 'Kecilkan simulator' : 'Buka simulator WhatsApp'}
+            title={isWaOpen ? 'Kecilkan chat' : 'Buka simulasi chat'}
             style={{
-              background: 'transparent',
+              background: '#f1f5f9',
               border: 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              color: '#38bdf8',
-              padding: '2px'
+              justifyContent: 'center',
+              color: '#64748b',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              padding: 0
             }}
           >
             {isWaOpen ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
@@ -95,41 +121,60 @@ export default function Office3D() {
         </div>
 
         {isWaOpen && (
-          <form onSubmit={handleSendWA} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <input
-              type="text"
+          <form onSubmit={handleSendWA} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '8px 10px',
+                fontSize: '11px',
+                color: '#475569',
+                lineHeight: 1.4
+              }}
+            >
+              Kirim instruksi langsung ke tim agen autonomous DigiBooster:
+            </div>
+            <textarea
+              rows={2}
               value={waInput}
               onChange={(e) => setWaInput(e.target.value)}
               placeholder="Ketik instruksi via WhatsApp..."
               style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#fff',
-                padding: '8px 10px',
-                borderRadius: '8px',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#0f172a',
+                padding: '9px 12px',
+                borderRadius: '10px',
                 fontSize: '12px',
-                outline: 'none'
+                fontWeight: 600,
+                outline: 'none',
+                resize: 'none',
+                fontFamily: 'inherit',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)'
               }}
               autoFocus
             />
             <button
               type="submit"
               style={{
-                background: 'linear-gradient(135deg, #00B9F1 0%, #0284c7 100%)',
+                background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
                 border: 'none',
-                color: '#091322',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                fontSize: '11.5px',
+                color: '#ffffff',
+                padding: '9px 14px',
+                borderRadius: '10px',
+                fontSize: '12px',
                 fontWeight: 800,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '6px'
+                gap: '6px',
+                boxShadow: '0 4px 12px rgba(37, 211, 102, 0.35)',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Send size={12} /> Kirim ke Tim Agent
+              <Send size={13} /> Kirim ke Tim Agent
             </button>
           </form>
         )}
@@ -174,10 +219,12 @@ export default function Office3D() {
                   width: '28px',
                   height: '28px',
                   cursor: 'pointer',
-                  fontWeight: 800
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
-                ✕
+                <X size={16} />
               </button>
             </div>
             <p style={{ margin: '0 0 16px', color: '#bae6fd', fontSize: '13.5px', lineHeight: 1.5 }}>
@@ -186,7 +233,7 @@ export default function Office3D() {
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
                 onClick={() => {
-                  setToastMessage(`⚡ Terhubung ke ${activeRoom.name}! Sistem aktif.`);
+                  setToastMessage(`Terhubung ke ${activeRoom.name}! Sistem aktif.`);
                   setActiveRoom(null);
                   setTimeout(() => setToastMessage(null), 4000);
                 }}

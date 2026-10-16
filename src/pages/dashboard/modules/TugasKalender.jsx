@@ -6,7 +6,7 @@ import NotionCalendar from '../components/NotionCalendar';
 import NotionFullPageView from '../components/NotionFullPageView';
 import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
-import { CheckSquare, Calendar, Clock, AlertCircle, LayoutGrid, Table, CalendarDays } from 'lucide-react';
+import { CheckSquare, Calendar, Clock, AlertCircle, LayoutGrid, Table, CalendarDays, User } from 'lucide-react';
 
 import { 
   Icon3DClipboard, 
@@ -32,6 +32,23 @@ export default function TugasKalender() {
   const [viewMode, setViewMode] = useState('table');
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [selectedFullTaskId, setSelectedFullTaskId] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('Semua Status');
+  const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const statusOptions = ['Semua Status', 'Backlog', 'Sedang Dikerjakan', 'Menunggu Review', 'Selesai'];
+
+  // Filter tasks berdasarkan status tugas
+  const filteredTasks = tasks.filter((t) => {
+    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
+      return true;
+    }
+    if (statusFilter === 'Sedang Dikerjakan') {
+      return t.status === 'Sedang Dikerjakan' || t.status === 'ON PROGRESS';
+    }
+    if (statusFilter === 'Backlog') {
+      return t.status === 'Backlog' || t.status === 'Belum Mulai';
+    }
+    return t.status === statusFilter;
+  });
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === 'Selesai').length;
@@ -45,9 +62,10 @@ export default function TugasKalender() {
   }, {});
 
   const taskBarData = Object.keys(assigneeCounts).slice(0, 5).map((pic, idx) => {
-    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#34d399', '#f59e0b'];
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
+    const rawPic = (pic && typeof pic === 'string') ? pic : `PIC ${idx+1}`;
     return {
-      label: pic.split(' ')[0] || pic,
+      label: rawPic.split(' ')[0] || rawPic,
       value: assigneeCounts[pic],
       displayVal: `${assigneeCounts[pic]} Tugas`,
       color: colors[idx % colors.length]
@@ -76,7 +94,11 @@ export default function TugasKalender() {
   const columns = [
     {
       key: 'title',
-      label: 'Nama Tugas',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DClipboard size={14} /> Nama Tugas
+        </span>
+      ),
       minWidth: '220px',
       maxWidth: '280px',
       render: (val, row, update) => (
@@ -164,38 +186,34 @@ export default function TugasKalender() {
       ),
       minWidth: '160px',
       render: (val, row, update) => {
-        const statusColors = {
-          'Backlog': { bg: '#fee2e2', text: '#b91c1c' },
-          'Sedang Dikerjakan': { bg: '#fef3c7', text: '#b45309' },
-          'Menunggu Review': { bg: '#e0e7ff', text: '#4338ca' },
-          'Selesai': { bg: '#dcfce7', text: '#15803d' }
+        const textColors = {
+          'Backlog': '#dc2626',
+          'Sedang Dikerjakan': '#d97706',
+          'Menunggu Review': '#4f46e5',
+          'Selesai': '#16a34a'
         };
-        const currentStyle = statusColors[val] || { bg: '#f1f5f9', text: '#475569' };
+        const currentTextColor = textColors[val] || '#64748b';
 
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Icon3DStatusDot status={val} size={9} />
-            <select
-              value={val || 'Backlog'}
-              onChange={(e) => update(e.target.value)}
-              style={{
-                padding: '3px 8px',
-                borderRadius: '4px',
-                border: 'none',
-                backgroundColor: currentStyle.bg,
-                color: currentStyle.text,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option value="Backlog">Belum mulai / Backlog</option>
-              <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
-              <option value="Menunggu Review">Menunggu Review</option>
-              <option value="Selesai">Selesai</option>
-            </select>
-          </div>
+          <select
+            value={val || 'Backlog'}
+            onChange={(e) => update(e.target.value)}
+            style={{
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: currentTextColor,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
+            }}
+          >
+            <option value="Backlog" style={{ color: '#dc2626', fontWeight: 600 }}>Belum mulai / Backlog</option>
+            <option value="Sedang Dikerjakan" style={{ color: '#d97706', fontWeight: 600 }}>Sedang Dikerjakan</option>
+            <option value="Menunggu Review" style={{ color: '#4f46e5', fontWeight: 600 }}>Menunggu Review</option>
+            <option value="Selesai" style={{ color: '#16a34a', fontWeight: 600 }}>Selesai</option>
+          </select>
         );
       }
     },
@@ -211,17 +229,19 @@ export default function TugasKalender() {
         <select
           value={val || taskCategories[0] || 'General'}
           onChange={(e) => update(e.target.value)}
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#1d4ed8',
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
             outline: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            padding: '2px 0'
           }}
         >
           {taskCategories.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c} style={{ color: '#0f172a', fontWeight: 500 }}>{c}</option>
           ))}
         </select>
       )
@@ -242,16 +262,17 @@ export default function TugasKalender() {
             border: 'none',
             backgroundColor: 'transparent',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            color: val === 'P1' || val === 'Urgent' ? '#dc2626' : (val === 'P2' ? '#7c3aed' : '#64748b'),
+            fontWeight: 700,
+            color: val === 'P1' || val === 'Urgent' ? '#dc2626' : (val === 'P2' ? '#0284c7' : '#64748b'),
             outline: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            padding: '2px 0'
           }}
         >
-          <option value="P1">P1 (Tinggi)</option>
-          <option value="P2">P2 (Sedang)</option>
-          <option value="P3">P3 (Rendah)</option>
-          <option value="Urgent">Urgent</option>
+          <option value="P1" style={{ color: '#dc2626', fontWeight: 600 }}>P1 (Tinggi)</option>
+          <option value="P2" style={{ color: '#0284c7', fontWeight: 600 }}>P2 (Sedang)</option>
+          <option value="P3" style={{ color: '#64748b', fontWeight: 600 }}>P3 (Rendah)</option>
+          <option value="Urgent" style={{ color: '#dc2626', fontWeight: 600 }}>Urgent</option>
         </select>
       )
     },
@@ -264,30 +285,26 @@ export default function TugasKalender() {
       ),
       minWidth: '170px',
       render: (val, row, update) => (
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <Icon3DUser size={14} />
-          <select
-            value={val || (staffAgents && staffAgents[0] ? staffAgents[0].name : 'Unassigned')}
-            onChange={(e) => update(e.target.value)}
-            style={{
-              padding: '4px 8px',
-              borderRadius: '6px',
-              border: '1px solid #bfdbfe',
-              backgroundColor: '#eff6ff',
-              color: '#0284c7',
-              fontSize: '0.78rem',
-              fontWeight: 500,
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {staffAgents && staffAgents.map((staff) => (
-              <option key={staff.id || staff.name} value={staff.name}>
-                {staff.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={val || (staffAgents && staffAgents[0] ? staffAgents[0].name : 'Unassigned')}
+          onChange={(e) => update(e.target.value)}
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '2px 0'
+          }}
+        >
+          {staffAgents && staffAgents.map((staff) => (
+            <option key={staff.id || staff.name} value={staff.name} style={{ color: '#0f172a', fontWeight: 500 }}>
+              {staff.name}
+            </option>
+          ))}
+        </select>
       )
     }
   ];
@@ -302,11 +319,11 @@ export default function TugasKalender() {
   const handleAddTask = () => {
     const newTask = {
       id: `TSK-${Date.now().toString().slice(-4)}`,
-      title: 'Tugas Operasional Baru',
-      description: 'Klik untuk mengisi keterangan tugas...',
+      title: '',
+      description: '',
       category: activeCategory !== 'ALL' ? activeCategory : (taskCategories[0] || 'Website & Tracking'),
-      project: 'Internal Agency',
-      assignee: 'Kayla',
+      project: '',
+      assignee: '',
       priority: 'P2',
       status: 'Backlog',
       dueDate: new Date().toISOString().split('T')[0],
@@ -324,77 +341,12 @@ export default function TugasKalender() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header View Switcher */}
+      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h2 className="ws-page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Icon3DClipboard size={22} />
-            <span>Tugas Operasional</span>
+          <h2 className="ws-page-title">
+            Tugas &amp; Kalender
           </h2>
-        </div>
-
-        {/* View Switcher Tabs */}
-        <div style={{ display: 'flex', backgroundColor: '#e2e8f0', padding: '3px', borderRadius: '8px' }}>
-          <button
-            onClick={() => setViewMode('table')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: viewMode === 'table' ? '#ffffff' : 'transparent',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              color: viewMode === 'table' ? '#0284c7' : '#475569',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none'
-            }}
-          >
-            <Table size={14} />
-            <span>Tabel View</span>
-          </button>
-          <button
-            onClick={() => setViewMode('kanban')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: viewMode === 'kanban' ? '#ffffff' : 'transparent',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              color: viewMode === 'kanban' ? '#0284c7' : '#475569',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'kanban' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none'
-            }}
-          >
-            <LayoutGrid size={14} />
-            <span>Sprint Kanban</span>
-          </button>
-          <button
-            onClick={() => setViewMode('calendar')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: viewMode === 'calendar' ? '#ffffff' : 'transparent',
-              fontWeight: 700,
-              fontSize: '0.8rem',
-              color: viewMode === 'calendar' ? '#0284c7' : '#475569',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'calendar' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none'
-            }}
-          >
-            <CalendarDays size={14} />
-            <span>Kalender</span>
-          </button>
         </div>
       </div>
 
@@ -425,67 +377,77 @@ export default function TugasKalender() {
           title="Status Progres Sprint Tugas"
           subtitle="Tingkat penyelesaian backlog & sprint"
           data={taskDonutData}
-          centerValue={`${totalTasks}`}
-          centerLabel="Total Tugas"
         />
       </div>
 
-      {/* Main View Render */}
-      {viewMode === 'table' && (
-        <NotionTable
-          title="Daftar Tugas Operasional"
-          data={tasks}
-          columns={columns}
-          onAddRow={handleAddTask}
-          onDeleteRow={deleteTask}
-          onOpenFullView={(id) => setSelectedFullTaskId(id)}
-          onUpdateCell={handleUpdateCell}
-          exportFileName="tugas_operasional_notion.csv"
-          categories={taskCategories}
-          activeCategory={activeCategory}
-          onSelectCategory={(cat) => setActiveCategory(cat)}
-          enableStickyFreeze={true}
-        />
-      )}
-
-      {viewMode === 'kanban' && (
-        <NotionKanban
-          columns={kanbanColumns}
-          items={tasks}
-          statusKey="status"
-          onAddItem={handleAddTask}
-          renderCard={(t) => (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span className="ws-notion-pill" style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
-                  {t.category}
-                </span>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: t.priority === 'P1' || t.priority === 'Urgent' ? '#dc2626' : '#7c3aed' }}>
-                  {t.priority}
-                </span>
-              </div>
-              <h5 style={{ margin: '0 0 6px 0', fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
-                {t.title}
-              </h5>
-              <p style={{ margin: '0 0 8px 0', fontSize: '0.74rem', color: '#64748b', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {t.description}
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
-                <span>👤 {t.assignee}</span>
-                <span>📅 {t.dueDate?.slice(5)}</span>
-              </div>
-            </div>
-          )}
-        />
-      )}
-
-      {viewMode === 'calendar' && (
-        <NotionCalendar
-          events={tasks}
-          dateKey="dueDate"
-          titleKey="title"
-        />
-      )}
+      {/* Main View Render: NotionTable membungkus seluruh mode tampilan (Tabel, Kanban, Kalender) sehingga Header Toolbar tetap tampil */}
+      <NotionTable
+        title="Daftar Tugas Operasional"
+        data={filteredTasks}
+        columns={columns}
+        onAddRow={handleAddTask}
+        onDeleteRow={deleteTask}
+        onOpenFullView={(id) => setSelectedFullTaskId(id)}
+        onUpdateCell={handleUpdateCell}
+        exportFileName="tugas_operasional_notion.csv"
+        categories={taskCategories}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        enableStickyFreeze={true}
+        currentViewMode={viewMode}
+        onChangeViewMode={setViewMode}
+        availableViewModes={['table', 'kanban', 'calendar']}
+        statusFilter={statusFilter}
+        onChangeStatusFilter={setStatusFilter}
+        statusOptions={statusOptions}
+        archiveMonth={archiveMonth}
+        onChangeArchiveMonth={setArchiveMonth}
+        availableArchiveMonths={['September 2026', 'Agustus 2026', 'Juli 2026']}
+        renderCustomView={({ filteredData }) => {
+          if (viewMode === 'kanban') {
+            return (
+              <NotionKanban
+                columns={kanbanColumns}
+                items={filteredData}
+                statusKey="status"
+                onAddItem={handleAddTask}
+                renderCard={(t) => (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span className="ws-notion-pill" style={{ backgroundColor: '#eff6ff', color: '#1d4ed8' }}>
+                        {t.category}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: t.priority === 'P1' || t.priority === 'Urgent' ? '#dc2626' : '#0284c7' }}>
+                        {t.priority}
+                      </span>
+                    </div>
+                    <h5 style={{ margin: '0 0 6px 0', fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
+                      {t.title}
+                    </h5>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '0.74rem', color: '#64748b', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {t.description}
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><User size={12} color="#0284c7" /> {t.assignee}</span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} color="#0284c7" /> {t.dueDate?.slice(5)}</span>
+                    </div>
+                  </div>
+                )}
+              />
+            );
+          }
+          if (viewMode === 'calendar') {
+            return (
+              <NotionCalendar
+                events={filteredData}
+                dateKey="dueDate"
+                titleKey="title"
+              />
+            );
+          }
+          return null;
+        }}
+      />
     </div>
   );
 }

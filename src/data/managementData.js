@@ -81,15 +81,15 @@ export const INITIAL_SUBMISSIONS = [
     status: 'Menunggu Persetujuan',
     engineUsed: 'Groq Llama 3.3',
     summary: 'Copywriting format AIDA untuk promosi flash sale khusus di blast grup WhatsApp VIP.',
-    fullOutput: `🔥 *PENAWARAN SPESIAL 10.10 UNTUK PARTNER BISNIS KAMI!*
+    fullOutput: `*PENAWARAN SPESIAL 10.10 UNTUK PARTNER BISNIS KAMI!*
 
 Halo Rekan Pebisnis,
 Apakah Anda masih kerepotan mengurus rekap operasional dan konten harian manual?
 
 Kini kantor Anda bisa beroperasi otomatis dengan asisten AI 24/7 di WhatsApp:
-✅ Tidak butuh sewa server mahal
-✅ Respon kilat dalam 1 detik
-✅ Koordinasi tim lebih rapi & terarsip
+- Tidak butuh sewa server mahal
+- Respon kilat dalam 1 detik
+- Koordinasi tim lebih rapi & terarsip
 
 *Klaim Konsultasi Gratis Hari Ini:*
 Balas pesan ini dengan ketik: *KANTOR OTOMATIS* sekarang juga!`

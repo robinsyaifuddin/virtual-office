@@ -19,7 +19,7 @@ export default function PengaturanWorkspace() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '880px' }}>
       <div>
         <h2 className="ws-page-title">
-          Pengaturan Workspace
+          Pengaturan
         </h2>
       </div>
 
@@ -135,12 +135,12 @@ export default function PengaturanWorkspace() {
 
           <div style={{ padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <Cpu size={16} color="#7e22ce" />
+              <Cpu size={16} color="#0284c7" />
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Mesin LLM AI</span>
             </div>
             <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>Mesin: {workspaceSettings.aiIntegrations.activeEngine}</p>
-            <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '0.72rem', fontWeight: 700, color: '#7e22ce', backgroundColor: '#faf5ff', padding: '2px 8px', borderRadius: '999px' }}>
-              ⚡ Rata-rata Latensi {workspaceSettings.aiIntegrations.latencyAverage}
+            <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '0.72rem', fontWeight: 700, color: '#0284c7', backgroundColor: '#f0f9ff', padding: '2px 8px', borderRadius: '999px' }}>
+              Rata-rata Latensi {workspaceSettings.aiIntegrations.latencyAverage}
             </span>
           </div>
         </div>

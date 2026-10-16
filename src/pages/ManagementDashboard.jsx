@@ -247,7 +247,7 @@ export default function ManagementDashboard({ onLogout }) {
                   </div>
 
                   <div className="fl-metric-pill-card">
-                    <div className="fl-metric-icon-box" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
+                    <div className="fl-metric-icon-box" style={{ background: '#e0f2fe', color: '#0284c7' }}>
                       <FolderGit2 size={20} />
                     </div>
                     <div>
@@ -370,7 +370,7 @@ export default function ManagementDashboard({ onLogout }) {
                   </div>
 
                   <div className="fl-project-box">
-                    <div className="fl-project-icon-sq" style={{ background: '#8b5cf6' }}>
+                    <div className="fl-project-icon-sq" style={{ background: '#0284c7' }}>
                       <Folder size={18} />
                     </div>
                     <div>
@@ -378,7 +378,7 @@ export default function ManagementDashboard({ onLogout }) {
                       <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Doctor Appointment</div>
                     </div>
                     <div className="fl-progress-track">
-                      <div className="fl-progress-fill" style={{ width: '45%', background: '#8b5cf6' }}></div>
+                      <div className="fl-progress-fill" style={{ width: '45%', background: '#0284c7' }}></div>
                     </div>
                     <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Due: 12 Sep</span>
                   </div>
@@ -407,7 +407,7 @@ export default function ManagementDashboard({ onLogout }) {
                       New Task
                     </div>
                     <div className="fl-quick-act-btn" onClick={() => showToast('Membuat Project baru')}>
-                      <FolderGit2 size={18} color="#7c3aed" />
+                      <FolderGit2 size={18} color="#0284c7" />
                       New Project
                     </div>
                     <div className="fl-quick-act-btn" onClick={() => setActiveTab('documents')}>
@@ -514,8 +514,8 @@ export default function ManagementDashboard({ onLogout }) {
                       Today's schedule
                     </button>
                   </div>
-                  <div style={{ fontSize: '2.5rem', background: '#f0f9ff', padding: '16px 24px', borderRadius: '18px', color: '#0284c7' }}>
-                    📋
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f0f9ff', padding: '16px 20px', borderRadius: '18px', color: '#0284c7' }}>
+                    <FileText size={36} color="#0284c7" />
                   </div>
                 </div>
 
@@ -836,7 +836,7 @@ export default function ManagementDashboard({ onLogout }) {
                 <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Client ▾</button>
                 <button className="fl-banner-btn" style={{ background: '#f1f5f9', color: '#334155' }}>Status ▾</button>
                 <span style={{ fontSize: '0.8rem', color: '#64748b', background: '#ffffff', padding: '6px 12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  🌐 London, UK (GMT +0)
+                  London, UK (GMT +0)
                 </span>
               </div>
             </div>
@@ -924,8 +924,8 @@ export default function ManagementDashboard({ onLogout }) {
                 
                 <div style={{ fontSize: '1.5rem', fontWeight: 800, margin: '14px 0 10px', color: '#0f172a' }}>$ 25.00</div>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '18px' }}>
-                  <div>⏱️ 12:30 pm - 1:00 pm (30m)</div>
-                  <div>📅 Wed, Oct 15, 2026</div>
+                  <div>12:30 pm - 1:00 pm (30m)</div>
+                  <div>Wed, Oct 15, 2026</div>
                 </div>
 
                 <button className="fl-banner-btn" style={{ width: '100%', padding: '10px', marginBottom: '20px' }} onClick={() => showToast('Jadwal meeting diatur ulang')}>
@@ -988,7 +988,7 @@ export default function ManagementDashboard({ onLogout }) {
                 </div>
                 <div className="goal-amount-big">$25,000<span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>.00 / $60,000</span></div>
                 <div className="goal-progress-pill">
-                  <div className="goal-pill-fill" style={{ width: '42%', background: '#7c3aed' }}></div>
+                  <div className="goal-pill-fill" style={{ width: '42%', background: '#0284c7' }}></div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#64748b' }}>
                   <span>42% Complete</span>
@@ -1062,8 +1062,12 @@ export default function ManagementDashboard({ onLogout }) {
                 <div className="fl-card-head">
                   <span className="fl-card-title">Savings Overview</span>
                   <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem', color: '#64748b' }}>
-                    <span>🟣 This year</span>
-                    <span>⚪ Last year</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0284c7', display: 'inline-block' }}></span> This year
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#cbd5e1', display: 'inline-block' }}></span> Last year
+                    </span>
                   </div>
                 </div>
                 <div style={{ padding: '10px 0' }}>
@@ -1117,9 +1121,9 @@ export default function ManagementDashboard({ onLogout }) {
                 <div className="rep-stat-sub">
                   <span>↑ +7% vs last month</span>
                   <div style={{ display: 'flex', gap: '2px', alignItems: 'flex-end', height: '18px' }}>
-                    <div style={{ width: 4, height: 10, background: '#7c3aed' }}></div>
-                    <div style={{ width: 4, height: 16, background: '#7c3aed' }}></div>
-                    <div style={{ width: 4, height: 12, background: '#7c3aed' }}></div>
+                    <div style={{ width: 4, height: 10, background: '#0284c7' }}></div>
+                    <div style={{ width: 4, height: 16, background: '#0284c7' }}></div>
+                    <div style={{ width: 4, height: 12, background: '#0284c7' }}></div>
                   </div>
                 </div>
               </div>
@@ -1183,7 +1187,7 @@ export default function ManagementDashboard({ onLogout }) {
                 <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '130px', padding: '10px 0' }}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '0.72rem', fontWeight: 700, marginBottom: 4 }}>22%</div>
-                    <div style={{ width: 34, height: 60, background: '#7c3aed', borderRadius: 10 }}></div>
+                    <div style={{ width: 34, height: 60, background: '#38bdf8', borderRadius: 10 }}></div>
                     <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4 }}>18-24</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
@@ -1218,9 +1222,9 @@ export default function ManagementDashboard({ onLogout }) {
                   <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: 700 }}>Positive Sentiment</div>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '0.72rem', color: '#64748b', marginTop: '12px' }}>
-                  <span>🔵 68% Pos</span>
-                  <span>⚪ 21% Neu</span>
-                  <span>🔴 11% Neg</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#0284c7' }}></span> 68% Pos</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#94a3b8' }}></span> 21% Neu</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }}></span> 11% Neg</span>
                 </div>
               </div>
             </div>
@@ -1243,21 +1247,21 @@ export default function ManagementDashboard({ onLogout }) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={{ fontWeight: 800, color: '#ec4899' }}>📸 Instagram</td>
+                    <td style={{ fontWeight: 800, color: '#ec4899' }}>Instagram</td>
                     <td>94k</td>
                     <td>27.3k</td>
                     <td>680k</td>
                     <td><span className="doc-tag-valid">+13%</span></td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: 800, color: '#0f172a' }}>🎵 TikTok</td>
+                    <td style={{ fontWeight: 800, color: '#0f172a' }}>TikTok</td>
                     <td>71k</td>
                     <td>19.8k</td>
                     <td>910k</td>
                     <td><span className="doc-tag-valid">+18%</span></td>
                   </tr>
                   <tr>
-                    <td style={{ fontWeight: 800, color: '#0284c7' }}>💼 LinkedIn</td>
+                    <td style={{ fontWeight: 800, color: '#0284c7' }}>LinkedIn</td>
                     <td>48k</td>
                     <td>9.1k</td>
                     <td>910k</td>

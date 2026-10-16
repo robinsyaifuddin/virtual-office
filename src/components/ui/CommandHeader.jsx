@@ -70,7 +70,7 @@ export function CommandHeader() {
             value={selectedRoomId || ''}
             onChange={(e) => selectRoom(e.target.value || null)}
           >
-            <option value="">🏢 Seluruh Kantor (Overview)</option>
+            <option value="">Seluruh Kantor (Overview)</option>
             {rooms.map((room) => (
               <option key={room.id} value={room.id}>
                 {room.name}
