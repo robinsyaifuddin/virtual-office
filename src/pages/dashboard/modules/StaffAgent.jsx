@@ -2,6 +2,7 @@ import React from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Users, Bot, Briefcase, Mail } from 'lucide-react';
 
 export default function StaffAgent() {
@@ -9,6 +10,29 @@ export default function StaffAgent() {
 
   const humanStaff = staffAgents.filter(s => s.type === 'Staf Manusia');
   const aiStaff = staffAgents.filter(s => s.type.includes('AI'));
+
+  // Data Bar Chart: Personil per Departemen
+  const deptCounts = staffAgents.reduce((acc, s) => {
+    const d = s.department || 'Operasional';
+    acc[d] = (acc[d] || 0) + 1;
+    return acc;
+  }, {});
+
+  const staffBarData = Object.keys(deptCounts).map((dept, idx) => {
+    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#10b981', '#f59e0b'];
+    return {
+      label: dept.split(' ')[0] || dept,
+      value: deptCounts[dept],
+      displayVal: `${deptCounts[dept]} Orang`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Komposisi Manusia vs Autonomous AI Agent
+  const staffDonutData = [
+    { label: 'Staf Manusia', value: humanStaff.length, displayVal: `${humanStaff.length}`, color: '#0284c7' },
+    { label: 'Autonomous AI', value: aiStaff.length, displayVal: `${aiStaff.length}`, color: '#8b5cf6' }
+  ];
 
   const columns = [
     {
@@ -100,6 +124,22 @@ export default function StaffAgent() {
           value={aiStaff.length}
           subtitle="Autonomous 24/7 worker"
           icon={Bot}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Alokasi Tim per Departemen"
+          subtitle="Sebaran SDM dan agen automasi kerja"
+          data={staffBarData}
+        />
+        <DonutChart
+          title="Rasio Staf Manusia vs Autonomous AI"
+          subtitle="Struktur kolaborasi tenaga kerja modern"
+          data={staffDonutData}
+          centerValue={`${staffAgents.length}`}
+          centerLabel="Total Tim"
         />
       </div>
 

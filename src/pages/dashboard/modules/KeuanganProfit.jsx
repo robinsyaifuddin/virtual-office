@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
-import { SimpleBarChart } from '../components/ChartWidgets';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { DollarSign, ArrowUpRight, ArrowDownRight, CreditCard, Plus, FileText } from 'lucide-react';
 
 export default function KeuanganProfit() {
@@ -17,6 +17,30 @@ export default function KeuanganProfit() {
     .reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
   const netProfit = totalIncome - totalExpense;
+
+  // Data Bar Chart: Pemasukan vs Pengeluaran per Kategori
+  const categoryAmounts = financeTransactions.reduce((acc, t) => {
+    const cat = t.category || 'Operasional';
+    acc[cat] = (acc[cat] || 0) + (t.amount || 0);
+    return acc;
+  }, {});
+
+  const financeBarData = Object.keys(categoryAmounts).slice(0, 5).map((cat, idx) => {
+    const valJt = Math.round(categoryAmounts[cat] / 1000000);
+    const colors = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+    return {
+      label: cat.split(' ')[0] || cat,
+      value: valJt,
+      displayVal: `Rp ${valJt}Jt`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Alokasi Tipe Finansial
+  const financeDonutData = [
+    { label: 'Pemasukan (Lunas)', value: Math.round(totalIncome / 1000000), displayVal: `Rp ${(totalIncome/1000000).toFixed(0)}Jt`, color: '#10b981' },
+    { label: 'Pengeluaran (Operasional)', value: Math.round(totalExpense / 1000000), displayVal: `Rp ${(totalExpense/1000000).toFixed(0)}Jt`, color: '#ef4444' }
+  ];
 
   const columns = [
     { key: 'title', label: 'Uraian Transaksi' },
@@ -118,6 +142,22 @@ export default function KeuanganProfit() {
           change="+24%"
           trend="up"
           icon={DollarSign}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Alokasi Biaya & Kas per Kategori"
+          subtitle="Distribusi perputaran dana operasional"
+          data={financeBarData}
+        />
+        <DonutChart
+          title="Rasio Kas Masuk vs Kas Keluar"
+          subtitle="Perbandingan kas realisasi lunas"
+          data={financeDonutData}
+          centerValue={`Rp ${((totalIncome - totalExpense)/1000000).toFixed(0)}Jt`}
+          centerLabel="Laba Bersih"
         />
       </div>
 

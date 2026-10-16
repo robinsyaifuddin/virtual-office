@@ -310,4 +310,114 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
   .ws-modal-footer-mobile {
     padding: 12px 16px !important;
   }
+
+  /* Responsive Charts Grid & Compact Boxes */
+  .ws-charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .ws-chart-card {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .ws-chart-title {
+    font-size: 0.82rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .ws-chart-subtitle {
+    font-size: 0.65rem !important;
+  }
+
+  .ws-barchart-track-container {
+    height: 110px !important;
+    padding-top: 8px !important;
+    gap: 6px !important;
+  }
+
+  .ws-barchart-val {
+    font-size: 0.62rem !important;
+  }
+
+  .ws-barchart-label {
+    font-size: 0.62rem !important;
+  }
+
+  .ws-donut-content-layout {
+    min-height: auto !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+
+  .ws-donut-svg-box {
+    width: 86px !important;
+    height: 86px !important;
+  }
+
+  .ws-donut-svg-box svg {
+    width: 86px !important;
+    height: 86px !important;
+  }
+
+  .ws-donut-center-val {
+    font-size: 0.85rem !important;
+  }
+
+  .ws-donut-center-lbl {
+    font-size: 0.54rem !important;
+  }
+
+  .ws-donut-legend-list {
+    gap: 4px !important;
+  }
+
+  .ws-donut-legend-text {
+    font-size: 0.66rem !important;
+  }
+
+  /* Responsive Compact Data Table on Mobile */
+  table th {
+    padding: 6px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  table td {
+    padding: 6px 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .ws-table-action-th {
+    width: 38px !important;
+    min-width: 38px !important;
+    padding: 6px 4px !important;
+  }
+
+  .ws-table-action-col {
+    padding: 4px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+  }
+
+  .ws-table-open-btn {
+    padding: 4px 6px !important;
+    border-radius: 4px !important;
+  }
+
+  .ws-open-icon {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  .ws-open-text {
+    display: none !important;
+  }
 }
+

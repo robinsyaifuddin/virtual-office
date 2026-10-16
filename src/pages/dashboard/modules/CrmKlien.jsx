@@ -4,6 +4,7 @@ import NotionTable from '../components/NotionTable';
 import NotionKanban from '../components/NotionKanban';
 import NotionDetailDrawer from '../components/NotionDetailDrawer';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Users, DollarSign, Plus, Table as TableIcon, LayoutGrid, FileText, Download } from 'lucide-react';
 
 export default function CrmKlien() {
@@ -16,6 +17,40 @@ export default function CrmKlien() {
   const totalPipeline = crmClients.reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
   const wonClients = crmClients.filter(c => c.stage.includes('Won'));
   const totalWonValue = wonClients.reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
+
+  // Data Grafik Batang: Nilai Pipeline per Klien
+  const crmBarData = crmClients.slice(0, 5).map((c, i) => {
+    const valJt = Math.round((c.dealValue || 0) / 1000000);
+    const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#818cf8'];
+    return {
+      label: c.name.split(' ')[0] || `Klien ${i+1}`,
+      value: valJt,
+      displayVal: `Rp ${valJt}Jt`,
+      color: colors[i % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Distribusi Tahapan (Stage) Klien
+  const stageCounts = crmClients.reduce((acc, c) => {
+    const stg = c.stage || 'Prospek Awal';
+    acc[stg] = (acc[stg] || 0) + 1;
+    return acc;
+  }, {});
+
+  const stageColorMap = {
+    'Prospek Awal': '#60a5fa',
+    'Follow-up / Demo': '#f59e0b',
+    'Negosiasi Proposal': '#8b5cf6',
+    'Deal Won': '#10b981',
+    'Deal Lost': '#ef4444'
+  };
+
+  const crmDonutData = Object.keys(stageCounts).map(stage => ({
+    label: stage,
+    value: stageCounts[stage],
+    displayVal: `${stageCounts[stage]} Klien`,
+    color: stageColorMap[stage] || '#0284c7'
+  }));
 
   const columns = [
     { key: 'name', label: 'Nama Klien / Perusahaan' },
@@ -188,6 +223,22 @@ export default function CrmKlien() {
           subtitle={`${wonClients.length} Klien Menang`}
           icon={Users}
           color="green"
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Nilai Prospek per Klien (Top 5)"
+          subtitle="Estimasi potensi nilai kesepakatan"
+          data={crmBarData}
+        />
+        <DonutChart
+          title="Distribusi Tahapan Pipeline Klien"
+          subtitle="Status perjalanan konversi prospek"
+          data={crmDonutData}
+          centerValue={`${crmClients.length}`}
+          centerLabel="Klien"
         />
       </div>
 

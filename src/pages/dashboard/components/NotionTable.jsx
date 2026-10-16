@@ -588,7 +588,7 @@ export default function NotionTable({
 
               {/* Kolom 1 Membeku: Aksi (Buka Modal Lebar) */}
               {enableStickyFreeze && (
-                <th className="ws-sticky-col-1" style={{
+                <th className="ws-sticky-col-1 ws-table-action-th" style={{
                   padding: '10px 12px',
                   width: '56px',
                   minWidth: '56px',
@@ -701,8 +701,8 @@ export default function NotionTable({
 
                     {/* Kolom 1 Membeku: Tombol Buka (Membuka Kotak Modal Lebar) */}
                     {enableStickyFreeze && (
-                      <td className="ws-sticky-col-1" style={{
-                        padding: '8px 10px',
+                      <td className="ws-sticky-col-1 ws-table-action-col" style={{
+                        padding: '6px 8px',
                         textAlign: 'center',
                         backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
                         borderRight: '1px solid #e2e8f0',
@@ -712,7 +712,7 @@ export default function NotionTable({
                           <button
                             onClick={() => handleOpenRowModal(row)}
                             title="Buka Modal Lebar Detail"
-                            className="ws-btn-transition"
+                            className="ws-table-open-btn ws-btn-transition"
                             style={{
                               padding: '3px 8px',
                               borderRadius: '4px',
@@ -721,10 +721,15 @@ export default function NotionTable({
                               color: '#0284c7',
                               fontSize: '0.72rem',
                               fontWeight: 700,
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px'
                             }}
                           >
-                            Buka
+                            <span className="ws-open-text ws-desktop-only">Buka</span>
+                            <ExternalLink size={13} className="ws-open-icon" />
                           </button>
                         </div>
                       </td>

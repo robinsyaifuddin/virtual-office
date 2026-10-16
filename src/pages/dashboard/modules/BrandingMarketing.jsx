@@ -3,6 +3,7 @@ import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import NotionKanban from '../components/NotionKanban';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Megaphone, Calendar, Share2, Plus, Table as TableIcon, LayoutGrid } from 'lucide-react';
 
 export default function BrandingMarketing() {
@@ -11,6 +12,40 @@ export default function BrandingMarketing() {
 
   const totalReach = marketingCampaigns.reduce((acc, c) => acc + (c.metrics?.reach || 0), 0);
   const totalLeads = marketingCampaigns.reduce((acc, c) => acc + (c.metrics?.leads || 0), 0);
+
+  // Data Bar Chart: Jangkauan Konten per Judul/Kampanye
+  const marketingBarData = marketingCampaigns.slice(0, 5).map((c, i) => {
+    const reachVal = c.metrics?.reach || 1000;
+    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#a855f7', '#ec4899'];
+    return {
+      label: c.title.split(' ').slice(0, 2).join(' ') || `Konten ${i+1}`,
+      value: reachVal,
+      displayVal: reachVal >= 1000 ? `${(reachVal/1000).toFixed(0)}k` : reachVal,
+      color: colors[i % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Distribusi Saluran / Channel Konten
+  const channelCounts = marketingCampaigns.reduce((acc, c) => {
+    const ch = c.channel || 'Instagram';
+    acc[ch] = (acc[ch] || 0) + 1;
+    return acc;
+  }, {});
+
+  const channelColors = {
+    'Instagram': '#e1306c',
+    'LinkedIn': '#0077b5',
+    'TikTok': '#0f172a',
+    'Website': '#0284c7',
+    'YouTube': '#ff0000'
+  };
+
+  const marketingDonutData = Object.keys(channelCounts).map(ch => ({
+    label: ch,
+    value: channelCounts[ch],
+    displayVal: `${channelCounts[ch]} Post`,
+    color: channelColors[ch] || '#0284c7'
+  }));
 
   const columns = [
     { key: 'title', label: 'Judul Konten / Kampanye' },
@@ -123,6 +158,22 @@ export default function BrandingMarketing() {
           value={totalLeads}
           subtitle="Konversi kampanye aktif"
           icon={Share2}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Jangkauan Audiens Konten (Top 5)"
+          subtitle="Perkiraan reach tayangan konten"
+          data={marketingBarData}
+        />
+        <DonutChart
+          title="Sebaran Konten per Channel Media"
+          subtitle="Komposisi jalur publikasi digital"
+          data={marketingDonutData}
+          centerValue={`${marketingCampaigns.length}`}
+          centerLabel="Total Post"
         />
       </div>
 

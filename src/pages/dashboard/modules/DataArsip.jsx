@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { FolderGit2, FileText, Download, HardDrive, Shield, UploadCloud, CheckCircle } from 'lucide-react';
 
 export default function DataArsip() {
@@ -17,6 +18,47 @@ export default function DataArsip() {
     'Arsip Terkompresi (ZIP/RAR)',
     'Kode & Konfigurasi'
   ];
+
+  // Data Bar Chart: Dokumen per Kategori
+  const catDocCounts = archives.reduce((acc, a) => {
+    const c = (a.category || 'Dokumen PDF / Legalitas').split('/')[0].trim();
+    acc[c] = (acc[c] || 0) + 1;
+    return acc;
+  }, {});
+
+  const archiveBarData = Object.keys(catDocCounts).slice(0, 5).map((c, idx) => {
+    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#34d399', '#f59e0b'];
+    return {
+      label: c.split(' ')[0] || c,
+      value: catDocCounts[c],
+      displayVal: `${catDocCounts[c]} File`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Komposisi Ekstensi Format File
+  const formatCounts = archives.reduce((acc, a) => {
+    const fmt = a.fileFormat || a.format || 'PDF';
+    acc[fmt] = (acc[fmt] || 0) + 1;
+    return acc;
+  }, {});
+
+  const formatColors = {
+    'PDF': '#ef4444',
+    'XLSX': '#10b981',
+    'DOCX': '#0284c7',
+    'ZIP': '#f59e0b',
+    'PNG': '#8b5cf6',
+    'JPG': '#ec4899',
+    'MP4': '#6366f1'
+  };
+
+  const archiveDonutData = Object.keys(formatCounts).map(fmt => ({
+    label: fmt,
+    value: formatCounts[fmt],
+    displayVal: `${formatCounts[fmt]} File`,
+    color: formatColors[fmt] || '#64748b'
+  }));
 
   const columns = [
     {
@@ -191,6 +233,22 @@ export default function DataArsip() {
           value="15.8 MB"
           subtitle="Dari kuota 5.0 GB"
           icon={HardDrive}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Sebaran Berkas per Kategori Arsip"
+          subtitle="Jumlah file terindeks di vault"
+          data={archiveBarData}
+        />
+        <DonutChart
+          title="Komposisi Ekstensi Berkas"
+          subtitle="Distribusi format dokumen tersimpan"
+          data={archiveDonutData}
+          centerValue={`${archives.length}`}
+          centerLabel="Total File"
         />
       </div>
 

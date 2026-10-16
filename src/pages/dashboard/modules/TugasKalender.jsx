@@ -5,6 +5,7 @@ import NotionKanban from '../components/NotionKanban';
 import NotionCalendar from '../components/NotionCalendar';
 import NotionFullPageView from '../components/NotionFullPageView';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { CheckSquare, Calendar, Clock, AlertCircle, LayoutGrid, Table, CalendarDays } from 'lucide-react';
 
 import { 
@@ -35,6 +36,38 @@ export default function TugasKalender() {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === 'Selesai').length;
   const inProgressTasks = tasks.filter(t => t.status === 'Sedang Dikerjakan' || t.status === 'ON PROGRESS').length;
+
+  // Data Bar Chart: Beban Tugas per PIC / Assignee
+  const assigneeCounts = tasks.reduce((acc, t) => {
+    const pic = t.assignee || 'Unassigned';
+    acc[pic] = (acc[pic] || 0) + 1;
+    return acc;
+  }, {});
+
+  const taskBarData = Object.keys(assigneeCounts).slice(0, 5).map((pic, idx) => {
+    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#34d399', '#f59e0b'];
+    return {
+      label: pic.split(' ')[0] || pic,
+      value: assigneeCounts[pic],
+      displayVal: `${assigneeCounts[pic]} Tugas`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Distribusi Status Tugas
+  const statusCounts = {
+    'Selesai': tasks.filter(t => t.status === 'Selesai').length,
+    'Sedang Dikerjakan': tasks.filter(t => t.status === 'Sedang Dikerjakan' || t.status === 'ON PROGRESS').length,
+    'Menunggu Review': tasks.filter(t => t.status === 'Menunggu Review').length,
+    'Backlog': tasks.filter(t => t.status === 'Backlog' || !t.status).length
+  };
+
+  const taskDonutData = [
+    { label: 'Selesai', value: statusCounts['Selesai'], displayVal: `${statusCounts['Selesai']}`, color: '#10b981' },
+    { label: 'Dikerjakan', value: statusCounts['Sedang Dikerjakan'], displayVal: `${statusCounts['Sedang Dikerjakan']}`, color: '#f59e0b' },
+    { label: 'Review', value: statusCounts['Menunggu Review'], displayVal: `${statusCounts['Menunggu Review']}`, color: '#6366f1' },
+    { label: 'Backlog', value: statusCounts['Backlog'], displayVal: `${statusCounts['Backlog']}`, color: '#ef4444' }
+  ].filter(d => d.value > 0);
 
   const handleUpdateCell = (taskId, field, value) => {
     updateTask(taskId, { [field]: value });
@@ -294,13 +327,6 @@ export default function TugasKalender() {
       {/* Header View Switcher */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#64748b', marginBottom: '4px' }}>
-            <span>DigiBooster OS</span>
-            <span>/</span>
-            <span>Operasional OS</span>
-            <span>/</span>
-            <span style={{ fontWeight: 600, color: '#0f172a' }}>Tugas Operasional</span>
-          </div>
           <h2 className="ws-page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Icon3DClipboard size={22} />
             <span>Tugas Operasional</span>
@@ -385,6 +411,22 @@ export default function TugasKalender() {
           value={inProgressTasks}
           subtitle="Dalam antrean pengerjaan tim"
           icon={Clock}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Distribusi Beban Kerja per PIC (Top 5)"
+          subtitle="Jumlah tiket penugasan aktif karyawan"
+          data={taskBarData}
+        />
+        <DonutChart
+          title="Status Progres Sprint Tugas"
+          subtitle="Tingkat penyelesaian backlog & sprint"
+          data={taskDonutData}
+          centerValue={`${totalTasks}`}
+          centerLabel="Total Tugas"
         />
       </div>
 

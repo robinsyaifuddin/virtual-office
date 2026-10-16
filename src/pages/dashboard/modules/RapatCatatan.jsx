@@ -2,10 +2,44 @@ import React, { useState } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { Mic, Video, CheckSquare, Plus, Link } from 'lucide-react';
 
 export default function RapatCatatan() {
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
+
+  // Data Bar Chart: Jumlah Peserta Hadir per Topik Rapat
+  const meetingBarData = meetings.slice(0, 5).map((m, idx) => {
+    const pCount = Array.isArray(m.participants) ? m.participants.length : 2;
+    const colors = ['#0284c7', '#38bdf8', '#818cf8', '#34d399', '#f59e0b'];
+    return {
+      label: m.title.split(' ').slice(0, 2).join(' ') || `Rapat ${idx+1}`,
+      value: pCount,
+      displayVal: `${pCount} Orang`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Distribusi Tipe Rapat
+  const typeCounts = meetings.reduce((acc, m) => {
+    const t = m.type || 'Internal Sync';
+    acc[t] = (acc[t] || 0) + 1;
+    return acc;
+  }, {});
+
+  const typeColors = {
+    'Internal Weekly Sync': '#0284c7',
+    'Review Sprint': '#38bdf8',
+    'Evaluasi Klien': '#10b981',
+    'Strategi Bisnis': '#f59e0b'
+  };
+
+  const meetingDonutData = Object.keys(typeCounts).map(t => ({
+    label: t,
+    value: typeCounts[t],
+    displayVal: `${typeCounts[t]} Sesi`,
+    color: typeColors[t] || '#6366f1'
+  }));
 
   const columns = [
     { key: 'title', label: 'Topik Rapat' },
@@ -67,6 +101,22 @@ export default function RapatCatatan() {
           value="85%"
           subtitle="Action items terealisasi"
           icon={CheckSquare}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Kehadiran Peserta per Sesi Rapat"
+          subtitle="Jumlah personil tim dalam koordinasi"
+          data={meetingBarData}
+        />
+        <DonutChart
+          title="Kategori Jenis Rapat Internal"
+          subtitle="Komposisi format koordinasi"
+          data={meetingDonutData}
+          centerValue={`${meetings.length}`}
+          centerLabel="Sesi Rapat"
         />
       </div>
 

@@ -2,10 +2,44 @@ import React from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
+import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
 import { FileBarChart, Star, CheckCircle } from 'lucide-react';
 
 export default function LaporanEvaluasi() {
   const { reports, addReport, updateReport, deleteReport } = useWorkspaceStore();
+
+  // Data Bar Chart: Skor Mutu per Dokumen Evaluasi
+  const reportBarData = reports.slice(0, 5).map((r, idx) => {
+    const ratingScore = r.rating || 4;
+    const colors = ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#38bdf8'];
+    return {
+      label: r.period.split(' ').slice(0, 2).join(' ') || `Audit ${idx+1}`,
+      value: ratingScore,
+      displayVal: `${ratingScore}/5`,
+      color: colors[idx % colors.length]
+    };
+  });
+
+  // Data Donut Chart: Komposisi Kategori Laporan & Audit
+  const catCounts = reports.reduce((acc, r) => {
+    const c = r.category || 'Audit Kualitas';
+    acc[c] = (acc[c] || 0) + 1;
+    return acc;
+  }, {});
+
+  const catColors = {
+    'Audit Kualitas': '#0284c7',
+    'Review Kinerja': '#10b981',
+    'Evaluasi Sprint': '#f59e0b',
+    'Kepuasan Klien': '#8b5cf6'
+  };
+
+  const reportDonutData = Object.keys(catCounts).map(cat => ({
+    label: cat,
+    value: catCounts[cat],
+    displayVal: `${catCounts[cat]} Dokumen`,
+    color: catColors[cat] || '#38bdf8'
+  }));
 
   const columns = [
     { key: 'period', label: 'Nama Laporan / Periode' },
@@ -60,6 +94,22 @@ export default function LaporanEvaluasi() {
           value={reports.length}
           subtitle="Dokumen evaluasi berkala"
           icon={FileBarChart}
+        />
+      </div>
+
+      {/* 2 Charts: Bar Chart & Donut Chart */}
+      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+        <SimpleBarChart
+          title="Skor Audit Kualitas per Evaluasi"
+          subtitle="Tingkat kepuasan & mutu deliverable"
+          data={reportBarData}
+        />
+        <DonutChart
+          title="Komposisi Jenis Dokumen Evaluasi"
+          subtitle="Distribusi laporan mutu operasional"
+          data={reportDonutData}
+          centerValue={`${reports.length}`}
+          centerLabel="Laporan"
         />
       </div>
 
