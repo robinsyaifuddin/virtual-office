@@ -193,27 +193,32 @@ export default function NotionTable({
   const wrapClass = isWrapEnabled ? 'ws-cell-wrap' : 'ws-cell-nowrap';
 
   return (
-    <div style={{
-      backgroundColor: '#ffffff',
-      border: '1px solid #e2e8f0',
-      borderRadius: '16px',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: '0 2px 12px rgba(15, 23, 42, 0.03)',
-      position: 'relative'
-    }}>
-      {/* Top Toolbar */}
-      <div style={{
-        padding: '14px 18px',
-        borderBottom: '1px solid #e2e8f0',
+    <div 
+      className="ws-table-wrapper"
+      style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: '16px',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        backgroundColor: '#ffffff'
-      }}>
+        flexDirection: 'column',
+        boxShadow: '0 2px 12px rgba(15, 23, 42, 0.03)',
+        position: 'relative'
+      }}
+    >
+      {/* Top Toolbar */}
+      <div 
+        className="ws-table-toolbar"
+        style={{
+          padding: '14px 18px',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          backgroundColor: '#ffffff'
+        }}
+      >
         {/* Left Toolbar: Search, Icon Dropdown Kategori, & Tombol Tandai */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', flex: 1, minWidth: '240px' }}>
           {/* Search Box */}
@@ -284,13 +289,13 @@ export default function NotionTable({
             {/* Popover Dropdown Kategori */}
             {isCatDropdownOpen && (
               <div 
-                className="ws-drawer-animate ws-custom-scroll"
+                className="ws-cat-popover ws-custom-scroll"
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 6px)',
                   left: 0,
-                  width: '240px',
-                  maxHeight: '300px',
+                  width: '220px',
+                  maxHeight: '320px',
                   overflowY: 'auto',
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
@@ -300,7 +305,8 @@ export default function NotionTable({
                   zIndex: 100,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '2px'
+                  gap: '2px',
+                  boxSizing: 'border-box'
                 }}
               >
                 <div style={{ padding: '6px 8px', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>
@@ -589,14 +595,16 @@ export default function NotionTable({
               {/* Kolom 1 Membeku: Aksi (Buka Modal Lebar) */}
               {enableStickyFreeze && (
                 <th className="ws-sticky-col-1 ws-table-action-th" style={{
-                  padding: '10px 12px',
-                  width: '56px',
-                  minWidth: '56px',
+                  padding: '10px 6px',
+                  width: '42px',
+                  minWidth: '42px',
+                  maxWidth: '42px',
                   textAlign: 'center',
                   fontWeight: 700,
                   backgroundColor: '#f8fafc',
                   borderRight: '1px solid #e2e8f0',
-                  left: isSelectModeActive ? '38px' : 0
+                  left: isSelectModeActive ? '38px' : 0,
+                  boxSizing: 'border-box'
                 }}>
                   Aksi
                 </th>
@@ -620,7 +628,7 @@ export default function NotionTable({
                       borderRight: '1px solid #e2e8f0',
                       minWidth: col.minWidth || '140px',
                       maxWidth: col.maxWidth || 'none',
-                      ...(isStickyTitle && isSelectModeActive ? { left: '94px' } : {})
+                      ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -702,11 +710,15 @@ export default function NotionTable({
                     {/* Kolom 1 Membeku: Tombol Buka (Membuka Kotak Modal Lebar) */}
                     {enableStickyFreeze && (
                       <td className="ws-sticky-col-1 ws-table-action-col" style={{
-                        padding: '6px 8px',
+                        padding: '6px 4px',
+                        width: '42px',
+                        minWidth: '42px',
+                        maxWidth: '42px',
                         textAlign: 'center',
                         backgroundColor: isRowSelected ? '#f0f9ff' : (idx % 2 === 0 ? '#ffffff' : '#fcfcfd'),
                         borderRight: '1px solid #e2e8f0',
-                        left: isSelectModeActive ? '38px' : 0
+                        left: isSelectModeActive ? '38px' : 0,
+                        boxSizing: 'border-box'
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
                           <button
@@ -750,7 +762,7 @@ export default function NotionTable({
                             borderRight: '1px solid #f1f5f9',
                             minWidth: col.minWidth || '140px',
                             maxWidth: col.maxWidth || 'none',
-                            ...(isStickyTitle && isSelectModeActive ? { left: '94px' } : {})
+                            ...(isStickyTitle ? { left: isSelectModeActive ? '80px' : '42px' } : {})
                           }}
                         >
                           {col.render ? (

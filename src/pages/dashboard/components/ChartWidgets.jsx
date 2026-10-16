@@ -50,8 +50,18 @@ export function SimpleBarChart({ title, subtitle, data = [] }) {
   );
 }
 
+// Skema warna biru bertingkat (Blue 100%, 90%, 80%, 70%, 60%, 50%)
+export const BLUE_PALETTE = [
+  '#0284c7', // Sky-600 (Primary Blue 100%)
+  '#0ea5e9', // Sky-500 (90%)
+  '#38bdf8', // Sky-400 (80%)
+  '#60a5fa', // Blue-400 (70%)
+  '#93c5fd', // Blue-300 (60%)
+  '#bfdbfe'  // Blue-200 (50%)
+];
+
 // Donut Chart Interaktif Berbasis SVG (Tanpa library luar, 100% responsif)
-export function DonutChart({ title, subtitle, data = [], centerLabel, centerValue }) {
+export function DonutChart({ title, subtitle, data = [] }) {
   const total = data.reduce((acc, curr) => acc + (curr.value || 0), 0) || 1;
   const radius = 42;
   const strokeWidth = 16;
@@ -82,7 +92,7 @@ export function DonutChart({ title, subtitle, data = [], centerLabel, centerValu
       </div>
 
       <div className="ws-donut-content-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'nowrap', minHeight: '120px', width: '100%', boxSizing: 'border-box' }}>
-        {/* SVG Donut */}
+        {/* SVG Donut Bersih Tanpa Teks di Dalam Bulatan */}
         <div className="ws-donut-svg-box" style={{ position: 'relative', width: '105px', height: '105px', flexShrink: 0 }}>
           <svg width="105" height="105" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
             <circle
@@ -98,6 +108,7 @@ export function DonutChart({ title, subtitle, data = [], centerLabel, centerValu
               const strokeDasharray = `${slicePercent * circumference} ${circumference}`;
               const strokeDashoffset = -accumulatedPercent * circumference;
               accumulatedPercent += slicePercent;
+              const sliceColor = BLUE_PALETTE[idx % BLUE_PALETTE.length];
 
               return (
                 <circle
@@ -106,7 +117,7 @@ export function DonutChart({ title, subtitle, data = [], centerLabel, centerValu
                   cy="60"
                   r={radius}
                   fill="transparent"
-                  stroke={item.color || '#0284c7'}
+                  stroke={sliceColor}
                   strokeWidth={strokeWidth}
                   strokeDasharray={strokeDasharray}
                   strokeDashoffset={strokeDashoffset}
@@ -115,32 +126,17 @@ export function DonutChart({ title, subtitle, data = [], centerLabel, centerValu
               );
             })}
           </svg>
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            pointerEvents: 'none'
-          }}>
-            <span className="ws-donut-center-val" style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-              {centerValue || total}
-            </span>
-            <span className="ws-donut-center-lbl" style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>
-              {centerLabel || 'Total'}
-            </span>
-          </div>
         </div>
 
-        {/* Legend List */}
+        {/* Legend List dengan Urutan Warna Biru Serasi */}
         <div className="ws-donut-legend-list" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {data.map((item, idx) => {
             const percent = total > 0 ? Math.round((item.value / total) * 100) : 0;
+            const sliceColor = BLUE_PALETTE[idx % BLUE_PALETTE.length];
             return (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', fontSize: '0.72rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
-                  <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: item.color || '#0284c7', flexShrink: 0 }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: sliceColor, flexShrink: 0 }} />
                   <span className="ws-donut-legend-text" style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {item.label}
                   </span>

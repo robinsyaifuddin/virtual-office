@@ -365,13 +365,12 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
                 <div style={{
                   width: '36px',
                   height: '36px',
-                  borderRadius: '10px',
+                  borderRadius: '50%',
                   backgroundColor: '#eff6ff',
                   border: '1px solid #bfdbfe',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.15)'
+                  justifyContent: 'center'
                 }}>
                   <Icon3DUser size={20} />
                 </div>

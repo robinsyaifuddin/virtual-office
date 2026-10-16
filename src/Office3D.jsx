@@ -71,9 +71,9 @@ export default function Office3D() {
           }}
           onClick={() => setIsWaOpen(!isWaOpen)}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <MessageSquare size={14} color="#00B9F1" />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#f8fafc' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+            <MessageSquare size={15} color="#38bdf8" style={{ filter: 'drop-shadow(0 0 6px rgba(56,189,248,0.7))' }} />
+            <span style={{ fontSize: '11.5px', fontWeight: 800, color: '#ffffff', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
               {isWaOpen ? 'SIMULASI WHATSAPP' : 'Kirim Perintah WhatsApp'}
             </span>
           </div>
@@ -86,7 +86,7 @@ export default function Office3D() {
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              color: '#94a3b8',
+              color: '#38bdf8',
               padding: '2px'
             }}
           >

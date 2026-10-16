@@ -553,6 +553,14 @@
   left: 20px;
   border-radius: 12px;
   transition: all 0.25s ease;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(0, 210, 255, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(0, 210, 255, 0.2);
+}
+
+.wa-command-box:hover {
+  border-color: rgba(0, 210, 255, 0.75);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), 0 0 20px rgba(0, 210, 255, 0.35);
 }
 
 @media (max-width: 768px) {

@@ -151,7 +151,7 @@
 
 .ws-sticky-col-2 {
   position: sticky;
-  left: 56px;
+  left: 42px;
   z-index: 20;
   box-shadow: 3px 0 6px -2px rgba(15, 23, 42, 0.08);
 }
@@ -395,15 +395,21 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
   }
 
   .ws-table-action-th {
-    width: 38px !important;
-    min-width: 38px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
     padding: 6px 4px !important;
   }
 
   .ws-table-action-col {
-    padding: 4px !important;
-    width: 38px !important;
-    min-width: 38px !important;
+    padding: 4px 2px !important;
+    width: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+  }
+
+  .ws-sticky-col-2 {
+    left: 42px !important;
   }
 
   .ws-table-open-btn {
@@ -419,5 +425,25 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
   .ws-open-text {
     display: none !important;
   }
+
+  /* Popover Dropdown Kategori di Mobile: Posisikan aman ke kanan agar tidak terpotong */
+  .ws-cat-popover {
+    left: auto !important;
+    right: -10px !important;
+    width: 220px !important;
+    max-width: calc(100vw - 32px) !important;
+    max-height: 290px !important;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22) !important;
+    z-index: 9999 !important;
+  }
+}
+
+/* Ensure table wrapper does not clip dropdowns but keeps bottom radius */
+.ws-table-wrapper {
+  overflow: visible !important;
+}
+.ws-table-wrapper > div:last-child {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
