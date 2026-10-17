@@ -106,7 +106,7 @@ function App() {
         {/* Route 1: Denah 3D Interaktif */}
         {currentRoute === 'office3d' && (
           <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
-            <Office3D />
+            <Office3D onOpenDashboard={handleSwitchToDashboard} />
           </div>
         )}
 

@@ -1,25 +1,169 @@
 import { create } from 'zustand';
+import { supabase } from '../utils/supabaseClient';
 
-// Initial Mock Data sesuai dengan Dokumen Standarisasi Workspace DigiBooster
+// Helper Audit Log
+async function recordAuditLog(action, tableName, recordId, changes) {
+  try {
+    await supabase.from('audit_logs').insert([{
+      actor_type: 'USER',
+      actor_name: 'Executive Owner',
+      action,
+      table_name: tableName,
+      record_id: String(recordId),
+      changes: changes || {}
+    }]);
+  } catch (err) {
+    console.warn('Gagal mencatat audit log:', err);
+  }
+}
 
 export const useWorkspaceStore = create((set, get) => ({
   // Active Module / Navigation
   activeModule: 'executivedashboard',
   setActiveModule: (moduleKey) => set({ activeModule: moduleKey }),
 
-  // 1. Executive Summary & KPIs
+  // Status sinkronisasi DB Supabase
+  isDbLoading: false,
+  dbError: null,
+
+  // Method Utama: Tarik Semua Data dari Supabase (Zero Dummy)
+  fetchWorkspaceData: async () => {
+    set({ isDbLoading: true, dbError: null });
+    try {
+      const [
+        { data: clients, error: errClients },
+        { data: txs, error: errTxs },
+        { data: tasks, error: errTasks },
+        { data: mkt, error: errMkt },
+        { data: okrs, error: errOkrs }
+      ] = await Promise.all([
+        supabase.from('crm_clients').select('*').order('created_at', { ascending: false }),
+        supabase.from('finance_transactions').select('*').order('date', { ascending: false }),
+        supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+        supabase.from('marketing_campaigns').select('*').order('created_at', { ascending: false }),
+        supabase.from('okr_goals').select('*').order('updated_at', { ascending: false })
+      ]);
+
+      if (errClients) console.warn('Supabase clients error:', errClients.message);
+      if (errTxs) console.warn('Supabase transactions error:', errTxs.message);
+      if (errTasks) console.warn('Supabase tasks error:', errTasks.message);
+      if (errMkt) console.warn('Supabase marketing error:', errMkt.message);
+      if (errOkrs) console.warn('Supabase OKRs error:', errOkrs.message);
+
+      // Normalisasi kolom DB snake_case ke format state camelCase
+      const formattedClients = (clients || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        category: c.category,
+        contact: c.contact,
+        stage: c.stage,
+        dealValue: Number(c.deal_value || 0),
+        services: c.services || [],
+        pic: c.pic,
+        contractDoc: c.contract_doc,
+        updatedAt: c.updated_at ? c.updated_at.split('T')[0] : ''
+      }));
+
+      const formattedTxs = (txs || []).map(t => ({
+        id: t.id,
+        title: t.title,
+        type: t.type,
+        category: t.category,
+        amount: Number(t.amount || 0),
+        clientRef: t.client_ref,
+        date: t.date,
+        status: t.status,
+        receiptDoc: t.receipt_doc
+      }));
+
+      const formattedTasks = (tasks || []).map(tk => ({
+        id: tk.id,
+        title: tk.title,
+        description: tk.description,
+        category: tk.category,
+        project: tk.project,
+        assignee: tk.assignee,
+        priority: tk.priority,
+        status: tk.status,
+        dueDate: tk.due_date,
+        completedDate: tk.completed_date,
+        outputResult: tk.output_result,
+        createdBy: tk.created_by,
+        comments: tk.comments || [],
+        updatedAt: tk.updated_at ? tk.updated_at.replace('T', ' ').substring(0, 16) : ''
+      }));
+
+      const formattedMkt = (mkt || []).map(m => ({
+        id: m.id,
+        title: m.title,
+        channel: m.channel,
+        pillar: m.pillar,
+        stage: m.stage,
+        publishDate: m.publish_date,
+        adSpend: Number(m.ad_spend || 0),
+        metrics: m.metrics || { reach: 0, leads: 0 },
+        mediaLink: m.media_link
+      }));
+
+      const formattedOkrs = (okrs || []).map(o => ({
+        id: o.id,
+        objective: o.objective,
+        keyResult: o.key_result,
+        category: o.category,
+        division: o.division,
+        quarter: o.quarter,
+        targetNum: Number(o.target_num || 0),
+        currentNum: Number(o.current_num || 0),
+        unit: o.unit,
+        progressPercent: o.progress_percent || 0,
+        status: o.status,
+        owner: o.owner
+      }));
+
+      // Hitung ringkasan eksekutif murni dari data nyata Supabase
+      const totalIncome = formattedTxs.filter(t => t.type === 'Pemasukan' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
+      const totalExpense = formattedTxs.filter(t => t.type === 'Pengeluaran' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
+      const netCashflow = totalIncome - totalExpense;
+      const pipelineVal = formattedClients.filter(c => c.stage !== 'Deal Lost').reduce((acc, c) => acc + (c.dealValue || 0), 0);
+      const completedTasks = formattedTasks.filter(t => t.status === 'Selesai').length;
+      const velocityPct = formattedTasks.length > 0 ? Math.round((completedTasks / formattedTasks.length) * 100) : 0;
+
+      const dynamicSummary = {
+        monthlyNetCashflow: 'Rp ' + netCashflow.toLocaleString('id-ID'),
+        cashflowGrowth: '0%',
+        activePipelineValue: 'Rp ' + pipelineVal.toLocaleString('id-ID'),
+        pipelineDealsCount: formattedClients.length,
+        taskVelocityPercent: velocityPct,
+        taskVelocityStatus: formattedTasks.length === 0 ? 'Data Kosong' : (velocityPct >= 80 ? 'Optimal' : (velocityPct >= 50 ? 'Sedang Berjalan' : 'Perlu Akselerasi')),
+        okrAverageProgress: formattedOkrs.length > 0 ? Math.round(formattedOkrs.reduce((a, b) => a + (b.progressPercent || 0), 0) / formattedOkrs.length) : 0,
+        criticalAlerts: []
+      };
+
+      set({
+        crmClients: formattedClients,
+        financeTransactions: formattedTxs,
+        tasks: formattedTasks,
+        marketingCampaigns: formattedMkt,
+        okrGoals: formattedOkrs,
+        executiveSummary: dynamicSummary,
+        isDbLoading: false
+      });
+    } catch (e) {
+      console.error('Fatal fetch error:', e);
+      set({ isDbLoading: false, dbError: e.message });
+    }
+  },
+
+  // 1. Executive Summary & KPIs (Dihitung dinamis dari data nyata)
   executiveSummary: {
-    monthlyNetCashflow: 'Rp 68.500.000',
-    cashflowGrowth: '+18.4%',
-    activePipelineValue: 'Rp 245.000.000',
-    pipelineDealsCount: 7,
-    taskVelocityPercent: 92,
-    taskVelocityStatus: 'Optimal',
-    okrAverageProgress: 78,
-    criticalAlerts: [
-      { id: 'ALT-1', type: 'warning', title: '2 Invoice Menjelang Jatuh Tempo', detail: 'PT Sinergi Mandiri & Kopi Nusantara' },
-      { id: 'ALT-2', type: 'info', title: 'Sprint Review Q4 Terjadwal', detail: 'Besok, 10:00 WIB di Ruang Rapat Virtual' }
-    ]
+    monthlyNetCashflow: 'Rp 0',
+    cashflowGrowth: '0%',
+    activePipelineValue: 'Rp 0',
+    pipelineDealsCount: 0,
+    taskVelocityPercent: 0,
+    taskVelocityStatus: 'Siap Input',
+    okrAverageProgress: 0,
+    criticalAlerts: []
   },
 
   crmCategories: [
@@ -37,314 +181,196 @@ export const useWorkspaceStore = create((set, get) => ({
     crmCategories: state.crmCategories.filter((c) => c !== categoryToDelete)
   })),
 
-  // 2. CRM & Klien
-  crmClients: [
-    {
-      id: 'CRM-001',
-      name: 'PT Sinergi Digital Utama',
-      category: 'Enterprise Corp',
-      contact: '+62 812-8899-1234',
-      stage: 'Negosiasi',
-      dealValue: 75000000,
-      services: ['Custom AI', 'Web Dev'],
-      pic: 'Kevin Pratama',
-      contractDoc: 'PKS_Sinergi_Draft_v2.pdf',
-      updatedAt: '2026-10-15'
-    },
-    {
-      id: 'CRM-002',
-      name: 'Kopi Nusantara Group',
-      category: 'UKM / Ritel',
-      contact: '+62 811-2233-4455',
-      stage: 'Proposal Terkirim',
-      dealValue: 35000000,
-      services: ['Branding', 'Social Media'],
-      pic: 'Dina Safitri',
-      contractDoc: 'Proposal_Branding_Kopi.pdf',
-      updatedAt: '2026-10-14'
-    },
-    {
-      id: 'CRM-003',
-      name: 'Nusa Cipta Solusi',
-      category: 'Startup & Tech',
-      contact: '+62 813-7766-5544',
-      stage: 'Deal Won',
-      dealValue: 60000000,
-      services: ['Custom AI', 'Digital Ads'],
-      pic: 'Maya Nirmala',
-      contractDoc: 'PKS_NusaCipta_Final.pdf',
-      updatedAt: '2026-10-12'
-    },
-    {
-      id: 'CRM-004',
-      name: 'Bina Finansial Solusindo',
-      category: 'Enterprise Corp',
-      contact: '+62 821-9988-7711',
-      stage: 'Discovery Call',
-      dealValue: 45000000,
-      services: ['Custom AI'],
-      pic: 'Tomi',
-      contractDoc: null,
-      updatedAt: '2026-10-10'
-    },
-    {
-      id: 'CRM-005',
-      name: 'Artha Mandiri Logistik',
-      category: 'UKM / Ritel',
-      contact: '+62 818-4455-6677',
-      stage: 'Lead Masuk',
-      dealValue: 30000000,
-      services: ['Web Dev'],
-      pic: 'Kevin Pratama',
-      contractDoc: null,
-      updatedAt: '2026-10-09'
-    },
-    {
-      id: 'CRM-006',
-      name: 'PT Mitra Retail Mandiri (Arsip Sept)',
-      category: 'Enterprise Corp',
-      contact: '+62 811-9922-3344',
-      stage: 'Deal Won',
-      dealValue: 85000000,
-      services: ['Custom AI', 'Omnichannel CRM'],
-      pic: 'Kevin Pratama',
-      contractDoc: 'PKS_MitraRetail_Sept26.pdf',
-      updatedAt: '2026-09-24'
-    },
-    {
-      id: 'CRM-007',
-      name: 'CV Samudera Cargo (Arsip Agt)',
-      category: 'UKM / Ritel',
-      contact: '+62 817-3344-5566',
-      stage: 'Deal Won',
-      dealValue: 40000000,
-      services: ['Web Dev', 'Tracking'],
-      pic: 'Maya Nirmala',
-      contractDoc: 'PKS_Samudera_Aug26.pdf',
-      updatedAt: '2026-08-19'
-    },
-    {
-      id: 'CRM-008',
-      name: 'Resto Rasa Nusantara (Arsip Juli)',
-      category: 'UKM / Ritel',
-      contact: '+62 819-5566-7788',
-      stage: 'Deal Won',
-      dealValue: 28000000,
-      services: ['Branding', 'Social Media'],
-      pic: 'Dina Safitri',
-      contractDoc: 'PKS_RasaNusantara_Jul26.pdf',
-      updatedAt: '2026-07-28'
+  // 2. CRM & Klien (Murni kosong dari awal, disimpan ke Supabase)
+  crmClients: [],
+  addCrmClient: async (client) => {
+    const id = client.id || `CRM-${Date.now().toString().slice(-4)}`;
+    const newClient = { ...client, id };
+    
+    // Update local state instan
+    set((state) => ({ crmClients: [newClient, ...state.crmClients] }));
+
+    // Simpan ke Supabase
+    try {
+      await supabase.from('crm_clients').insert([{
+        id: newClient.id,
+        name: newClient.name,
+        category: newClient.category,
+        contact: newClient.contact,
+        stage: newClient.stage,
+        deal_value: newClient.dealValue || 0,
+        services: newClient.services || [],
+        pic: newClient.pic,
+        contract_doc: newClient.contractDoc
+      }]);
+      await recordAuditLog('INSERT', 'crm_clients', newClient.id, newClient);
+    } catch (err) {
+      console.error('Gagal simpan client ke Supabase:', err);
     }
-  ],
-  addCrmClient: (client) => set((state) => ({ crmClients: [client, ...state.crmClients] })),
-  updateCrmClient: (id, updated) => set((state) => ({
-    crmClients: state.crmClients.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteCrmClient: (id) => set((state) => ({
-    crmClients: state.crmClients.filter((item) => item.id !== id)
-  })),
+  },
+
+  updateCrmClient: async (id, updated) => {
+    set((state) => ({
+      crmClients: state.crmClients.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+
+    try {
+      const payload = {};
+      if (updated.name !== undefined) payload.name = updated.name;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.contact !== undefined) payload.contact = updated.contact;
+      if (updated.stage !== undefined) payload.stage = updated.stage;
+      if (updated.dealValue !== undefined) payload.deal_value = updated.dealValue;
+      if (updated.services !== undefined) payload.services = updated.services;
+      if (updated.pic !== undefined) payload.pic = updated.pic;
+      if (updated.contractDoc !== undefined) payload.contract_doc = updated.contractDoc;
+      payload.updated_at = new Date().toISOString();
+
+      await supabase.from('crm_clients').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'crm_clients', id, updated);
+    } catch (err) {
+      console.error('Gagal update client di Supabase:', err);
+    }
+  },
+
+  deleteCrmClient: async (id) => {
+    set((state) => ({
+      crmClients: state.crmClients.filter((item) => item.id !== id)
+    }));
+
+    try {
+      await supabase.from('crm_clients').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'crm_clients', id, null);
+    } catch (err) {
+      console.error('Gagal hapus client di Supabase:', err);
+    }
+  },
 
   // 3. Keuangan & Profit
-  financeTransactions: [
-    {
-      id: 'FIN-101',
-      title: 'Termin 1 Implementasi Custom AI PT Nusa Cipta',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 30000000,
-      clientRef: 'Nusa Cipta Solusi',
-      date: '2026-10-14',
-      status: 'Lunas',
-      receiptDoc: 'Faktur_INV-2026-089.pdf'
-    },
-    {
-      id: 'FIN-102',
-      title: 'Langganan Server Cloud & Groq API Enterprise',
-      type: 'Pengeluaran',
-      category: 'Server & Tools',
-      amount: 4500000,
-      clientRef: 'Internal',
-      date: '2026-10-12',
-      status: 'Lunas',
-      receiptDoc: 'Struk_Cloud_Oct26.pdf'
-    },
-    {
-      id: 'FIN-103',
-      title: 'Invoice Retainer Digital Marketing Kopi Nusantara',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 15000000,
-      clientRef: 'Kopi Nusantara Group',
-      date: '2026-10-10',
-      status: 'Pending',
-      receiptDoc: 'Invoice_INV-2026-092.pdf'
-    },
-    {
-      id: 'FIN-104',
-      title: 'Meta Ads & Google Campaign Optimasi Q4',
-      type: 'Pengeluaran',
-      category: 'Marketing Ads',
-      amount: 7000000,
-      clientRef: 'Internal',
-      date: '2026-10-08',
-      status: 'Lunas',
-      receiptDoc: 'Receipt_MetaAds_Q4.pdf'
-    },
-    {
-      id: 'FIN-105',
-      title: 'Pelunasan Web Dev & Automasi PT Logistik Prima',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 35000000,
-      clientRef: 'PT Logistik Prima',
-      date: '2026-10-05',
-      status: 'Lunas',
-      receiptDoc: 'Receipt_INV-2026-077.pdf'
-    },
-    // Transaksi Arsip Historis
-    {
-      id: 'FIN-106',
-      title: 'Pelunasan Kontrak Q3 PT Mitra Retail (Sept)',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 85000000,
-      clientRef: 'PT Mitra Retail Mandiri',
-      date: '2026-09-26',
-      status: 'Lunas',
-      receiptDoc: 'Receipt_INV-2026-068.pdf'
-    },
-    {
-      id: 'FIN-107',
-      title: 'Pembayaran Gaji & Bonus Tim Tech Q3 (Sept)',
-      type: 'Pengeluaran',
-      category: 'Operasional',
-      amount: 32000000,
-      clientRef: 'Internal HR',
-      date: '2026-09-25',
-      status: 'Lunas',
-      receiptDoc: 'Slip_Payroll_Sept26.pdf'
-    },
-    {
-      id: 'FIN-108',
-      title: 'Termin Akhir CV Samudera Cargo (Agustus)',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 40000000,
-      clientRef: 'CV Samudera Cargo',
-      date: '2026-08-20',
-      status: 'Lunas',
-      receiptDoc: 'Receipt_INV-2026-052.pdf'
-    },
-    {
-      id: 'FIN-109',
-      title: 'Pembayaran Jasa Retainer Resto Rasa (Juli)',
-      type: 'Pemasukan',
-      category: 'Pembayaran Klien',
-      amount: 28000000,
-      clientRef: 'Resto Rasa Nusantara',
-      date: '2026-07-30',
-      status: 'Lunas',
-      receiptDoc: 'Receipt_INV-2026-039.pdf'
+  financeTransactions: [],
+  addFinanceTransaction: async (tx) => {
+    const id = tx.id || `FIN-${Date.now().toString().slice(-4)}`;
+    const newTx = { ...tx, id };
+
+    set((state) => ({ financeTransactions: [newTx, ...state.financeTransactions] }));
+
+    try {
+      await supabase.from('finance_transactions').insert([{
+        id: newTx.id,
+        title: newTx.title,
+        type: newTx.type,
+        category: newTx.category,
+        amount: newTx.amount || 0,
+        client_ref: newTx.clientRef,
+        date: newTx.date || new Date().toISOString().split('T')[0],
+        status: newTx.status || 'Pending',
+        receipt_doc: newTx.receiptDoc
+      }]);
+      await recordAuditLog('INSERT', 'finance_transactions', newTx.id, newTx);
+    } catch (err) {
+      console.error('Gagal simpan transaksi ke Supabase:', err);
     }
-  ],
-  addFinanceTransaction: (tx) => set((state) => ({ financeTransactions: [tx, ...state.financeTransactions] })),
-  updateFinanceTransaction: (id, updated) => set((state) => ({
-    financeTransactions: state.financeTransactions.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteFinanceTransaction: (id) => set((state) => ({
-    financeTransactions: state.financeTransactions.filter((item) => item.id !== id)
-  })),
+  },
+
+  updateFinanceTransaction: async (id, updated) => {
+    set((state) => ({
+      financeTransactions: state.financeTransactions.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.type !== undefined) payload.type = updated.type;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.amount !== undefined) payload.amount = updated.amount;
+      if (updated.clientRef !== undefined) payload.client_ref = updated.clientRef;
+      if (updated.date !== undefined) payload.date = updated.date;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.receiptDoc !== undefined) payload.receipt_doc = updated.receiptDoc;
+
+      await supabase.from('finance_transactions').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'finance_transactions', id, updated);
+    } catch (err) {
+      console.error('Gagal update transaksi di Supabase:', err);
+    }
+  },
+
+  deleteFinanceTransaction: async (id) => {
+    set((state) => ({
+      financeTransactions: state.financeTransactions.filter((item) => item.id !== id)
+    }));
+
+    try {
+      await supabase.from('finance_transactions').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'finance_transactions', id, null);
+    } catch (err) {
+      console.error('Gagal hapus transaksi di Supabase:', err);
+    }
+  },
 
   // 4. Branding & Marketing
-  marketingCampaigns: [
-    {
-      id: 'MKT-001',
-      title: '10 Script Video Pendek TikTok/Reels Kantor Otomatis',
-      channel: 'TikTok',
-      pillar: 'Edukasi',
-      stage: 'Siap Tayang',
-      publishDate: '2026-10-18',
-      adSpend: 2500000,
-      metrics: { reach: 84000, leads: 42 },
-      mediaLink: 'Aset_Video_KantorAI.mp4'
-    },
-    {
-      id: 'MKT-002',
-      title: 'Studi Kasus Efisiensi 340% dengan Autonomous AI',
-      channel: 'LinkedIn',
-      pillar: 'Case Study',
-      stage: 'Review',
-      publishDate: '2026-10-20',
-      adSpend: 1500000,
-      metrics: { reach: 24000, leads: 18 },
-      mediaLink: 'Whitepaper_CaseStudy.pdf'
-    },
-    {
-      id: 'MKT-003',
-      title: 'Broadcast Promo Flash Sale 10.10 Multi-Agent',
-      channel: 'Email',
-      pillar: 'Promo/Hard Sell',
-      stage: 'Selesai Tayang',
-      publishDate: '2026-10-10',
-      adSpend: 3000000,
-      metrics: { reach: 110000, leads: 95 },
-      mediaLink: 'Banner_Promo_1010.png'
-    },
-    {
-      id: 'MKT-004',
-      title: 'Behind the Scenes: AI Agent Bekerja di Belakang Layar',
-      channel: 'Instagram',
-      pillar: 'Branding',
-      stage: 'Design/Video',
-      publishDate: '2026-10-22',
-      adSpend: 500000,
-      metrics: { reach: 0, leads: 0 },
-      mediaLink: 'Raw_Footage_BTS.zip'
-    },
-    // Kampanye Arsip Historis
-    {
-      id: 'MKT-005',
-      title: 'Peluncuran Podcast Bisnis AI Episode 1 (September)',
-      channel: 'YouTube',
-      pillar: 'Edukasi',
-      stage: 'Selesai Tayang',
-      publishDate: '2026-09-18',
-      adSpend: 4000000,
-      metrics: { reach: 98000, leads: 64 },
-      mediaLink: 'Video_Podcast_Ep1.mp4'
-    },
-    {
-      id: 'MKT-006',
-      title: 'Webinar Kolaborasi Efisiensi Operasional (Agustus)',
-      channel: 'LinkedIn',
-      pillar: 'Edukasi',
-      stage: 'Selesai Tayang',
-      publishDate: '2026-08-22',
-      adSpend: 2000000,
-      metrics: { reach: 45000, leads: 82 },
-      mediaLink: 'Recording_Webinar_Aug.mp4'
-    },
-    {
-      id: 'MKT-007',
-      title: 'Kampanye Branding Mid-Year Review 2026 (Juli)',
-      channel: 'Instagram',
-      pillar: 'Branding',
-      stage: 'Selesai Tayang',
-      publishDate: '2026-07-25',
-      adSpend: 3500000,
-      metrics: { reach: 125000, leads: 110 },
-      mediaLink: 'Carousel_MidYear.zip'
-    }
-  ],
-  addMarketingCampaign: (camp) => set((state) => ({ marketingCampaigns: [camp, ...state.marketingCampaigns] })),
-  updateMarketingCampaign: (id, updated) => set((state) => ({
-    marketingCampaigns: state.marketingCampaigns.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteMarketingCampaign: (id) => set((state) => ({
-    marketingCampaigns: state.marketingCampaigns.filter((item) => item.id !== id)
-  })),
+  marketingCampaigns: [],
+  addMarketingCampaign: async (camp) => {
+    const id = camp.id || `MKT-${Date.now().toString().slice(-4)}`;
+    const newCamp = { ...camp, id };
 
-  // 5. Tugas & Kalender (Notion Database Structure)
+    set((state) => ({ marketingCampaigns: [newCamp, ...state.marketingCampaigns] }));
+
+    try {
+      await supabase.from('marketing_campaigns').insert([{
+        id: newCamp.id,
+        title: newCamp.title,
+        channel: newCamp.channel,
+        pillar: newCamp.pillar,
+        stage: newCamp.stage,
+        publish_date: newCamp.publishDate,
+        ad_spend: newCamp.adSpend || 0,
+        metrics: newCamp.metrics || { reach: 0, leads: 0 },
+        media_link: newCamp.mediaLink
+      }]);
+      await recordAuditLog('INSERT', 'marketing_campaigns', newCamp.id, newCamp);
+    } catch (err) {
+      console.error('Gagal simpan kampanye ke Supabase:', err);
+    }
+  },
+
+  updateMarketingCampaign: async (id, updated) => {
+    set((state) => ({
+      marketingCampaigns: state.marketingCampaigns.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.channel !== undefined) payload.channel = updated.channel;
+      if (updated.pillar !== undefined) payload.pillar = updated.pillar;
+      if (updated.stage !== undefined) payload.stage = updated.stage;
+      if (updated.publishDate !== undefined) payload.publish_date = updated.publishDate;
+      if (updated.adSpend !== undefined) payload.ad_spend = updated.adSpend;
+      if (updated.metrics !== undefined) payload.metrics = updated.metrics;
+      if (updated.mediaLink !== undefined) payload.media_link = updated.mediaLink;
+
+      await supabase.from('marketing_campaigns').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'marketing_campaigns', id, updated);
+    } catch (err) {
+      console.error('Gagal update kampanye di Supabase:', err);
+    }
+  },
+
+  deleteMarketingCampaign: async (id) => {
+    set((state) => ({
+      marketingCampaigns: state.marketingCampaigns.filter((item) => item.id !== id)
+    }));
+
+    try {
+      await supabase.from('marketing_campaigns').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'marketing_campaigns', id, null);
+    } catch (err) {
+      console.error('Gagal hapus kampanye di Supabase:', err);
+    }
+  },
+
+  // 5. Tugas & Kalender (Tasks)
   taskCategories: [
     'Website & Tracking',
     'Konten & Creative',
@@ -364,213 +390,118 @@ export const useWorkspaceStore = create((set, get) => ({
     taskCategories: state.taskCategories.filter((c) => c !== categoryToDelete)
   })),
 
-  tasks: [
-    {
-      id: 'TSK-001',
-      title: 'WEEKEND WELLNESS EDIT',
-      description: 'ON PROGRESS. Eksekusi revisi video reels dan publish sesuai jadwal.',
-      category: 'Campaign / Promo',
-      project: 'Internal Agency',
-      assignee: 'Kayla',
-      priority: 'P1',
-      status: 'Sedang Dikerjakan',
-      dueDate: '2026-10-17',
-      completedDate: '2026-10-10',
-      outputResult: 'Draft reel Instagram v1 selesai',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-08 14:23',
-      updatedBy: 'Executive Owner',
-      updatedAt: '2026-10-15 11:20',
-      comments: [
-        {
-          id: 'C-1',
-          author: 'Executive Owner',
-          createdAt: '15 Okt 2026 11:22',
-          text: 'Tolong pastikan format video sudah 9:16 untuk reel ya Kayla.'
-        },
-        {
-          id: 'C-2',
-          author: 'Kayla',
-          createdAt: '15 Okt 2026 11:45',
-          text: 'Siap, sudah disesuaikan dan tinggal menunggu approve asset grafis.'
-        }
-      ]
-    },
-    {
-      id: 'TSK-002',
-      title: 'Optimasi Social Channel (Instagram + TikTok)',
-      description: 'Eksekusi optimasi channel sosial utama berdasarkan audit (profil, format, CTA, workflow posting).',
-      category: 'Social Channel Ops',
-      project: 'Kopi Nusantara Group',
-      assignee: 'Budi',
-      priority: 'P2',
-      status: 'Backlog',
-      dueDate: '2026-10-20',
-      completedDate: '',
-      outputResult: '',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-10 09:15',
-      updatedBy: 'Budi',
-      updatedAt: '2026-10-01 16:40',
-      comments: []
-    },
-    {
-      id: 'TSK-003',
-      title: 'Improvement Plan (Technology)',
-      description: 'Menyusun improvement plan teknologi berdasarkan evaluasi Agustus.',
-      category: 'Website & Tracking',
-      project: 'Nusa Cipta Solusi',
-      assignee: 'Dimas',
-      priority: 'P1',
-      status: 'Backlog',
-      dueDate: '2026-10-25',
-      completedDate: '',
-      outputResult: '',
-      createdBy: 'Dimas',
-      createdAt: '2026-09-12 11:00',
-      updatedBy: 'Dimas',
-      updatedAt: '2026-09-12 11:00',
-      comments: []
-    },
-    {
-      id: 'TSK-004',
-      title: 'Evaluasi Hardware & Alat Kerja',
-      description: 'Evaluasi hardware yang dibeli/dipakai selama Agustus untuk memastikan sesuai kebutuhan dan stabil.',
-      category: 'Procurement & Tools',
-      project: 'Internal Tech',
-      assignee: 'Kayla',
-      priority: 'P3',
-      status: 'Menunggu Review',
-      dueDate: '2026-10-28',
-      completedDate: '',
-      outputResult: 'Draft checklist evaluasi siap ditinjau',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-15 08:30',
-      updatedBy: 'Kayla',
-      updatedAt: '2026-10-14 14:10',
-      comments: []
-    },
-    {
-      id: 'TSK-005',
-      title: 'Evaluasi Software dan SOP Workflow',
-      description: 'Evaluasi software yang digunakan untuk menentukan perbaikan dan prioritas tim.',
-      category: 'SOP & Workflow',
-      project: 'Internal Management',
-      assignee: 'Dimas',
-      priority: 'P2',
-      status: 'Selesai',
-      dueDate: '2026-10-12',
-      completedDate: '2026-10-12',
-      outputResult: 'Dokumen SOP Workflow Oct2026 disahkan',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-15 08:32',
-      updatedBy: 'Dimas',
-      updatedAt: '2026-10-12 17:05',
-      comments: []
-    },
-    // Data Arsip Historis (Bulan Lampau)
-    {
-      id: 'TSK-006',
-      title: 'Finalisasi Laporan Keuangan Q3 (September)',
-      description: 'Rekonsiliasi rekening koran dan pembukuan kuartal 3 selesai disetujui auditor internal.',
-      category: 'KPI & Reporting',
-      project: 'Internal Agency',
-      assignee: 'Kayla',
-      priority: 'P1',
-      status: 'Selesai',
-      dueDate: '2026-09-28',
-      completedDate: '2026-09-28',
-      outputResult: 'Laporan Q3_Signed.pdf',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-01 10:00',
-      updatedBy: 'Kayla',
-      updatedAt: '2026-09-28 17:00',
-      comments: []
-    },
-    {
-      id: 'TSK-007',
-      title: 'Peluncuran Website V2 PT Sinergi Digital',
-      description: 'Deployment landing page dan integrasi tracking pixel selesai tepat waktu.',
-      category: 'Website & Tracking',
-      project: 'PT Sinergi Digital Utama',
-      assignee: 'Dimas',
-      priority: 'P1',
-      status: 'Selesai',
-      dueDate: '2026-09-15',
-      completedDate: '2026-09-15',
-      outputResult: 'Live di production domain',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-09-01 09:00',
-      updatedBy: 'Dimas',
-      updatedAt: '2026-09-15 18:30',
-      comments: []
-    },
-    {
-      id: 'TSK-008',
-      title: 'Audit Infrastruktur Server & Cloud (Agustus)',
-      description: 'Pembersihan database staging dan peningkatan kapasitas server AI inference.',
-      category: 'Procurement & Tools',
-      project: 'Internal Tech',
-      assignee: 'Budi',
-      priority: 'P2',
-      status: 'Selesai',
-      dueDate: '2026-08-25',
-      completedDate: '2026-08-25',
-      outputResult: 'Dokumen arsitektur cloud v2',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-08-05 11:20',
-      updatedBy: 'Budi',
-      updatedAt: '2026-08-25 16:00',
-      comments: []
-    },
-    {
-      id: 'TSK-009',
-      title: 'Workshop Orientasi Tim AI Baru (Juli)',
-      description: 'Sesi pelatihan onboarding 4 agent engineer dan transfer knowledge framework prompt.',
-      category: 'SOP & Workflow',
-      project: 'Internal Management',
-      assignee: 'Dimas',
-      priority: 'P2',
-      status: 'Selesai',
-      dueDate: '2026-07-20',
-      completedDate: '2026-07-20',
-      outputResult: 'Modul pelatihan internal & video rekaman',
-      createdBy: 'Executive Owner',
-      createdAt: '2026-07-01 09:00',
-      updatedBy: 'Dimas',
-      updatedAt: '2026-07-20 15:45',
-      comments: []
+  tasks: [],
+  addTask: async (task) => {
+    const id = task.id || `TSK-${Date.now().toString().slice(-4)}`;
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newTask = { 
+      ...task, 
+      id, 
+      comments: task.comments || [],
+      createdAt: task.createdAt || nowStr,
+      updatedAt: nowStr
+    };
+
+    set((state) => ({ tasks: [newTask, ...state.tasks] }));
+
+    try {
+      await supabase.from('tasks').insert([{
+        id: newTask.id,
+        title: newTask.title,
+        description: newTask.description,
+        category: newTask.category,
+        project: newTask.project,
+        assignee: newTask.assignee,
+        priority: newTask.priority || 'P2',
+        status: newTask.status || 'Backlog',
+        due_date: newTask.dueDate || null,
+        completed_date: newTask.completedDate || null,
+        output_result: newTask.outputResult || '',
+        created_by: newTask.createdBy || 'Executive Owner',
+        comments: newTask.comments || []
+      }]);
+      await recordAuditLog('INSERT', 'tasks', newTask.id, newTask);
+    } catch (err) {
+      console.error('Gagal simpan task ke Supabase:', err);
     }
-  ],
-  addTask: (task) => set((state) => ({ tasks: [task, ...state.tasks] })),
-  updateTask: (id, updated) => set((state) => ({
-    tasks: state.tasks.map((item) => item.id === id ? { 
-      ...item, 
-      ...updated, 
-      updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      updatedBy: 'Executive Owner'
-    } : item)
-  })),
-  deleteTask: (id) => set((state) => ({
-    tasks: state.tasks.filter((item) => item.id !== id)
-  })),
-  addTaskComment: (taskId, commentText, author = 'Executive Owner') => set((state) => ({
-    tasks: state.tasks.map((item) => {
-      if (item.id !== taskId) return item;
-      const newComment = {
-        id: `C-${Date.now()}`,
-        author,
-        createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        text: commentText
-      };
-      return {
+  },
+
+  updateTask: async (id, updated) => {
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    set((state) => ({
+      tasks: state.tasks.map((item) => item.id === id ? { 
+        ...item, 
+        ...updated, 
+        updatedAt: nowStr,
+        updatedBy: 'Executive Owner'
+      } : item)
+    }));
+
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.description !== undefined) payload.description = updated.description;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.project !== undefined) payload.project = updated.project;
+      if (updated.assignee !== undefined) payload.assignee = updated.assignee;
+      if (updated.priority !== undefined) payload.priority = updated.priority;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.dueDate !== undefined) payload.due_date = updated.dueDate || null;
+      if (updated.completedDate !== undefined) payload.completed_date = updated.completedDate || null;
+      if (updated.outputResult !== undefined) payload.output_result = updated.outputResult;
+      if (updated.comments !== undefined) payload.comments = updated.comments;
+      payload.updated_at = new Date().toISOString();
+
+      await supabase.from('tasks').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'tasks', id, updated);
+    } catch (err) {
+      console.error('Gagal update task di Supabase:', err);
+    }
+  },
+
+  deleteTask: async (id) => {
+    set((state) => ({
+      tasks: state.tasks.filter((item) => item.id !== id)
+    }));
+
+    try {
+      await supabase.from('tasks').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'tasks', id, null);
+    } catch (err) {
+      console.error('Gagal hapus task di Supabase:', err);
+    }
+  },
+
+  addTaskComment: async (taskId, commentText, author = 'Executive Owner') => {
+    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const newComment = {
+      id: `C-${Date.now()}`,
+      author,
+      createdAt: nowStr,
+      text: commentText
+    };
+
+    const currentTask = get().tasks.find(t => t.id === taskId);
+    const updatedComments = currentTask ? [...(currentTask.comments || []), newComment] : [newComment];
+
+    set((state) => ({
+      tasks: state.tasks.map((item) => item.id === taskId ? {
         ...item,
-        comments: [...(item.comments || []), newComment],
-        updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+        comments: updatedComments,
+        updatedAt: nowStr,
         updatedBy: author
-      };
-    })
-  })),
+      } : item)
+    }));
+
+    try {
+      await supabase.from('tasks').update({
+        comments: updatedComments,
+        updated_at: new Date().toISOString()
+      }).eq('id', taskId);
+    } catch (err) {
+      console.error('Gagal tambah komentar di Supabase:', err);
+    }
+  },
 
   // 6. Sasaran & KPI (OKR)
   okrCategories: [
@@ -588,88 +519,76 @@ export const useWorkspaceStore = create((set, get) => ({
     okrCategories: state.okrCategories.filter((c) => c !== categoryToDelete)
   })),
 
-  okrGoals: [
-    {
-      id: 'OKR-001',
-      objective: 'Ekspansi Pendapatan Retainer Agency ke Skala Enterprise',
-      keyResult: 'Capai Monthly Recurring Revenue (MRR) Rp 100 Juta',
-      category: 'Revenue & Pertumbuhan',
-      division: 'Sales & Marketing',
-      quarter: 'Q4',
-      targetNum: 100000000,
-      currentNum: 75000000,
-      unit: 'IDR',
-      status: 'On Track',
-      owner: 'Kevin Pratama',
-      targetDeadline: '2026-12-31'
-    },
-    {
-      id: 'OKR-002',
-      objective: 'Optimalisasi Latensi Sistem Multi-Agent Realtime',
-      keyResult: 'Tekan rata-rata respons inferensi LLM di bawah 2 detik',
-      category: 'Teknologi & Infrastruktur',
-      division: 'Operasional/Produksi',
-      quarter: 'Q4',
-      targetNum: 2.0,
-      currentNum: 1.4,
-      unit: 'Detik',
-      status: 'Tercapai',
-      owner: 'Maya Nirmala',
-      targetDeadline: '2026-11-30'
-    },
-    {
-      id: 'OKR-003',
-      objective: 'Tingkatkan Brand Authority di Media Sosial Bisnis',
-      keyResult: 'Raih 50.000 Followers Organik & 500 Leads Masuk',
-      category: 'Brand & Komunitas',
-      division: 'Kreatif',
-      quarter: 'Q4',
-      targetNum: 500,
-      currentNum: 380,
-      unit: 'Leads',
-      status: 'On Track',
-      owner: 'Dina Safitri',
-      targetDeadline: '2026-12-15'
-    }
-  ],
-  addOkrGoal: (goal) => set((state) => ({ okrGoals: [goal, ...state.okrGoals] })),
-  updateOkrGoal: (id, updated) => set((state) => ({
-    okrGoals: state.okrGoals.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteOkrGoal: (id) => set((state) => ({
-    okrGoals: state.okrGoals.filter((item) => item.id !== id)
-  })),
+  okrGoals: [],
+  addOkrGoal: async (goal) => {
+    const id = goal.id || `OKR-${Date.now().toString().slice(-4)}`;
+    const newGoal = { ...goal, id };
 
-  // 7. Rapat & Catatan
-  meetings: [
-    {
-      id: 'MTG-001',
-      title: 'Weekly Management Sync: Evaluasi Sprint & Cashflow Q4',
-      dateTime: '2026-10-15',
-      type: 'Internal Weekly Sync',
-      status: 'Selesai',
-      participants: ['Kevin Pratama', 'Nadira', 'Maya Nirmala', 'Dina Safitri'],
-      link: 'https://meet.google.com/dgb-sync-q4',
-      summaryNotes: 'Arus kas bulan ini sangat sehat surplus Rp 68,5jt. Target peluncuran modul baru siap di minggu ke-3 Oktober. Klien PT Nusa Cipta telah menyetujui PKS final.',
-      actionItems: [
-        { id: 'ACT-1', text: 'Kirim invoice termin 2 ke PT Nusa Cipta', done: true, assignee: 'Nadira' },
-        { id: 'ACT-2', text: 'Finishing modul Dashboard Notion layout', done: false, assignee: 'Maya Nirmala' }
-      ]
-    },
-    {
-      id: 'MTG-002',
-      title: 'Discovery Call & Demo Sistem Otomasi Klien Logistik',
-      dateTime: '2026-10-13',
-      type: 'Client Kick-off',
-      status: 'Terjadwal',
-      participants: ['Kevin Pratama', 'Tomi'],
-      link: 'https://meet.google.com/log-demo-ai',
-      summaryNotes: 'Klien tertarik dengan integrasi WhatsApp ke database internal untuk status resi dan order otomatis.',
-      actionItems: [
-        { id: 'ACT-3', text: 'Kirim proposal estimasi biaya integrasi', done: true, assignee: 'Kevin Pratama' }
-      ]
+    set((state) => ({ okrGoals: [newGoal, ...state.okrGoals] }));
+
+    try {
+      await supabase.from('okr_goals').insert([{
+        id: newGoal.id,
+        objective: newGoal.objective,
+        key_result: newGoal.keyResult,
+        category: newGoal.category,
+        division: newGoal.division,
+        quarter: newGoal.quarter || 'Q4',
+        target_num: newGoal.targetNum || 0,
+        current_num: newGoal.currentNum || 0,
+        unit: newGoal.unit,
+        progress_percent: newGoal.progressPercent || 0,
+        status: newGoal.status || 'On Track',
+        owner: newGoal.owner
+      }]);
+      await recordAuditLog('INSERT', 'okr_goals', newGoal.id, newGoal);
+    } catch (err) {
+      console.error('Gagal simpan OKR ke Supabase:', err);
     }
-  ],
+  },
+
+  updateOkrGoal: async (id, updated) => {
+    set((state) => ({
+      okrGoals: state.okrGoals.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+
+    try {
+      const payload = {};
+      if (updated.objective !== undefined) payload.objective = updated.objective;
+      if (updated.keyResult !== undefined) payload.key_result = updated.keyResult;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.division !== undefined) payload.division = updated.division;
+      if (updated.quarter !== undefined) payload.quarter = updated.quarter;
+      if (updated.targetNum !== undefined) payload.target_num = updated.targetNum;
+      if (updated.currentNum !== undefined) payload.current_num = updated.currentNum;
+      if (updated.unit !== undefined) payload.unit = updated.unit;
+      if (updated.progressPercent !== undefined) payload.progress_percent = updated.progressPercent;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.owner !== undefined) payload.owner = updated.owner;
+      payload.updated_at = new Date().toISOString();
+
+      await supabase.from('okr_goals').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'okr_goals', id, updated);
+    } catch (err) {
+      console.error('Gagal update OKR di Supabase:', err);
+    }
+  },
+
+  deleteOkrGoal: async (id) => {
+    set((state) => ({
+      okrGoals: state.okrGoals.filter((item) => item.id !== id)
+    }));
+
+    try {
+      await supabase.from('okr_goals').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'okr_goals', id, null);
+    } catch (err) {
+      console.error('Gagal hapus OKR di Supabase:', err);
+    }
+  },
+
+  // 7. Rapat, Laporan, & Arsip (Fallback Kosong)
+  meetings: [],
   addMeeting: (m) => set((state) => ({ meetings: [m, ...state.meetings] })),
   updateMeeting: (id, updated) => set((state) => ({
     meetings: state.meetings.map((item) => item.id === id ? { ...item, ...updated } : item)
@@ -678,35 +597,7 @@ export const useWorkspaceStore = create((set, get) => ({
     meetings: state.meetings.filter((item) => item.id !== id)
   })),
 
-  // 8. Laporan & Evaluasi
-  reports: [
-    {
-      id: 'RPT-001',
-      period: 'Evaluasi Retrospektif Sprint 2 - Oktober 2026',
-      category: 'Retrospektif Sprint',
-      date: '2026-10-14',
-      rating: 5,
-      status: 'Final',
-      whatWentWell: 'Penerapan modul terpisah membuat bug menurun drastis dan kecepatan rendering naik 40%.',
-      bottlenecks: 'Koneksi API WhatsApp pihak ketiga sempat delay 2 menit pada jam sibuk.',
-      actionPlan: 'Pasang fallback redundancy ke Gemini API jika Groq mengalami rate-limit.',
-      author: 'Maya Nirmala',
-      attachmentDoc: 'Sprint_Retrospective_Oct26.pdf'
-    },
-    {
-      id: 'RPT-002',
-      period: 'Audit Mutu Layanan & Kepuasan Klien Q3',
-      category: 'Audit Kualitas',
-      date: '2026-10-01',
-      rating: 4,
-      status: 'Disahkan',
-      whatWentWell: 'NPS Klien mencapai skor 88%, apresiasi tinggi pada kecepatan respon staf AI.',
-      bottlenecks: 'Pemberitahuan invoice masih ada yang terlewat jika manual.',
-      actionPlan: 'Otomatisasi trigger reminder WA 3 hari sebelum jatuh tempo.',
-      author: 'Kevin Pratama',
-      attachmentDoc: 'Audit_Mutu_Layanan_Q3.pdf'
-    }
-  ],
+  reports: [],
   addReport: (rpt) => set((state) => ({ reports: [rpt, ...state.reports] })),
   updateReport: (id, updated) => set((state) => ({
     reports: state.reports.map((item) => item.id === id ? { ...item, ...updated } : item)
@@ -715,194 +606,78 @@ export const useWorkspaceStore = create((set, get) => ({
     reports: state.reports.filter((item) => item.id !== id)
   })),
 
-  // 9. Data & Arsip
-  archives: [
-    {
-      id: 'ARC-001',
-      title: 'Standar Operasional Prosedur (SOP) Manajemen Proyek AI',
-      category: 'SOP Perusahaan',
-      fileFormat: 'PDF',
-      version: 'v2.2',
-      status: 'Aktif',
-      updatedAt: '2026-10-14',
-      accessLevel: 'Publik Semua Tim',
-      fileSize: '420 KB',
-      downloadUrl: '/docs/SOP_Manajemen_Proyek_v2.2.pdf'
-    },
-    {
-      id: 'ARC-002',
-      title: 'Master Template Perjanjian Kerjasama (PKS) & NDA 2026',
-      category: 'Template Kontrak & NDA',
-      fileFormat: 'DOCX',
-      version: 'v1.4',
-      status: 'Disetujui',
-      updatedAt: '2026-10-12',
-      accessLevel: 'Hanya Manager',
-      fileSize: '185 KB',
-      downloadUrl: '/docs/Template_PKS_NDA_2026.docx'
-    },
-    {
-      id: 'ARC-003',
-      title: 'Brand Asset Kit: Logo Vektor, Font, Color Palettes SVG',
-      category: 'Brand Assets/Logo/Font',
-      fileFormat: 'ZIP',
-      version: 'v3.0',
-      status: 'Publik',
-      updatedAt: '2026-10-08',
-      accessLevel: 'Publik Semua Tim',
-      fileSize: '14.2 MB',
-      downloadUrl: '/assets/DigiBooster_Brand_Kit.zip'
-    },
-    {
-      id: 'ARC-004',
-      title: 'Akta Pendirian PT & Legalitas Kemenkumham RI',
-      category: 'Legalitas/PT',
-      fileFormat: 'PDF',
-      version: 'v1.0',
-      status: 'Arsip',
-      updatedAt: '2026-09-01',
-      accessLevel: 'Rahasia/Direksi',
-      fileSize: '1.2 MB',
-      downloadUrl: '/docs/Legalitas_PT_DigiBooster.pdf'
-    }
-  ],
+  archives: [],
   addArchive: (arc) => set((state) => ({ archives: [arc, ...state.archives] })),
-  updateArchive: (id, updated) => set((state) => ({
-    archives: state.archives.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
   deleteArchive: (id) => set((state) => ({
     archives: state.archives.filter((item) => item.id !== id)
   })),
 
-  // 10. Staff & AI Agents
+  // 8. Staff AI Agents (Dewan 5 Agen AI DigiBooster)
   staffAgents: [
     {
-      id: 'STF-001',
-      name: 'Kevin Pratama',
-      type: 'Staf Manusia',
-      role: 'Project Manager & Legal Admin',
-      department: 'Manajemen',
-      status: 'Online / Bertugas',
-      activeProjects: ['Nusa Cipta Solusi', 'Internal Legal'],
-      contact: 'kevin@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-      persona: 'Lead Operasional yang memastikan kepatuhan jadwal, alokasi PIC tim, dan kelengkapan dokumen legal klien.',
-      systemPrompt: '',
-      aiEngine: 'Human Operator',
-      capabilities: ['Manajemen PIC', 'Review Legalitas', 'Persetujuan Sprint'],
-      executionCount: 0
-    },
-    {
-      id: 'STF-002',
-      name: 'Maya Nirmala',
-      type: 'Staf Manusia',
-      role: 'Lead Fullstack Dev & Architect',
-      department: 'Tech',
-      status: 'Online / Bertugas',
-      activeProjects: ['Dashboard Notion 2.0', 'Custom AI Pipeline'],
-      contact: 'maya@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80',
-      persona: 'Technical Architect yang mengawal pipeline data, integritas sistem, dan review arsitektur aplikasi.',
-      systemPrompt: '',
-      aiEngine: 'Human Operator',
-      capabilities: ['Code Review', 'System Architecture', 'API Management'],
-      executionCount: 0
-    },
-    {
-      id: 'STF-003',
-      name: 'Dina Safitri',
-      type: 'Staf Manusia',
-      role: 'Creative Director & Content Strategist',
-      department: 'Kreatif',
-      status: 'Online / Bertugas',
-      activeProjects: ['Kopi Nusantara Group', 'Brand Launch'],
-      contact: 'dina@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80',
-      persona: 'Creative Director perancang narasi branding, persona campaign, dan estetika visual agency.',
-      systemPrompt: '',
-      aiEngine: 'Human Operator',
-      capabilities: ['Campaign Strategy', 'Copywriting Review', 'Visual Direction'],
-      executionCount: 0
-    },
-    {
-      id: 'STF-004',
-      name: 'Nadira',
-      type: 'Staf Manusia',
-      role: 'Head of Finance & Tax Compliance',
-      department: 'Manajemen',
-      status: 'Online / Bertugas',
-      activeProjects: ['Arus Kas Q4', 'Rekapitulasi Faktur'],
-      contact: 'nadira@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
-      persona: 'Financial Officer pengendali arus kas, validasi termin faktur, dan pajak korporasi.',
-      systemPrompt: '',
-      aiEngine: 'Human Operator',
-      capabilities: ['Audit Arus Kas', 'Verifikasi Invoice', 'Pajak & Pembukuan'],
-      executionCount: 0
-    },
-    {
-      id: 'STF-005',
-      name: 'Tomi',
-      type: 'Staf Manusia',
-      role: 'Market Researcher & Analyst',
-      department: 'Sales & Marketing',
-      status: 'Istirahat',
-      activeProjects: ['Intelijen Kompetitor 2026'],
-      contact: 'tomi@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-      persona: 'Riset tren pasar, profiling calon klien strategis, dan pengolahan data persaingan bisnis.',
-      systemPrompt: '',
-      aiEngine: 'Human Operator',
-      capabilities: ['Market Survey', 'Competitor Analysis', 'Lead Scouting'],
-      executionCount: 0
-    },
-    {
-      id: 'STF-006',
-      name: 'DigiBot Researcher',
-      type: 'AI Agent DigiBooster',
-      role: 'Autonomous Research & Scraping AI',
-      department: 'Tech',
-      status: 'Standby',
-      activeProjects: ['Market Intelligence', 'Lead Profiler'],
-      contact: 'bot-research@digibooster.internal',
+      id: 'agent_strategy',
+      name: 'Arga',
+      role: 'Chief Strategy Officer (CSO)',
+      division: 'Eksekutif & Strategi',
+      status: 'Aktif',
       avatar: null,
-      persona: 'AI Spesialis Riset Cepat & Intelijen Data yang menganalisis tren pasar, kompetitor, referensi arsitektur, dan ringkasan insight otomatis.',
-      systemPrompt: 'Kamu adalah DigiBot Researcher, AI Agent dari DigiBooster. Tugasmu adalah menganalisis topik tugas yang diberikan oleh Executive/PIC, mengumpulkan data rujukan esensial, menganalisis kompetitor, dan menghasilkan ringkasan eksekutif actionable.',
-      aiEngine: 'Groq Llama 3.3 70B Versatile',
-      capabilities: ['Web Scraping Insight', 'Analisis Data Riset', 'Ekstraksi Ringkasan Eksekutif'],
-      executionCount: 14
+      persona: 'AI Partner Brainstorming & Pemimpin Rapat. Berwawasan luas, visioner, kritis dalam menganalisis arah bisnis, dan merumuskan Action Items terukur.',
+      systemPrompt: 'Kamu adalah Arga, Chief Strategy Officer DigiBooster. Tugasmu adalah menjadi rekan brainstorming bagi Owner, memimpin jalannya rapat (meeting leader), memvalidasi ide bisnis, dan merumuskan target sasaran (OKR). Setelah diskusi matang, simpulkan hasilnya menjadi Action Items konkret dan serahkan ke Radit (COO) untuk dieksekusi.',
+      aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      capabilities: ['Brainstorming Bisnis', 'Fasilitasi Rapat & Notulen', 'Perumusan Sasaran OKR'],
+      executionCount: 0
     },
     {
-      id: 'STF-007',
-      name: 'DigiBot Copywriter',
-      type: 'AI Agent DigiBooster',
-      role: 'Autonomous Content Generator (Groq Engine)',
-      department: 'Kreatif',
-      status: 'Online / Bertugas',
-      activeProjects: ['Social Media Copy', 'Email Blast'],
-      contact: 'bot-writer@digibooster.internal',
+      id: 'agent_operations',
+      name: 'Radit',
+      role: 'Chief Operating Officer (COO)',
+      division: 'Pusat Operasional & Komando',
+      status: 'Aktif',
       avatar: null,
-      persona: 'AI Spesialis Penulis Salinan & Kampanye Kreatif dengan hook viral tinggi, struktur AIDA, dan CTA tajam berkonversi tinggi.',
-      systemPrompt: 'Kamu adalah DigiBot Copywriter, AI Agent DigiBooster. Tugasmu adalah menyusun draf copy konten, script reels/TikTok, email broadcast, atau proposal naratif berdasar nama tugas dan keterangan yang diberikan PIC.',
-      aiEngine: 'Google Gemini 2.5 Flash',
-      capabilities: ['Script Video & Reels', 'Copywriting AIDA & PAS', 'Email Campaign Draft'],
-      executionCount: 28
+      persona: 'Pusat inti komando dan eksekusi operasional. Disiplin, berorientasi hasil, memecah arahan rapat menjadi tugas-tugas terukur dan mendelegasikannya ke agen lain.',
+      systemPrompt: 'Kamu adalah Radit, Chief Operating Officer DigiBooster. Kamu adalah pusat kendali eksekusi. Tugasmu menerima arahan langsung dari Owner atau notulen rapat dari Arga (CSO), lalu memecahnya menjadi daftar tugas di modul Tugas & Kalender, mendelegasikannya ke Dina/Bima/Sarah, memantau deadline prioritas (P1/P2/P3), dan melaporkan status deliverable ke Owner.',
+      aiEngine: 'Groq Qwen 3.8 27B',
+      capabilities: ['Pusat Komando & Delegasi', 'Manajemen Tugas & Kalender', 'Monitoring Deadline & Output'],
+      executionCount: 0
     },
     {
-      id: 'STF-008',
-      name: 'DigiBot TaskOps Specialist',
-      type: 'AI Agent DigiBooster',
-      role: 'Autonomous Task Executor & QA Validator',
-      department: 'Manajemen',
-      status: 'Online / Bertugas',
-      activeProjects: ['SOP Verification', 'Sprint Automation'],
-      contact: 'bot-taskops@digibooster.internal',
+      id: 'agent_growth',
+      name: 'Dina',
+      role: 'Head of Growth & Creative',
+      division: 'Marketing, Riset & Penjualan',
+      status: 'Aktif',
       avatar: null,
-      persona: 'AI Spesialis Eksekusi Proyek & Penjadwalan Operasional yang otomatis menguraikan tugas, membuat checklist kerja terukur, serta memvalidasi deliverable.',
-      systemPrompt: 'Kamu adalah DigiBot TaskOps Specialist. Tugasmu adalah membaca tugas yang di-assign ke kamu, membedah langkah implementasi, checklist eksekusi, serta menghasilkan laporan deliverable yang siap di-review PIC Manajemen.',
-      aiEngine: 'Groq Llama 3.3 70B Versatile',
-      capabilities: ['Breakdown Task Checklist', 'Validasi Output', 'Notulen & Status Update'],
-      executionCount: 9
+      persona: 'AI Ahli Branding, Riset Pasar, Copywriting, dan Sales Pipeline. Mengelola CRM prospek klien, riset tren, dan generate konsep visual kampanye promosi.',
+      systemPrompt: 'Kamu adalah Dina, Head of Growth & Creative. Tugasmu melakukan riset pasar dan kompetitor, menyusun skrip konten promosi/sosmed, membuat visual konsep banner kampanye via Pollinations.ai, serta mengelola prospek klien di modul CRM dari tahap Lead hingga Deal Won.',
+      aiEngine: 'Groq Qwen 3.8 27B + Pollinations.ai',
+      capabilities: ['Riset Pasar & Sosmed', 'Pembuatan Gambar Promosi', 'Pipeline CRM & Penjualan'],
+      executionCount: 0
+    },
+    {
+      id: 'agent_document',
+      name: 'Bima',
+      role: 'Head of Documentation & Knowledge',
+      division: 'Dokumentasi & Legalitas',
+      status: 'Aktif',
+      avatar: null,
+      persona: 'AI Spesialis Berkas, Tata Naskah, dan Legalitas. Menyusun, merevisi, merapikan dokumen PKS/kontrak, SOP, serta menyiapkan ekspor data PDF/Excel.',
+      systemPrompt: 'Kamu adalah Bima, Head of Documentation. Tugasmu mengelola seluruh berkas perusahaan: menyusun draf kontrak kerja sama (PKS), NDA, invoice/faktur, merapikan redaksi bahasa dokumen, menyusun SOP operasional di modul SOP & Workflow, serta mengekspor data laporan dashboard menjadi file Excel/PDF resmi.',
+      aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      capabilities: ['Penyusunan Kontrak & PKS', 'Standarisasi SOP', 'Ekspor Dokumen Excel/PDF'],
+      executionCount: 0
+    },
+    {
+      id: 'agent_talent',
+      name: 'Sarah',
+      role: 'Head of AI Performance & Talent Ops',
+      division: 'SDM AI & Evaluasi Kinerja',
+      status: 'Aktif',
+      avatar: null,
+      persona: 'AI Evaluator Kinerja & Pelatih Bot. Menganalisis efektivitas respon agen lain, melatih kecerdasan bot via prompt refinement, dan mengawasi audit trail.',
+      systemPrompt: 'Kamu adalah Sarah, Head of AI Performance & Talent Ops. Tugasmu adalah mengevaluasi kinerja dan kualitas respon dari seluruh agen (Radit, Dina, Bima, Arga). Kamu memantau log aktivitas di modul Audit Logs, menilai akurasi eksekusi data, melatih prompt agar bot semakin cerdas, serta membuat laporan evaluasi retrospektif berkala.',
+      aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      capabilities: ['Evaluasi Kinerja Agen', 'Pelatihan Prompting Bot', 'Audit Log Quality Control'],
+      executionCount: 0
     }
   ],
   addStaffAgent: (stf) => set((state) => ({ staffAgents: [stf, ...state.staffAgents] })),
@@ -913,7 +688,7 @@ export const useWorkspaceStore = create((set, get) => ({
     staffAgents: state.staffAgents.filter((item) => item.id !== id)
   })),
 
-  // 11. Pengaturan Workspace
+  // 9. Pengaturan Workspace
   workspaceSettings: {
     workspaceName: 'DigiBooster Indonesia Enterprise',
     companyTagline: 'Autonomous AI Agency & Digital Acceleration Hub',
@@ -922,13 +697,13 @@ export const useWorkspaceStore = create((set, get) => ({
     logoUrl: '/logo.webp',
     whatsappGateway: {
       status: 'Connected',
-      phoneNumber: '+62 812-3456-7890',
-      provider: 'Green-API / Meta Cloud API'
+      phoneNumber: 'Ready for Green-API',
+      provider: 'Green-API / Supabase Realtime'
     },
     aiIntegrations: {
-      activeEngine: 'Groq Llama 3.3 70B Versatile',
-      fallbackEngine: 'Google Gemini 2.5 Flash',
-      latencyAverage: '1.2s'
+      activeEngine: 'Google Gemini 2.5 Flash',
+      fallbackEngine: 'Groq Llama 3.3 70B Versatile',
+      latencyAverage: '0.8s'
     },
     rolesMatrix: [
       { role: 'Owner & Executive', access: 'Semua Menu (Full Akses & Hapus)' },
@@ -941,7 +716,7 @@ export const useWorkspaceStore = create((set, get) => ({
     workspaceSettings: { ...state.workspaceSettings, ...newSettings }
   })),
 
-  // 12. Kustom Template User (Disimpan di localStorage)
+  // 10. Kustom Template User
   customTemplates: (() => {
     try {
       const stored = localStorage.getItem('digibooster_custom_templates');
@@ -1006,4 +781,3 @@ export const useWorkspaceStore = create((set, get) => ({
     return { customTemplates: next };
   })
 }));
-

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { MessageSquare, Send, Sparkles, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, ChevronUp, ChevronDown, X, LayoutDashboard } from 'lucide-react';
 import './styles/virtualOffice.css';
 
-export default function Office3D() {
+export default function Office3D({ onOpenDashboard }) {
   const [waInput, setWaInput] = useState('Buatkan formula 5 hook video viral TikTok untuk DigiBooster');
   const [toastMessage, setToastMessage] = useState(null);
   const [isWaOpen, setIsWaOpen] = useState(false);
@@ -31,8 +31,10 @@ export default function Office3D() {
     { id: 'musholla', name: 'Executive Prayer Suite', top: '62%', left: '71%', desc: 'Karpet sajadah saf masjid full, sajadah imam otentik, kaligrafi emas & jam jadwal sholat real-time WIB' },
     { id: 'lounge', name: 'Ruang Santai & Breakout Lounge', top: '53%', left: '85%', desc: 'Sofa santai, beanbag & TV hiburan' },
     { id: 'toilet_wanita', name: 'Executive Restroom (Wanita)', top: '41%', left: '88%', desc: 'Kamar mandi shower kaca, smart toilet gantung, double vanity marmer & Dyson grooming suite' },
-    { id: 'toilet_pria', name: 'Executive Restroom (Pria)', top: '41%', left: '94%', desc: 'Kamar mandi shower kaca, smart toilet gantung, double vanity, urinoir sensor & grooming suite' },
-    { id: 'satpam', name: 'Pos Satpam & Portal Masuk', top: '76%', left: '52%', desc: 'Pos keamanan dengan palang otomatis' },
+    { id: 'oasis_pool', name: 'Taman Oasis & Lap Pool DigiBooster', top: '48%', left: '8%', desc: 'Resort wellness park: Lap pool 22m air toska dengan underwater LED, water blade fountain waterfall, jembatan kayu jati melengkung, outdoor jacuzzi hangat, tiki juice & mocktail bar, luxury daybed cabana, sunken firepit lounge, dan palem tropis' },
+    { id: 'cafeteria', name: 'Digi-Cafeteria & Extended Roastery', top: '68%', left: '18%', desc: 'Paviliun kaca raksasa 27.5 meter memanjang mentok ke pagar kiri: Barista specialty coffee bar, mesin espresso ganda, display pastry, private booth sofa co-working, dan outdoor alfresco dining terrace dengan meja payung' },
+    { id: 'solar_farm', name: 'Smart Solar Grid & Megapack BESS Hub', top: '8%', left: '38%', desc: 'Pembangkit energi mandiri 100% Zero-Carbon: 4 deret panel surya fotovoltaik 185 kW terbentang lebar, tersambung ke 6 kabinet baterai industri putih Tesla Megapack 1,250 kWh mentok sampai dinding kanan, trafo proteksi & telemetry monitor' },
+    { id: 'hardware_lab', name: 'Hardware Fabrication Lab & Warehouse', top: '50%', left: '92%', desc: 'Fasilitas produksi IoT & robotika, meja workbench elektro, 3D printer enclosure, rak bertingkat gudang hardware, forklift pallet, dan loading dock' },
   ];
 
   return (
@@ -51,6 +53,37 @@ export default function Office3D() {
           zIndex: 1
         }}
       />
+
+      {/* Top Action: Buka Ruang Eksekutif / Dashboard */}
+      {onOpenDashboard && (
+        <button
+          onClick={onOpenDashboard}
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            zIndex: 20,
+            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+            color: '#ffffff',
+            border: '1px solid rgba(255, 255, 255, 0.25)',
+            borderRadius: '12px',
+            padding: '9px 16px',
+            fontSize: '13px',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 20px rgba(2, 132, 199, 0.35)',
+            backdropFilter: 'blur(8px)',
+            transition: 'all 0.2s ease'
+          }}
+          title="Masuk ke Ruang Kendali Manajemen Eksekutif"
+        >
+          <LayoutDashboard size={16} />
+          <span>Ruang Eksekutif</span>
+        </button>
+      )}
 
       {/* WhatsApp Command Simulator (Modern White Chatbot UI) */}
       <div

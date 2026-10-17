@@ -36,8 +36,27 @@ import PengaturanWorkspace from './modules/PengaturanWorkspace';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 
 export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
-  const { activeModule, setActiveModule, workspaceSettings } = useWorkspaceStore();
+  const { activeModule, setActiveModule, workspaceSettings, fetchWorkspaceData, isDbLoading } = useWorkspaceStore();
   
+  // Ambil data nyata dari database Supabase saat dashboard terbuka & dengarkan perubahan Realtime
+  useEffect(() => {
+    fetchWorkspaceData();
+
+    // Berlangganan event REALTIME: Jika bot mengubah data via WhatsApp, UI otomatis update instan!
+    import('../../utils/supabaseClient').then(({ supabase }) => {
+      const channel = supabase
+        .channel('dashboard-realtime-sync')
+        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+          fetchWorkspaceData();
+        })
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    });
+  }, [fetchWorkspaceData]);
+
   // State: isSidebarCollapsed (true = hanya icon ~68px, false = penuh ~260px)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
