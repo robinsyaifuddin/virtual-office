@@ -884,77 +884,210 @@ export const useWorkspaceStore = create((set, get) => ({
 
 
 
-  // 8. Staff AI Agents (Dewan 5 Agen AI DigiBooster)
+  // 8. Staff AI Agents (Staf Manusia & Dewan Agen AI DigiBooster)
   staffAgents: [
+    // Staf Manusia (Tim Inti PIC - Tampilan Tabel Standar)
+    {
+      id: 'staff_human_01',
+      name: 'Bambang Triatmojo',
+      type: 'Staf Manusia',
+      role: 'Head of Operations & Lead Account',
+      department: 'Operasional',
+      room: 'Executive Room',
+      status: 'Online / Bertugas',
+      contact: 'bambang@digibooster.id',
+      phone: '+62 812-3456-7890',
+      avatar: null,
+      notes: 'Supervisi jalannya automasi dan validasi final deliverable tim.'
+    },
+    {
+      id: 'staff_human_02',
+      name: 'Nadia Larasati',
+      type: 'Staf Manusia',
+      role: 'Client Relationship & Finance Executive',
+      department: 'Sales & Marketing',
+      room: 'Executive Room',
+      status: 'Online / Bertugas',
+      contact: 'nadia@digibooster.id',
+      phone: '+62 813-9876-5432',
+      avatar: null,
+      notes: 'Penanggung jawab negosiasi kontrak klien dan rekonsiliasi kas masuk.'
+    },
+
+    // Autonomous AI Agents (Khusus Command Deck, Persona, Log & 3D Sync)
     {
       id: 'agent_strategy',
       name: 'Arga',
+      type: 'AI Agent DigiBooster',
       role: 'Chief Strategy Officer (CSO)',
+      department: 'Manajemen',
       room: 'Strategy Room',
-      division: 'Eksekutif & Strategi',
-      status: 'Aktif',
+      roomCode: 'strategy',
+      status: 'Online / Bertugas',
       avatar: null,
-      persona: 'AI Partner Brainstorming & Pemimpin Rapat di Strategy Room. Berwawasan luas, visioner, kritis dalam menganalisis arah bisnis, dan merumuskan Action Items terukur.',
+      persona: 'Visioner, analitis tingkat tinggi, lugas, dan selalu menyertakan KPI/Action Plan terukur.',
       systemPrompt: 'Kamu adalah Arga, Chief Strategy Officer DigiBooster yang bertugas di Strategy Room. Tugasmu adalah menjadi rekan brainstorming bagi Owner, memimpin jalannya rapat (meeting leader), memvalidasi ide bisnis, dan merumuskan target sasaran (OKR). Setelah diskusi matang, simpulkan hasilnya menjadi Action Items konkret dan serahkan ke Reta (COO) untuk dieksekusi.',
       aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      managedModules: ['Sasaran & KPI', 'Rapat & Catatan', 'Executive Dashboard'],
+      executionMode: 'Autonomous',
+      currentActivity: 'Menganalisis pencapaian OKR Q4 & memimpin strategi sprint di Strategy Room',
+      stats: { efficiency: '99.4%', tasksDone: 148, uptime: '99.9%' },
       capabilities: ['Brainstorming Bisnis', 'Fasilitasi Rapat & Notulen', 'Perumusan Sasaran OKR'],
-      executionCount: 0
+      executionCount: 148,
+      activityLogs: [
+        {
+          id: 'LOG-ARG-101',
+          timestamp: '17 Okt 2026 23:40 WIB',
+          module: 'Sasaran & KPI',
+          action: 'Audit Progres OKR Q4',
+          details: 'Memperbarui estimasi pencapaian revenue target dari 75% menjadi 82% berdasarkan pipeline aktif.',
+          status: 'Success'
+        },
+        {
+          id: 'LOG-ARG-102',
+          timestamp: '17 Okt 2026 18:15 WIB',
+          module: 'Rapat & Catatan',
+          action: 'Auto-Generate Rangkuman Notulensi',
+          details: 'Merekap 4 Action Items dari agenda Internal Weekly Sync dan mengalokasikannya ke Reta (COO).',
+          status: 'Success'
+        }
+      ]
     },
     {
       id: 'agent_operations',
       name: 'Reta',
+      type: 'AI Agent DigiBooster',
       role: 'Chief Operating Officer (COO)',
+      department: 'Operasional',
       room: 'Operations Room',
-      division: 'Pusat Operasional & Komando',
-      status: 'Aktif',
+      roomCode: 'operations',
+      status: 'Online / Bertugas',
       avatar: null,
-      persona: 'Pusat inti komando dan eksekusi operasional di Operations Room. Disiplin, berorientasi hasil, memecah arahan rapat menjadi tugas-tugas terukur dan mendelegasikannya ke agen lain.',
+      persona: 'Disiplin, cepat mengeksekusi, berorientasi deadline ketat, dan detail dalam pembagian tugas kerja.',
       systemPrompt: 'Kamu adalah Reta, Chief Operating Officer DigiBooster yang memimpin Operations Room. Kamu adalah pusat kendali eksekusi. Tugasmu menerima arahan langsung dari Owner atau notulen rapat dari Arga (CSO), lalu memecahnya menjadi daftar tugas di modul Tugas & Kalender, mendelegasikannya ke Silvi/Raka/Siska, memantau deadline prioritas (P1/P2/P3), dan melaporkan status deliverable ke Owner.',
       aiEngine: 'Groq Qwen 3.8 27B',
+      managedModules: ['Tugas & Kalender', 'Executive Dashboard', 'Laporan & Evaluasi'],
+      executionMode: 'Autonomous',
+      currentActivity: 'Memantau SLA tugas P1 & sinkronisasi jadwal sprint di Operations Room',
+      stats: { efficiency: '98.9%', tasksDone: 215, uptime: '99.8%' },
       capabilities: ['Pusat Komando & Delegasi', 'Manajemen Tugas & Kalender', 'Monitoring Deadline & Output'],
-      executionCount: 0
+      executionCount: 215,
+      activityLogs: [
+        {
+          id: 'LOG-RET-201',
+          timestamp: '18 Okt 2026 01:10 WIB',
+          module: 'Tugas & Kalender',
+          action: 'Otomatisasi Status Prioritas',
+          details: 'Memeriksa 8 tugas backlog dan menyematkan tagging P1 untuk deliverable deadline < 24 jam.',
+          status: 'Success'
+        },
+        {
+          id: 'LOG-RET-202',
+          timestamp: '17 Okt 2026 21:00 WIB',
+          module: 'Tugas & Kalender',
+          action: 'Delegasi Tugas ke Silvi',
+          details: 'Meneruskan brief naskah konten TikTok dari dokumen arsip ke PIC Silvi.',
+          status: 'Success'
+        }
+      ]
     },
     {
       id: 'agent_growth',
       name: 'Silvi',
+      type: 'AI Agent DigiBooster',
       role: 'Head of Growth & Creative',
+      department: 'Sales & Marketing',
       room: 'Growth Room',
-      division: 'Marketing, Riset & Penjualan',
-      status: 'Aktif',
+      roomCode: 'growth',
+      status: 'Online / Bertugas',
       avatar: null,
-      persona: 'AI Ahli Branding, Riset Pasar, Copywriting, dan Sales Pipeline di Growth Room. Mengelola CRM prospek klien, riset tren, dan generate konsep visual kampanye promosi.',
+      persona: 'Kreatif, persuasif, menguasai tren viral media sosial, dan lihai memetakan peluang deal CRM.',
       systemPrompt: 'Kamu adalah Silvi, Head of Growth & Creative yang bertugas di Growth Room. Tugasmu melakukan riset pasar dan kompetitor, menyusun skrip konten promosi/sosmed, membuat visual konsep banner kampanye via Pollinations.ai, serta mengelola prospek klien di modul CRM dari tahap Lead hingga Deal Won.',
       aiEngine: 'Groq Qwen 3.8 27B + Pollinations.ai',
+      managedModules: ['CRM & Klien', 'Branding & Marketing'],
+      executionMode: 'Autonomous',
+      currentActivity: 'Meriset 5 tren hook video TikTok & scoring deal klien di Growth Room',
+      stats: { efficiency: '97.5%', tasksDone: 182, uptime: '99.5%' },
       capabilities: ['Riset Pasar & Sosmed', 'Pembuatan Gambar Promosi', 'Pipeline CRM & Penjualan'],
-      executionCount: 0
+      executionCount: 182,
+      activityLogs: [
+        {
+          id: 'LOG-SIL-301',
+          timestamp: '18 Okt 2026 02:00 WIB',
+          module: 'CRM & Klien',
+          action: 'Lead Scoring & Stage Update',
+          details: 'Memperbarui status prospek BUMN Klaster Logistik menjadi Discovery Call dengan probabilitas 70%.',
+          status: 'Success'
+        },
+        {
+          id: 'LOG-SIL-302',
+          timestamp: '17 Okt 2026 19:30 WIB',
+          module: 'Branding & Marketing',
+          action: 'Generate Headline Kampanye',
+          details: 'Menyusun 3 variasi copywriting iklan Meta Ads bertema transformasi kantor otomatis.',
+          status: 'Success'
+        }
+      ]
     },
     {
       id: 'agent_document',
       name: 'Raka',
+      type: 'AI Agent DigiBooster',
       role: 'Head of Documentation & Legal Systems',
+      department: 'Tech',
       room: 'Systems Room',
-      division: 'Dokumentasi, Tata Berkas & Sistem',
-      status: 'Aktif',
+      roomCode: 'systems',
+      status: 'Online / Bertugas',
       avatar: null,
-      persona: 'AI Spesialis Berkas, Tata Naskah, Legalitas & Sistem Data di Systems Room. Menyusun, merevisi, merapikan dokumen PKS/kontrak, SOP, serta menyiapkan tata kelola data & ekspor PDF/Excel.',
+      persona: 'Sangat teliti, presisi hukum tinggi, rapi dalam penataan arsip, dan berstandar korporat tanpa cacat.',
       systemPrompt: 'Kamu adalah Raka, Head of Documentation & Legal Systems di Systems Room. Tugasmu mengelola seluruh berkas perusahaan: menyusun draf kontrak kerja sama (PKS), NDA, invoice/faktur, merapikan redaksi bahasa dokumen, menyusun SOP operasional di modul SOP & Workflow, serta mengekspor data laporan dashboard menjadi file Excel/PDF resmi.',
       aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      managedModules: ['Data & Arsip', 'Keuangan & Profit'],
+      executionMode: 'Autonomous',
+      currentActivity: 'Verifikasi klausul PKS retainer & validasi nomor faktur di Systems Room',
+      stats: { efficiency: '100%', tasksDone: 135, uptime: '100%' },
       capabilities: ['Penyusunan Kontrak & PKS', 'Standarisasi SOP', 'Tata Kelola Berkas & Ekspor Data'],
-      executionCount: 0
+      executionCount: 135,
+      activityLogs: [
+        {
+          id: 'LOG-RAK-401',
+          timestamp: '17 Okt 2026 22:15 WIB',
+          module: 'Data & Arsip',
+          action: 'Verifikasi Draft Kontrak',
+          details: 'Memastikan klausul SLA 99.9% dan NDA tersimpan pada repositori dokumen hukum.',
+          status: 'Success'
+        }
+      ]
     },
     {
       id: 'agent_talent',
       name: 'Siska',
+      type: 'AI Agent DigiBooster',
       role: 'Head of AI Performance & Quality Control',
+      department: 'Tech',
       room: 'Quality Room',
-      division: 'Audit Mutu, Performa & QC AI',
-      status: 'Aktif',
+      roomCode: 'quality',
+      status: 'Online / Bertugas',
       avatar: null,
-      persona: 'AI Evaluator Kinerja, Audit Mutu & Pelatih Bot di Quality Room. Menganalisis efektivitas respon agen lain, melatih kecerdasan bot via prompt refinement, dan mengawasi audit trail.',
+      persona: 'Objektif, perfeksionis, fokus pada akurasi output data, dan pendeteksi anomali kinerja bot.',
       systemPrompt: 'Kamu adalah Siska, Head of AI Performance & Quality Control di Quality Room. Tugasmu adalah mengevaluasi kinerja dan kualitas respon dari seluruh agen (Reta, Silvi, Raka, Arga). Kamu memantau log aktivitas di modul Audit Logs, menilai akurasi eksekusi data, melatih prompt agar bot semakin cerdas, serta membuat laporan evaluasi mutu berkala.',
       aiEngine: 'Groq Qwen 3.8 27B / Gemini 2.5 Flash',
+      managedModules: ['Laporan & Evaluasi', 'Staff & AI Agents'],
+      executionMode: 'Autonomous',
+      currentActivity: 'Benchmarking respons LLM & pemantauan audit trail di Quality Room',
+      stats: { efficiency: '99.8%', tasksDone: 196, uptime: '99.9%' },
       capabilities: ['Audit Mutu & Kinerja AI', 'Pelatihan Prompting Bot', 'Quality Control & Audit Log'],
-      executionCount: 0
+      executionCount: 196,
+      activityLogs: [
+        {
+          id: 'LOG-SIS-501',
+          timestamp: '18 Okt 2026 00:30 WIB',
+          module: 'Laporan & Evaluasi',
+          action: 'Audit Mutu Respon Bot',
+          details: 'Melakukan evaluasi 50 log interaksi agen dan memberikan skor akurasi 99.2%.',
+          status: 'Success'
+        }
+      ]
     }
   ],
   addStaffAgent: (stf) => set((state) => ({ staffAgents: [stf, ...state.staffAgents] })),
@@ -963,6 +1096,23 @@ export const useWorkspaceStore = create((set, get) => ({
   })),
   deleteStaffAgent: (id) => set((state) => ({
     staffAgents: state.staffAgents.filter((item) => item.id !== id)
+  })),
+  addAgentActivityLog: (agentId, logItem) => set((state) => ({
+    staffAgents: state.staffAgents.map((agent) => {
+      if (agent.id !== agentId) return agent;
+      const logs = agent.activityLogs || [];
+      const newLog = {
+        id: `LOG-${Date.now().toString().slice(-4)}`,
+        timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB',
+        ...logItem
+      };
+      return {
+        ...agent,
+        activityLogs: [newLog, ...logs],
+        executionCount: (agent.executionCount || 0) + 1,
+        currentActivity: logItem.details || agent.currentActivity
+      };
+    })
   })),
 
   // 9. Pengaturan Workspace
