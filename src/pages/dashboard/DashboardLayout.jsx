@@ -80,6 +80,10 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'archives' }, () => {
           fetchWorkspaceData();
         })
+        // Template Kustom
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_templates' }, () => {
+          fetchWorkspaceData();
+        })
         .subscribe();
     });
 

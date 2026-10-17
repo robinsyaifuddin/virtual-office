@@ -38,7 +38,8 @@ export const useWorkspaceStore = create((set, get) => ({
         { data: okrs, error: errOkrs },
         { data: meetingsRaw, error: errMeetings },
         { data: reportsRaw, error: errReports },
-        { data: archivesRaw, error: errArchives }
+        { data: archivesRaw, error: errArchives },
+        { data: templatesRaw, error: errTemplates }
       ] = await Promise.all([
         supabase.from('crm_clients').select('*').order('created_at', { ascending: false }),
         supabase.from('finance_transactions').select('*').order('date', { ascending: false }),
@@ -47,7 +48,8 @@ export const useWorkspaceStore = create((set, get) => ({
         supabase.from('okr_goals').select('*').order('updated_at', { ascending: false }),
         supabase.from('meetings').select('*').order('created_at', { ascending: false }),
         supabase.from('reports').select('*').order('created_at', { ascending: false }),
-        supabase.from('archives').select('*').order('created_at', { ascending: false })
+        supabase.from('archives').select('*').order('created_at', { ascending: false }),
+        supabase.from('custom_templates').select('*').order('created_at', { ascending: false })
       ]);
 
       if (errClients) console.warn('Supabase clients error:', errClients.message);
@@ -171,6 +173,39 @@ export const useWorkspaceStore = create((set, get) => ({
         downloadUrl: a.download_url
       }));
 
+      // Normalisasi custom templates dari Supabase (dengan fallback ke localStorage)
+      let syncedTemplates = {};
+      try {
+        const localStored = localStorage.getItem('digibooster_custom_templates');
+        if (localStored) syncedTemplates = JSON.parse(localStored);
+      } catch (e) {
+        // ignore
+      }
+
+      if (templatesRaw && templatesRaw.length > 0) {
+        templatesRaw.forEach((row) => {
+          const modKey = row.module_name || 'General';
+          const catKey = row.category || 'General';
+          if (!syncedTemplates[modKey]) syncedTemplates[modKey] = {};
+          if (!syncedTemplates[modKey][catKey]) syncedTemplates[modKey][catKey] = [];
+          
+          const existingIdx = syncedTemplates[modKey][catKey].findIndex(t => t.id === row.id);
+          const tplObj = {
+            id: row.id,
+            title: row.title,
+            isCustom: true,
+            savedAt: row.created_at,
+            ...(row.payload || {})
+          };
+
+          if (existingIdx >= 0) {
+            syncedTemplates[modKey][catKey][existingIdx] = tplObj;
+          } else {
+            syncedTemplates[modKey][catKey].push(tplObj);
+          }
+        });
+      }
+
       // Hitung ringkasan eksekutif murni dari data nyata Supabase
       const totalIncome = formattedTxs.filter(t => t.type === 'Pemasukan' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
       const totalExpense = formattedTxs.filter(t => t.type === 'Pengeluaran' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
@@ -199,6 +234,7 @@ export const useWorkspaceStore = create((set, get) => ({
         meetings: formattedMeetings,
         reports: formattedReports,
         archives: formattedArchives,
+        customTemplates: syncedTemplates,
         executiveSummary: dynamicSummary,
         isDbLoading: false
       });
@@ -585,17 +621,17 @@ export const useWorkspaceStore = create((set, get) => ({
     try {
       await supabase.from('okr_goals').insert([{
         id: newGoal.id,
-        objective: newGoal.objective,
-        key_result: newGoal.keyResult,
-        category: newGoal.category,
-        division: newGoal.division,
+        objective: newGoal.objective || 'Sasaran Baru',
+        key_result: newGoal.keyResult || 'Indikator Utama',
+        category: newGoal.category || 'Revenue & Pertumbuhan',
+        division: newGoal.division || 'Bisnis & Sales',
         quarter: newGoal.quarter || 'Q4',
         target_num: newGoal.targetNum || 0,
         current_num: newGoal.currentNum || 0,
-        unit: newGoal.unit,
+        unit: newGoal.unit || '%',
         progress_percent: newGoal.progressPercent || 0,
         status: newGoal.status || 'On Track',
-        owner: newGoal.owner
+        owner: newGoal.owner || 'Executive Owner'
       }]);
       await recordAuditLog('INSERT', 'okr_goals', newGoal.id, newGoal);
     } catch (err) {
@@ -924,7 +960,7 @@ export const useWorkspaceStore = create((set, get) => ({
     workspaceSettings: { ...state.workspaceSettings, ...newSettings }
   })),
 
-  // 10. Kustom Template User
+  // 10. Kustom Template User (Dual sync: Supabase DB + localStorage fallback)
   customTemplates: (() => {
     try {
       const stored = localStorage.getItem('digibooster_custom_templates');
@@ -934,16 +970,17 @@ export const useWorkspaceStore = create((set, get) => ({
     }
   })(),
 
-  addCustomTemplate: (moduleName, category, templateData) => set((state) => {
-    const prev = state.customTemplates || {};
+  addCustomTemplate: async (moduleName, category, templateData) => {
+    const prev = get().customTemplates || {};
     const modKey = moduleName || 'General';
     const catKey = category || 'General';
     const modTemplates = prev[modKey] || {};
     const catList = modTemplates[catKey] || [];
     
+    const newTemplateId = `CUST-TPL-${Date.now()}`;
     const newTemplate = {
       ...templateData,
-      id: `CUST-TPL-${Date.now()}`,
+      id: newTemplateId,
       isCustom: true,
       savedAt: new Date().toISOString()
     };
@@ -956,17 +993,33 @@ export const useWorkspaceStore = create((set, get) => ({
       }
     };
 
+    // Update local state instan
+    set({ customTemplates: next });
+
+    // 1. Simpan ke localStorage sebagai offline cache
     try {
       localStorage.setItem('digibooster_custom_templates', JSON.stringify(next));
     } catch (err) {
       console.warn('Gagal menyimpan custom template ke localStorage', err);
     }
 
-    return { customTemplates: next };
-  }),
+    // 2. Simpan permanen ke Supabase database (anti hilang saat clear cache)
+    try {
+      await supabase.from('custom_templates').insert([{
+        id: newTemplate.id,
+        module_name: modKey,
+        category: catKey,
+        title: newTemplate.title || 'Template Kustom',
+        payload: templateData
+      }]);
+      await recordAuditLog('INSERT', 'custom_templates', newTemplate.id, { module: modKey, category: catKey });
+    } catch (err) {
+      console.warn('Supabase custom_templates insert failed (fallback to local):', err);
+    }
+  },
 
-  deleteCustomTemplate: (moduleName, category, templateId) => set((state) => {
-    const prev = state.customTemplates || {};
+  deleteCustomTemplate: async (moduleName, category, templateId) => {
+    const prev = get().customTemplates || {};
     const modKey = moduleName || 'General';
     const catKey = category || 'General';
     const modTemplates = prev[modKey] || {};
@@ -980,12 +1033,20 @@ export const useWorkspaceStore = create((set, get) => ({
       }
     };
 
+    // Update local state instan
+    set({ customTemplates: next });
+
     try {
       localStorage.setItem('digibooster_custom_templates', JSON.stringify(next));
     } catch (err) {
       console.warn('Gagal menghapus custom template dari localStorage', err);
     }
 
-    return { customTemplates: next };
-  })
+    try {
+      await supabase.from('custom_templates').delete().eq('id', templateId);
+      await recordAuditLog('DELETE', 'custom_templates', templateId, null);
+    } catch (err) {
+      console.warn('Supabase custom_templates delete failed:', err);
+    }
+  }
 }));
