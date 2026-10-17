@@ -7,12 +7,12 @@ import { useOfficeStore } from '../store/officeStore';
 /**
  * CameraController: Mengatur pergerakan halus OrbitControls kamera orthographic
  * Mendukung fokus ke ruangan/karakter, batasan zoom, dan pencegahan sudut menembus lantai.
+ * Dioptimasi: exponential lerp (frame-rate independent), damping lebih responsif.
  */
 export function CameraController() {
   const controlsRef = useRef();
   const { camera } = useThree();
   const cameraTarget = useOfficeStore((state) => state.cameraTarget);
-
   const cameraZoom = useOfficeStore((state) => state.cameraZoom);
 
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
@@ -24,8 +24,9 @@ export function CameraController() {
 
   useFrame((_, delta) => {
     if (controlsRef.current) {
-      // Smooth interpolation lerp menuju fokus ruangan/agent
-      currentLookAt.current.lerp(targetVec.current, Math.min(1, delta * 4));
+      // Exponential lerp — stabil di semua FPS (30, 60, 120fps)
+      const alpha = 1 - Math.pow(0.01, delta * 6);
+      currentLookAt.current.lerp(targetVec.current, alpha);
       controlsRef.current.target.copy(currentLookAt.current);
       controlsRef.current.update();
     }
@@ -35,16 +36,16 @@ export function CameraController() {
     <OrbitControls
       ref={controlsRef}
       enableDamping={true}
-      dampingFactor={0.05}
+      dampingFactor={0.12}         // Lebih responsif, settle lebih cepat
+      rotateSpeed={1.0}            // Putar cepat dan natural
+      zoomSpeed={1.2}              // Zoom responsif
+      panSpeed={1.2}               // Pan natural
       // Membatasi rotasi vertikal agar tidak menembus lantai atau melihat dari bawah
-      minPolarAngle={Math.PI / 8} // ~22.5 derajat
-      maxPolarAngle={Math.PI / 2.3} // ~78 derajat (tidak pernah di bawah lantai)
+      minPolarAngle={Math.PI / 8}  // ~22.5 derajat
+      maxPolarAngle={Math.PI / 2.3} // ~78 derajat
       // Batas jarak orbit perspective camera
-      minDistance={15}
-      maxDistance={140}
-      // Pan kecepatan halus
-      panSpeed={1.0}
-      rotateSpeed={0.7}
+      minDistance={10}
+      maxDistance={120}
       enableRotate={true}
       enablePan={true}
       enableZoom={true}

@@ -18,20 +18,32 @@ import {
 } from '../../../components/ui/Modern3DIcons';
 
 export default function CrmKlien() {
-  const { crmClients, addCrmClient, updateCrmClient, deleteCrmClient, staffAgents } = useWorkspaceStore();
+  const { crmClients, addCrmClient, updateCrmClient, deleteCrmClient, staffAgents, crmCategories, addCrmCategory, deleteCrmCategory } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'kanban'
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [selectedClient, setSelectedClient] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Lead Masuk', 'Discovery Call', 'Proposal Terkirim', 'Negosiasi', 'Deal Won', 'Deal Lost'];
 
-  // Filter klien berdasarkan tahapan / status pipeline prospek
+  const categoryOptions = crmCategories || [
+    'Enterprise Corp',
+    'UKM / Ritel',
+    'Startup & Tech',
+    'Pemerintahan / BUMN',
+    'Agensi Mitra'
+  ];
+
+  // Filter klien berdasarkan tahapan / status pipeline prospek & kategori segmen
   const filteredClients = crmClients.filter((c) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
-    }
-    return c.stage === statusFilter;
+    const matchesStatus = (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all')
+      ? true 
+      : c.stage === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : c.category === activeCategory;
+    return matchesStatus && matchesCat;
   });
 
   // Total Pipeline Value
@@ -60,11 +72,12 @@ export default function CrmKlien() {
   }, {});
 
   const stageColorMap = {
-    'Prospek Awal': '#60a5fa',
-    'Follow-up / Demo': '#f59e0b',
-    'Negosiasi Proposal': '#0ea5e9',
-    'Deal Won': '#0284c7',
-    'Deal Lost': '#ef4444'
+    'Lead Masuk': '#64748b',
+    'Discovery Call': '#0284c7',
+    'Proposal Terkirim': '#d97706',
+    'Negosiasi': '#0ea5e9',
+    'Deal Won': '#16a34a',
+    'Deal Lost': '#dc2626'
   };
 
   const crmDonutData = Object.keys(stageCounts).map(stage => ({
@@ -104,6 +117,40 @@ export default function CrmKlien() {
       )
     },
     {
+      key: 'category',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Kategori Segmen
+        </span>
+      ),
+      minWidth: '170px',
+      options: categoryOptions,
+      render: (val, row, update) => (
+        <select
+          value={val || categoryOptions[0]}
+          onChange={(e) => update ? update(e.target.value) : updateCrmClient(row.id, { category: e.target.value })}
+          className="ws-notion-pill"
+          style={{
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '3px 8px',
+            borderRadius: '6px'
+          }}
+        >
+          {categoryOptions.map((cat) => (
+            <option key={cat} value={cat} style={{ color: '#0f172a', fontWeight: 500 }}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      )
+    },
+    {
       key: 'stage',
       label: (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -111,31 +158,38 @@ export default function CrmKlien() {
         </span>
       ),
       minWidth: '160px',
-      render: (val) => {
+      render: (val, row, update) => {
         const stageColors = {
-          'Lead Masuk': { text: '#64748b', bg: '#f1f5f9' },
-          'Discovery Call': { text: '#0284c7', bg: '#e0f2fe' },
-          'Proposal Terkirim': { text: '#d97706', bg: '#fef3c7' },
-          'Negosiasi': { text: '#0284c7', bg: '#eff6ff' },
-          'Deal Won': { text: '#16a34a', bg: '#dcfce7' },
-          'Deal Lost': { text: '#dc2626', bg: '#fee2e2' }
+          'Lead Masuk': '#64748b',
+          'Discovery Call': '#0284c7',
+          'Proposal Terkirim': '#d97706',
+          'Negosiasi': '#0ea5e9',
+          'Deal Won': '#16a34a',
+          'Deal Lost': '#dc2626'
         };
-        const conf = stageColors[val] || { text: '#0284c7', bg: '#eff6ff' };
+        const currentTextColor = stageColors[val] || '#0284c7';
         return (
-          <span
+          <select
+            value={val || 'Lead Masuk'}
+            onChange={(e) => update ? update(e.target.value) : updateCrmClient(row.id, { stage: e.target.value })}
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '3px 10px',
-              borderRadius: '999px',
-              fontSize: '0.78rem',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: currentTextColor,
+              fontSize: '0.8rem',
               fontWeight: 700,
-              color: conf.text,
-              backgroundColor: conf.bg
+              outline: 'none',
+              cursor: 'pointer',
+              padding: '2px 0'
             }}
           >
-            {val || 'Lead Masuk'}
-          </span>
+            <option value="Lead Masuk" style={{ color: '#64748b', fontWeight: 600 }}>Lead Masuk</option>
+            <option value="Discovery Call" style={{ color: '#0284c7', fontWeight: 600 }}>Discovery Call</option>
+            <option value="Proposal Terkirim" style={{ color: '#d97706', fontWeight: 600 }}>Proposal Terkirim</option>
+            <option value="Negosiasi" style={{ color: '#0ea5e9', fontWeight: 600 }}>Negosiasi</option>
+            <option value="Deal Won" style={{ color: '#16a34a', fontWeight: 600 }}>Deal Won</option>
+            <option value="Deal Lost" style={{ color: '#dc2626', fontWeight: 600 }}>Deal Lost</option>
+          </select>
         );
       }
     },
@@ -240,12 +294,17 @@ export default function CrmKlien() {
     setIsDrawerOpen(true);
   };
 
-  const handleAddQuickClient = () => {
+  const handleAddQuickClient = (overrideCat) => {
     const newId = `CRM-00${crmClients.length + 1}`;
+    const defaultCat = overrideCat || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : categoryOptions[0]);
+
     const newClient = {
       id: newId,
       name: '',
       contact: '',
+      category: defaultCat,
       stage: 'Lead Masuk',
       dealValue: 0,
       services: [],
@@ -314,6 +373,12 @@ export default function CrmKlien() {
         onDeleteRow={deleteCrmClient}
         onUpdateCell={(id, field, val) => updateCrmClient(id, { [field]: val })}
         exportFileName="crm_klien_digibooster.csv"
+        categories={categoryOptions}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        onAddCategory={(cat) => addCrmCategory && addCrmCategory(cat)}
+        onDeleteCategory={(cat) => deleteCrmCategory && deleteCrmCategory(cat)}
+        categoryKey="category"
         currentViewMode={viewMode}
         onChangeViewMode={setViewMode}
         availableViewModes={['table', 'kanban']}
@@ -360,6 +425,7 @@ export default function CrmKlien() {
         fields={[
           { key: 'name', label: 'Nama Perusahaan / Klien' },
           { key: 'contact', label: 'Nomor Kontak & WhatsApp' },
+          { key: 'category', label: 'Kategori Segmen Klien' },
           { key: 'stage', label: 'Tahapan Saat Ini' },
           { key: 'dealValue', label: 'Nilai Deal (IDR)' },
           { key: 'services', label: 'Layanan yang Diambil' },

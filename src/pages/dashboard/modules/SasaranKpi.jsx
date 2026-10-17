@@ -16,21 +16,34 @@ import {
 } from '../../../components/ui/Modern3DIcons';
 
 export default function SasaranKpi() {
-  const { okrGoals, addOkrGoal, updateOkrGoal, deleteOkrGoal } = useWorkspaceStore();
+  const { okrGoals, addOkrGoal, updateOkrGoal, deleteOkrGoal, okrCategories, addOkrCategory, deleteOkrCategory } = useWorkspaceStore();
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Belum Mulai', 'On Track', 'At Risk', 'Tercapai'];
 
-  // Filter sasaran & KPI berdasarkan status ketercapaian
+  const categoryOptions = okrCategories || [
+    'Revenue & Pertumbuhan',
+    'Teknologi & Infrastruktur',
+    'Brand & Komunitas',
+    'Efisiensi Operasional',
+    'Kepuasan Klien'
+  ];
+
+  // Filter sasaran & KPI berdasarkan status ketercapaian & kategori sasaran
   const filteredGoals = okrGoals.filter((g) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
+    let matchesStatus = true;
+    if (statusFilter && statusFilter !== 'Semua Status' && statusFilter !== 'ALL' && statusFilter !== 'all') {
+      let pct = Math.round((g.currentNum / g.targetNum) * 100);
+      if (g.unit === 'Detik') pct = Math.round((g.targetNum / g.currentNum) * 100);
+      const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
+      const currentStatus = g.status || autoStatus;
+      matchesStatus = (currentStatus === statusFilter);
     }
-    let pct = Math.round((g.currentNum / g.targetNum) * 100);
-    if (g.unit === 'Detik') pct = Math.round((g.targetNum / g.currentNum) * 100);
-    const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
-    const currentStatus = g.status || autoStatus;
-    return currentStatus === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : g.category === activeCategory;
+    return matchesStatus && matchesCat;
   });
 
   // Data Bar Chart: Progres Capaian per Sasaran (OKR)
@@ -49,25 +62,28 @@ export default function SasaranKpi() {
     };
   });
 
-  // Data Donut Chart: Alokasi Sasaran per Divisi
-  const divisionCounts = okrGoals.reduce((acc, g) => {
-    const div = g.division || 'Umum';
-    acc[div] = (acc[div] || 0) + 1;
+  // Data Donut Chart: Distribusi Status Capaian OKR
+  const statusCounts = okrGoals.reduce((acc, g) => {
+    let pct = Math.round(((g.currentNum || 0) / (g.targetNum || 1)) * 100);
+    if (g.unit === 'Detik') pct = Math.round(((g.targetNum || 1) / (g.currentNum || 1)) * 100);
+    const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
+    const s = g.status || autoStatus;
+    acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
 
-  const divColors = {
-    'Marketing': '#f59e0b',
-    'Finance': '#10b981',
-    'Operasional/Produksi': '#0284c7',
-    'Teknologi': '#6366f1'
+  const statusColors = {
+    'Tercapai': '#16a34a',
+    'On Track': '#0284c7',
+    'At Risk': '#d97706',
+    'Belum Mulai': '#dc2626'
   };
 
-  const okrDonutData = Object.keys(divisionCounts).map(div => ({
-    label: div.replace('/Produksi', ''),
-    value: divisionCounts[div],
-    displayVal: `${divisionCounts[div]} OKR`,
-    color: divColors[div] || '#0284c7'
+  const okrDonutData = Object.keys(statusCounts).map(st => ({
+    label: st,
+    value: statusCounts[st],
+    displayVal: `${statusCounts[st]} Sasaran`,
+    color: statusColors[st] || '#0284c7'
   }));
 
   const columns = [
@@ -88,6 +104,40 @@ export default function SasaranKpi() {
         </span>
       ), 
       minWidth: '220px' 
+    },
+    {
+      key: 'category',
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Icon3DTag size={14} /> Kategori Sasaran
+        </span>
+      ),
+      minWidth: '180px',
+      options: categoryOptions,
+      render: (val, row, update) => (
+        <select
+          value={val || categoryOptions[0]}
+          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { category: e.target.value })}
+          className="ws-notion-pill"
+          style={{
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            outline: 'none',
+            cursor: 'pointer',
+            padding: '3px 8px',
+            borderRadius: '6px'
+          }}
+        >
+          {categoryOptions.map((cat) => (
+            <option key={cat} value={cat} style={{ color: '#0f172a', fontWeight: 500 }}>
+              {cat}
+            </option>
+          ))}
+        </select>
+      )
     },
     { 
       key: 'division', 
@@ -255,11 +305,16 @@ export default function SasaranKpi() {
     }
   ];
 
-  const handleAddGoal = () => {
+  const handleAddGoal = (overrideCat) => {
+    const defaultCat = overrideCat || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : categoryOptions[0]);
+
     const newGoal = {
       id: `OKR-${Date.now().toString().slice(-4)}`,
       objective: '',
       keyResult: '',
+      category: defaultCat,
       division: 'Operasional/Produksi',
       quarter: 'Q4',
       targetNum: 100,
@@ -307,8 +362,8 @@ export default function SasaranKpi() {
           data={okrBarData}
         />
         <DonutChart
-          title="Sebaran Sasaran Strategis per Divisi"
-          subtitle="Fokus prioritas per departemen"
+          title="Distribusi Status Capaian OKR"
+          subtitle="Tingkat keberhasilan indikator kinerja"
           data={okrDonutData}
         />
       </div>
@@ -321,6 +376,12 @@ export default function SasaranKpi() {
         onDeleteRow={deleteOkrGoal}
         onUpdateCell={(id, field, val) => updateOkrGoal(id, { [field]: val })}
         exportFileName="okr_kpi_digibooster.csv"
+        categories={categoryOptions}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        onAddCategory={(cat) => addOkrCategory && addOkrCategory(cat)}
+        onDeleteCategory={(cat) => deleteOkrCategory && deleteOkrCategory(cat)}
+        categoryKey="category"
         statusFilter={statusFilter}
         onChangeStatusFilter={setStatusFilter}
         statusOptions={statusOptions}

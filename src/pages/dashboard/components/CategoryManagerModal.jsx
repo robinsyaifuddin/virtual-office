@@ -2,17 +2,37 @@ import React, { useState } from 'react';
 import { X, Plus, Trash2, GripVertical, Check } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
-export default function CategoryManagerModal({ isOpen, onClose }) {
+export default function CategoryManagerModal({ 
+  isOpen, 
+  onClose,
+  categories: propCategories,
+  onAddCategory,
+  onDeleteCategory
+}) {
   const { taskCategories, addCategoryOption, deleteCategoryOption } = useWorkspaceStore();
   const [newCatInput, setNewCatInput] = useState('');
 
   if (!isOpen) return null;
 
+  const currentCategories = (propCategories && propCategories.length > 0) ? propCategories : taskCategories;
+
   const handleAdd = (e) => {
     e.preventDefault();
     if (!newCatInput.trim()) return;
-    addCategoryOption(newCatInput.trim());
+    if (onAddCategory) {
+      onAddCategory(newCatInput.trim());
+    } else {
+      addCategoryOption(newCatInput.trim());
+    }
     setNewCatInput('');
+  };
+
+  const handleDelete = (cat) => {
+    if (onDeleteCategory) {
+      onDeleteCategory(cat);
+    } else {
+      deleteCategoryOption(cat);
+    }
   };
 
   return (
@@ -124,7 +144,7 @@ export default function CategoryManagerModal({ isOpen, onClose }) {
           flexDirection: 'column',
           gap: '4px'
         }}>
-          {taskCategories.map((cat) => (
+          {currentCategories.map((cat) => (
             <div
               key={cat}
               style={{
@@ -158,7 +178,7 @@ export default function CategoryManagerModal({ isOpen, onClose }) {
               </div>
 
               <button
-                onClick={() => deleteCategoryOption(cat)}
+                onClick={() => handleDelete(cat)}
                 title="Hapus opsi"
                 style={{
                   border: 'none',

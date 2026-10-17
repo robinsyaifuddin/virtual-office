@@ -36,7 +36,7 @@ export default function MetricCard({ title, value, change, trend = 'up', subtitl
       <div 
         className="ws-metric-val"
         style={{ 
-          fontSize: '1.65rem', 
+          fontSize: '1.38rem', 
           fontWeight: 800, 
           color: '#0f172a', 
           letterSpacing: '-0.02em', 

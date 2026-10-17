@@ -17,16 +17,28 @@ import {
 
 export default function RapatCatatan() {
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Terjadwal', 'Berlangsung', 'Selesai', 'Dibatalkan'];
 
-  // Filter rapat berdasarkan status rapat
+  const meetingTypes = [
+    'Internal Weekly Sync',
+    'Client Kick-off',
+    'Review Sprint',
+    'Evaluasi Klien',
+    'Strategi Bisnis'
+  ];
+
+  // Filter rapat berdasarkan status rapat & format kategori rapat
   const filteredMeetings = meetings.filter((m) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
-    }
-    return m.status === statusFilter;
+    const matchesStatus = (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all')
+      ? true 
+      : m.status === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : (m.type === activeCategory || m.category === activeCategory);
+    return matchesStatus && matchesCat;
   });
 
   // Data Bar Chart: Jumlah Peserta Hadir per Topik Rapat
@@ -42,25 +54,25 @@ export default function RapatCatatan() {
     };
   });
 
-  // Data Donut Chart: Distribusi Tipe Rapat
-  const typeCounts = meetings.reduce((acc, m) => {
-    const t = m.type || 'Internal Sync';
-    acc[t] = (acc[t] || 0) + 1;
+  // Data Donut Chart: Distribusi Status Rapat
+  const statusCounts = meetings.reduce((acc, m) => {
+    const s = (m.status && typeof m.status === 'string' && m.status.trim()) ? m.status.trim() : 'Terjadwal';
+    acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
 
-  const typeColors = {
-    'Internal Weekly Sync': '#0284c7',
-    'Review Sprint': '#38bdf8',
-    'Evaluasi Klien': '#10b981',
-    'Strategi Bisnis': '#f59e0b'
+  const statusColors = {
+    'Terjadwal': '#0284c7',
+    'Berlangsung': '#d97706',
+    'Selesai': '#16a34a',
+    'Dibatalkan': '#dc2626'
   };
 
-  const meetingDonutData = Object.keys(typeCounts).map(t => ({
-    label: t,
-    value: typeCounts[t],
-    displayVal: `${typeCounts[t]} Sesi`,
-    color: typeColors[t] || '#6366f1'
+  const meetingDonutData = Object.keys(statusCounts).map(st => ({
+    label: st,
+    value: statusCounts[st],
+    displayVal: `${statusCounts[st]} Sesi`,
+    color: statusColors[st] || '#0284c7'
   }));
 
   const columns = [
@@ -107,6 +119,7 @@ export default function RapatCatatan() {
         </span>
       ),
       minWidth: '160px',
+      options: meetingTypes,
       render: (val, row, update) => (
         <select
           value={val || 'Internal Weekly Sync'}
@@ -208,12 +221,16 @@ export default function RapatCatatan() {
     }
   ];
 
-  const handleAddMeeting = () => {
+  const handleAddMeeting = (overrideType) => {
+    const defaultType = overrideType || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : meetingTypes[0]);
+
     const newM = {
       id: `MTG-${Date.now().toString().slice(-4)}`,
       title: '',
       dateTime: new Date().toISOString().split('T')[0],
-      type: 'Internal Weekly Sync',
+      type: defaultType,
       status: 'Terjadwal',
       participants: [],
       link: '',
@@ -255,10 +272,9 @@ export default function RapatCatatan() {
           data={meetingBarData}
         />
         <DonutChart
-          title="Kategori Jenis Rapat Internal"
-          subtitle="Komposisi format koordinasi"
+          title="Distribusi Status Rapat"
+          subtitle="Status penjadwalan & pelaksanaan rapat"
           data={meetingDonutData}
-          
         />
       </div>
 
@@ -270,6 +286,10 @@ export default function RapatCatatan() {
         onDeleteRow={deleteMeeting}
         onUpdateCell={(id, field, val) => updateMeeting(id, { [field]: val })}
         exportFileName="notulensi_rapat_digibooster.csv"
+        categories={meetingTypes}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        categoryKey="type"
         statusFilter={statusFilter}
         onChangeStatusFilter={setStatusFilter}
         statusOptions={statusOptions}

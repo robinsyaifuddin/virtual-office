@@ -17,16 +17,29 @@ import {
 
 export default function KeuanganProfit() {
   const { financeTransactions, addFinanceTransaction, updateFinanceTransaction, deleteFinanceTransaction } = useWorkspaceStore();
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Lunas', 'Pending', 'Dibatalkan'];
 
-  // Filter transaksi berdasarkan status pembayaran
+  const financeCategories = [
+    'Pembayaran Klien',
+    'Server & Tools',
+    'Marketing Ads',
+    'Operasional Kantor',
+    'Gaji & Tim',
+    'Lain-lain'
+  ];
+
+  // Filter transaksi berdasarkan status pembayaran & kategori kas
   const filteredTransactions = financeTransactions.filter((t) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
-    }
-    return t.status === statusFilter;
+    const matchesStatus = (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all')
+      ? true 
+      : t.status === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : t.category === activeCategory;
+    return matchesStatus && matchesCat;
   });
 
   const totalIncome = financeTransactions
@@ -58,11 +71,25 @@ export default function KeuanganProfit() {
     };
   });
 
-  // Data Donut Chart: Alokasi Tipe Finansial
-  const financeDonutData = [
-    { label: 'Pemasukan (Lunas)', value: Math.round(totalIncome / 1000000), displayVal: `Rp ${(totalIncome/1000000).toFixed(0)}Jt`, color: '#10b981' },
-    { label: 'Pengeluaran (Operasional)', value: Math.round(totalExpense / 1000000), displayVal: `Rp ${(totalExpense/1000000).toFixed(0)}Jt`, color: '#ef4444' }
-  ];
+  // Data Donut Chart: Distribusi Status Pembayaran Transaksi
+  const statusCounts = financeTransactions.reduce((acc, t) => {
+    const s = (t.status && typeof t.status === 'string' && t.status.trim()) ? t.status.trim() : 'Lunas';
+    acc[s] = (acc[s] || 0) + 1;
+    return acc;
+  }, {});
+
+  const statusColors = {
+    'Lunas': '#16a34a',
+    'Pending': '#d97706',
+    'Dibatalkan': '#dc2626'
+  };
+
+  const financeDonutData = Object.keys(statusCounts).map(st => ({
+    label: st,
+    value: statusCounts[st],
+    displayVal: `${statusCounts[st]} Transaksi`,
+    color: statusColors[st] || '#0284c7'
+  }));
 
   const columns = [
     { 
@@ -110,6 +137,7 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '160px',
+      options: financeCategories,
       render: (val, row, update) => (
         <select
           value={val || 'Pembayaran Klien'}
@@ -232,12 +260,16 @@ export default function KeuanganProfit() {
     }
   ];
 
-  const handleAddQuickTransaction = () => {
+  const handleAddQuickTransaction = (overrideCat) => {
+    const defaultCat = overrideCat || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : financeCategories[0]);
+
     const newTx = {
       id: `FIN-${Date.now().toString().slice(-4)}`,
       title: '',
       type: 'Pemasukan',
-      category: 'Pembayaran Klien',
+      category: defaultCat,
       amount: 0,
       clientRef: '',
       date: new Date().toISOString().split('T')[0],
@@ -291,8 +323,8 @@ export default function KeuanganProfit() {
           data={financeBarData}
         />
         <DonutChart
-          title="Rasio Kas Masuk vs Kas Keluar"
-          subtitle="Perbandingan kas realisasi lunas"
+          title="Distribusi Status Pembayaran"
+          subtitle="Status verifikasi tagihan & transaksi"
           data={financeDonutData}
         />
       </div>
@@ -305,6 +337,10 @@ export default function KeuanganProfit() {
         onDeleteRow={deleteFinanceTransaction}
         onUpdateCell={(id, field, val) => updateFinanceTransaction(id, { [field]: val })}
         exportFileName="laporan_keuangan_digibooster.csv"
+        categories={financeCategories}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        categoryKey="category"
         statusFilter={statusFilter}
         onChangeStatusFilter={setStatusFilter}
         statusOptions={statusOptions}

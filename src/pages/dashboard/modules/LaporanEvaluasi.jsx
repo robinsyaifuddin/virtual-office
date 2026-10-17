@@ -17,16 +17,27 @@ import {
 
 export default function LaporanEvaluasi() {
   const { reports, addReport, updateReport, deleteReport } = useWorkspaceStore();
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Draft', 'Review', 'Final', 'Disahkan', 'Arsip'];
 
-  // Filter laporan berdasarkan status dokumen
+  const auditCategories = [
+    'Audit Kualitas',
+    'Review Kinerja',
+    'Evaluasi Sprint',
+    'Kepuasan Klien'
+  ];
+
+  // Filter laporan berdasarkan status dokumen & kategori evaluasi
   const filteredReports = reports.filter((r) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
-    }
-    return r.status === statusFilter;
+    const matchesStatus = (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all')
+      ? true 
+      : r.status === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : r.category === activeCategory;
+    return matchesStatus && matchesCat;
   });
 
   // Data Bar Chart: Skor Mutu per Dokumen Evaluasi
@@ -42,25 +53,26 @@ export default function LaporanEvaluasi() {
     };
   });
 
-  // Data Donut Chart: Komposisi Kategori Laporan & Audit
-  const catCounts = reports.reduce((acc, r) => {
-    const c = r.category || 'Audit Kualitas';
-    acc[c] = (acc[c] || 0) + 1;
+  // Data Donut Chart: Distribusi Status Audit & Evaluasi
+  const statusCounts = reports.reduce((acc, r) => {
+    const s = r.status || 'Draft';
+    acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
 
-  const catColors = {
-    'Audit Kualitas': '#0284c7',
-    'Review Kinerja': '#10b981',
-    'Evaluasi Sprint': '#f59e0b',
-    'Kepuasan Klien': '#0ea5e9'
+  const statusColors = {
+    'Draft': '#d97706',
+    'Review': '#4f46e5',
+    'Final': '#0284c7',
+    'Disahkan': '#16a34a',
+    'Arsip': '#64748b'
   };
 
-  const reportDonutData = Object.keys(catCounts).map(cat => ({
-    label: cat,
-    value: catCounts[cat],
-    displayVal: `${catCounts[cat]} Dokumen`,
-    color: catColors[cat] || '#38bdf8'
+  const reportDonutData = Object.keys(statusCounts).map(st => ({
+    label: st,
+    value: statusCounts[st],
+    displayVal: `${statusCounts[st]} Dokumen`,
+    color: statusColors[st] || '#0284c7'
   }));
 
   const columns = [
@@ -81,6 +93,7 @@ export default function LaporanEvaluasi() {
         </span>
       ), 
       minWidth: '160px',
+      options: auditCategories,
       render: (val, row, update) => (
         <select
           value={val || 'Audit Kualitas'}
@@ -230,11 +243,15 @@ export default function LaporanEvaluasi() {
     }
   ];
 
-  const handleAddReport = () => {
+  const handleAddReport = (overrideCat) => {
+    const defaultCat = overrideCat || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : auditCategories[0]);
+
     const newRpt = {
       id: `RPT-${Date.now().toString().slice(-4)}`,
       period: '',
-      category: 'Audit Kualitas',
+      category: defaultCat,
       status: 'Draft',
       date: new Date().toISOString().split('T')[0],
       rating: 5,
@@ -279,10 +296,9 @@ export default function LaporanEvaluasi() {
           data={reportBarData}
         />
         <DonutChart
-          title="Komposisi Jenis Dokumen Evaluasi"
-          subtitle="Distribusi laporan mutu operasional"
+          title="Distribusi Status Audit & Evaluasi"
+          subtitle="Status verifikasi dokumen mutu berkala"
           data={reportDonutData}
-          
         />
       </div>
 
@@ -294,6 +310,10 @@ export default function LaporanEvaluasi() {
         onDeleteRow={deleteReport}
         onUpdateCell={(id, field, val) => updateReport(id, { [field]: val })}
         exportFileName="evaluasi_laporan_digibooster.csv"
+        categories={auditCategories}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        categoryKey="category"
         statusFilter={statusFilter}
         onChangeStatusFilter={setStatusFilter}
         statusOptions={statusOptions}

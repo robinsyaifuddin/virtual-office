@@ -19,12 +19,13 @@ export default function Office3D() {
 
   // Titik Interaktif Ruangan
   const roomHotspots = [
+    { id: 'ceo_suite', name: 'Ruang Direktur Utama (CEO Bang Robin)', top: '15%', left: '32%', desc: 'Executive CEO Command Desk, Curved Monitor 49", Sofa Tamu Bentuk U, Vision Board Notes, Credenza Trofi & Mesin Espresso' },
+    { id: 'ceo_bath', name: 'Private En-Suite Restroom & Spa (CEO)', top: '15%', left: '18%', desc: 'Kamar mandi pribadi eksekutif: Wastafel marmer Carrara LED, Smart Toilet bidet emas, Glass Shower Stall & Lemari Wardrobe' },
     { id: 'eco_garden', name: 'Eco Garden & Smart Farm', top: '44%', left: '14%', desc: 'Smart hydroponic A-frame & vertical towers, teak wood deck timber pergola, zen fountain & lush garden pod' },
     { id: 'client_vip', name: 'Ruang Layanan Klien / VIP Lounge', top: '28%', left: '36%', desc: 'Sofa kulit mewah & presentasi klien' },
     { id: 'lobby', name: 'Lobi & Resepsionis', top: '41%', left: '45%', desc: 'Meja resepsionis kurva modern & foyer' },
     { id: 'rapat_besar', name: 'Ruang Rapat Besar', top: '18%', left: '46%', desc: 'Meja rapat eksekutif 8-10 orang' },
     { id: 'sports_hub', name: 'Mega Sports & Wellness Hub', top: '12%', left: '68%', desc: 'Hall 32 meter all-in-one: Gym & Fitness Hub, Table Tennis Tournament Court, E-Sport Gaming Battle Pod, dan Karaoke & Music Studio Lounge' },
-    { id: 'agent_ai', name: 'Ruang AI & Automation / Dedicated Agent Command Center', top: '22%', left: '71%', desc: 'Layar dashboard kurva raksasa status operasional agent' },
     { id: 'server_room', name: 'Ruang Server & Infrastruktur', top: '32%', left: '84%', desc: 'Rak server tertutup, steril, dan bebas pipa air' },
     { id: 'pantry', name: 'Pantry & Coffee Lounge', top: '46%', left: '76%', desc: 'Kitchen bar walnut marmer, mesin espresso barista, smart double-door fridge, dispenser galon, microwave & cafe dining area' },
     { id: 'musholla', name: 'Executive Prayer Suite', top: '62%', left: '71%', desc: 'Karpet sajadah saf masjid full, sajadah imam otentik, kaligrafi emas & jam jadwal sholat real-time WIB' },
@@ -35,10 +36,10 @@ export default function Office3D() {
   ];
 
   return (
-    <div className="virtual-office-root" style={{ background: '#5bb83c', overflow: 'hidden' }}>
+    <div className="virtual-office-root" style={{ background: '#091322', overflow: 'hidden' }}>
       {/* 3D Voxel Engine Interaktif 100% Menggunakan Aset 3D */}
       <iframe
-        src={`/digibooster_office_engine.html?v=${Date.now()}`}
+        src="/digibooster_office_engine.html"
         title="DigiBooster 3D Virtual Office"
         style={{
           width: '100%',

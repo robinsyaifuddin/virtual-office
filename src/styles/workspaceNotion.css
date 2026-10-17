@@ -452,6 +452,17 @@ thead .ws-sticky-col-1, thead .ws-sticky-col-2 {
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22) !important;
     z-index: 9999 !important;
   }
+
+  /* Popover Dropdown Template di Mobile */
+  .ws-template-popover {
+    left: auto !important;
+    right: 0 !important;
+    width: 300px !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: 380px !important;
+    box-shadow: 0 14px 35px rgba(15, 23, 42, 0.24) !important;
+    z-index: 9999 !important;
+  }
 }
 
 /* Ensure table wrapper does not clip dropdowns but keeps bottom radius */

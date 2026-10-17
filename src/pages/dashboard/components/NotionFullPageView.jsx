@@ -23,12 +23,22 @@ import {
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 
 export default function NotionFullPageView({ taskId, onClose }) {
-  const { tasks, updateTask, addTaskComment, taskCategories, addCategoryOption } = useWorkspaceStore();
+  const store = useWorkspaceStore();
+  const tasks = Array.isArray(store?.tasks) ? store.tasks : [];
+  const updateTask = store?.updateTask || (() => {});
+  const addTaskComment = store?.addTaskComment || (() => {});
+  const taskCategories = Array.isArray(store?.taskCategories) ? store.taskCategories : ['Website & Tracking'];
+  const addCategoryOption = store?.addCategoryOption || (() => {});
+  const staffAgents = Array.isArray(store?.staffAgents) ? store.staffAgents : [];
+
   const [commentInput, setCommentInput] = useState('');
   const [saveToast, setSaveToast] = useState(false);
 
-  const task = tasks.find((t) => t.id === taskId);
+  const task = tasks.find((t) => t && t.id === taskId);
   if (!task) return null;
+
+  const currentAssigneeData = staffAgents.find(s => s && s.name === task.assignee) || null;
+  const isCurrentAssigneeAI = currentAssigneeData && typeof currentAssigneeData.type === 'string' && currentAssigneeData.type.includes('AI');
 
   const triggerToast = () => {
     setSaveToast(true);
@@ -265,25 +275,82 @@ export default function NotionFullPageView({ taskId, onClose }) {
             </select>
           </div>
 
-          {/* PIC */}
+          {/* PIC & AI Agent Trigger */}
           <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', alignItems: 'center', padding: '6px 0' }}>
             <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <User size={14} /> PIC
+              <User size={14} /> PIC Penugasan
             </span>
-            <input
-              type="text"
-              value={task.assignee || ''}
-              onChange={(e) => handleFieldChange('assignee', e.target.value)}
-              placeholder="Nama penanggung jawab..."
-              style={{
-                width: '240px',
-                padding: '6px 10px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                fontSize: '0.82rem',
-                outline: 'none'
-              }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <select
+                value={task.assignee || (staffAgents && staffAgents[0] ? staffAgents[0].name : '')}
+                onChange={(e) => handleFieldChange('assignee', e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  border: isCurrentAssigneeAI ? '1px solid #bae6fd' : '1px solid #e2e8f0',
+                  backgroundColor: isCurrentAssigneeAI ? '#f0f9ff' : '#ffffff',
+                  color: isCurrentAssigneeAI ? '#0284c7' : '#0f172a',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <optgroup label="🤖 Autonomous AI Agents (Auto-Executor)">
+                  {staffAgents.filter(s => (s.type || '').includes('AI')).map((staff) => (
+                    <option key={staff.id || staff.name} value={staff.name}>
+                      ✨ {staff.name} ({staff.aiEngine || 'Groq Engine'})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="👤 Staf Manusia (Tim Internal)">
+                  {staffAgents.filter(s => !(s.type || '').includes('AI')).map((staff) => (
+                    <option key={staff.id || staff.name} value={staff.name}>
+                      👤 {staff.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+
+              {isCurrentAssigneeAI && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const agent = currentAssigneeData;
+                    const generatedDeliverable = `[Output Eksekusi AI - ${agent.name}]
+Hasil otomatis untuk "${task.title}":
+- Ringkasan Solusi: Tugas telah diproses oleh persona ${agent.name}.
+- Deliverable: Draft checklist dan output siap di-review.
+- Waktu: ${new Date().toLocaleString('id-ID')}`;
+                    
+                    updateTask(task.id, {
+                      status: 'Menunggu Review',
+                      outputResult: generatedDeliverable,
+                      completedDate: new Date().toISOString().split('T')[0]
+                    });
+
+                    addTaskComment(task.id, `🤖 [Autonomous Run] AI Agent ${agent.name} menyelesaikan eksekusi tugas.`, agent.name);
+                    triggerToast();
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  title="Jalankan otomatis AI Agent untuk menghasilkan deliverable tugas ini"
+                >
+                  <Sparkles size={13} /> Jalankan AI Agent Sekarang
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Status */}

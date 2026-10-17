@@ -14,7 +14,8 @@ import {
   Minimize2,
   FileText,
   UploadCloud,
-  Download
+  Download,
+  Bookmark
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { exportRowAsPdf } from '../../../utils/exportPdf';
@@ -36,14 +37,17 @@ export default function UniversalDetailModal({
   columns = [],
   title = 'Detail Data',
   onUpdateField,
-  onSaveNew
+  onSaveNew,
+  categoryKey = 'category'
 }) {
   if (!isOpen || !data) return null;
 
-  const { taskCategories, addTaskComment, staffAgents } = useWorkspaceStore();
+  const { taskCategories, addTaskComment, staffAgents, addCustomTemplate } = useWorkspaceStore();
   const [commentInput, setCommentInput] = useState('');
   const [saveToast, setSaveToast] = useState(false);
+  const [templateSavedToast, setTemplateSavedToast] = useState(false);
   const [isFullWidth, setIsFullWidth] = useState(false);
+
 
   const triggerToast = () => {
     setSaveToast(true);
@@ -116,13 +120,21 @@ export default function UniversalDetailModal({
             zIndex: 40
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#64748b' }}>
-            <span className="ws-mobile-hidden" style={{ fontWeight: 600 }}>Workspace</span>
-            <span className="ws-mobile-hidden">/</span>
-            <span className="ws-mobile-hidden">Daftar Operasional</span>
-            <span className="ws-mobile-hidden">/</span>
-            <span style={{ fontWeight: 700, color: '#0f172a', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {mainTitle && mainTitle !== 'Tanpa Judul' ? mainTitle : 'Data Baru'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.76rem',
+              fontWeight: 700,
+              color: '#0284c7',
+              backgroundColor: '#eff6ff',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: '1px solid #bfdbfe'
+            }}>
+              <FileText size={13} />
+              <span>Detail &amp; Isian Data</span>
             </span>
           </div>
 
@@ -139,6 +151,55 @@ export default function UniversalDetailModal({
                 <CheckCircle2 size={14} /> Tersimpan
               </span>
             )}
+
+            {templateSavedToast && (
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                color: '#0284c7',
+                fontWeight: 700,
+                backgroundColor: '#eff6ff',
+                padding: '4px 8px',
+                borderRadius: '6px'
+              }}>
+                <Bookmark size={14} /> Template Tersimpan!
+              </span>
+            )}
+
+            {/* Tombol Simpan Baris Ini Sebagai Template Baru */}
+            <button
+              onClick={() => {
+                const targetCat = data[categoryKey] || data.category || data.pillar || 'Umum';
+                const templatePayload = {
+                  ...data,
+                  title: data.title || data.name || data.period || data.objective || 'Template Kustom'
+                };
+                delete templatePayload.id; // Agar template di-generate ID baru saat di-apply
+                addCustomTemplate(title, targetCat, templatePayload);
+                setTemplateSavedToast(true);
+                setTimeout(() => setTemplateSavedToast(false), 2000);
+              }}
+              title="Simpan baris ini sebagai Template baru di kategori ini"
+              className="ws-btn-transition"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #fed7aa',
+                backgroundColor: '#fff7ed',
+                color: '#ea580c',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <Bookmark size={14} />
+              <span className="ws-mobile-hidden">Simpan sbg Template</span>
+            </button>
 
             {/* Tombol Unduh PDF Dokumen Resmi */}
             <button
@@ -269,8 +330,29 @@ export default function UniversalDetailModal({
                   </span>
 
                   <div style={{ minWidth: 0, overflow: 'hidden' }}>
-                    {/* Render khusus untuk PIC / Assignee (Dropdown Staff & AI Agent) */}
-                    {(col.key === 'pic' || col.key === 'assignee' || col.key === 'owner' || col.key === 'author') ? (
+                    {Array.isArray(col.options) && col.options.length > 0 ? (
+                      <select
+                        value={val || col.options[0]}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        {col.options.map((opt) => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    ) : (col.key === 'pic' || col.key === 'assignee' || col.key === 'owner' || col.key === 'author') ? (
                       <select
                         value={val || ''}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
@@ -514,7 +596,179 @@ export default function UniversalDetailModal({
                         <option value={4}>Skor 4/5 (Sangat Baik)</option>
                         <option value={3}>Skor 3/5 (Cukup Baik)</option>
                         <option value={2}>Skor 2/5 (Perlu Perbaikan)</option>
-                        <option value={1}>Skor 1/5 (Tidak Memenuhi SLA)</option>
+                      </select>
+                    ) : (col.key === 'progress') ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '420px', width: '100%' }}>
+                        {/* Progress Bar & Percentage */}
+                        {(() => {
+                          const target = Number(data.targetNum) || 100;
+                          const current = Number(data.currentNum) || 0;
+                          let pct = Math.round((current / target) * 100);
+                          if (data.unit === 'Detik' && current > 0) {
+                            pct = Math.round((target / current) * 100);
+                          }
+                          const displayPct = Math.max(0, isNaN(pct) ? 0 : pct);
+
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ flex: 1, height: '8px', backgroundColor: '#e2e8f0', borderRadius: '6px', overflow: 'hidden' }}>
+                                  <div 
+                                    style={{ 
+                                      width: `${Math.min(displayPct, 100)}%`, 
+                                      height: '100%', 
+                                      backgroundColor: displayPct >= 100 ? '#16a34a' : displayPct >= 50 ? '#0284c7' : '#eab308',
+                                      transition: 'width 200ms ease'
+                                    }} 
+                                  />
+                                </div>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 800, color: displayPct >= 100 ? '#16a34a' : '#0284c7', minWidth: '45px', textAlign: 'right' }}>
+                                  {displayPct}%
+                                </span>
+                              </div>
+
+                              {/* Input Capaian & Target */}
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 90px', gap: '8px', alignItems: 'center' }}>
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#64748b', marginBottom: '3px' }}>
+                                    Capaian Realisasi ({data.unit || '%'})
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={data.currentNum !== undefined ? data.currentNum : 0}
+                                    onChange={(e) => {
+                                      const num = parseFloat(e.target.value) || 0;
+                                      handleFieldChange('currentNum', num);
+                                      // Auto update status bila tercapai
+                                      const tgt = Number(data.targetNum) || 100;
+                                      let p = Math.round((num / tgt) * 100);
+                                      if (data.unit === 'Detik' && num > 0) p = Math.round((tgt / num) * 100);
+                                      if (p >= 100) {
+                                        handleFieldChange('status', 'Tercapai');
+                                      } else if (p > 0) {
+                                        handleFieldChange('status', 'On Track');
+                                      }
+                                    }}
+                                    placeholder="0"
+                                    style={{
+                                      width: '100%',
+                                      padding: '6px 10px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #0284c7',
+                                      backgroundColor: '#ffffff',
+                                      fontSize: '0.82rem',
+                                      fontWeight: 700,
+                                      color: '#0f172a',
+                                      outline: 'none',
+                                      fontFamily: 'inherit',
+                                      boxSizing: 'border-box'
+                                    }}
+                                  />
+                                </div>
+
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#64748b', marginBottom: '3px' }}>
+                                    Target Akhir ({data.unit || '%'})
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={data.targetNum !== undefined ? data.targetNum : 100}
+                                    onChange={(e) => {
+                                      const num = parseFloat(e.target.value) || 1;
+                                      handleFieldChange('targetNum', num);
+                                    }}
+                                    placeholder="100"
+                                    style={{
+                                      width: '100%',
+                                      padding: '6px 10px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #cbd5e1',
+                                      backgroundColor: '#f8fafc',
+                                      fontSize: '0.82rem',
+                                      fontWeight: 600,
+                                      color: '#0f172a',
+                                      outline: 'none',
+                                      fontFamily: 'inherit',
+                                      boxSizing: 'border-box'
+                                    }}
+                                  />
+                                </div>
+
+                                <div>
+                                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#64748b', marginBottom: '3px' }}>
+                                    Satuan
+                                  </label>
+                                  <select
+                                    value={data.unit || '%'}
+                                    onChange={(e) => handleFieldChange('unit', e.target.value)}
+                                    className="ws-notion-pill"
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      borderRadius: '6px',
+                                      border: '1px solid #cbd5e1',
+                                      backgroundColor: '#ffffff',
+                                      fontSize: '0.78rem',
+                                      fontWeight: 600,
+                                      color: '#0f172a',
+                                      outline: 'none',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    <option value="%">%</option>
+                                    <option value="IDR">IDR</option>
+                                    <option value="Detik">Detik</option>
+                                    <option value="Leads">Leads</option>
+                                    <option value="User">User</option>
+                                    <option value="Klien">Klien</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ) : (col.key === 'targetNum' || col.key === 'currentNum') ? (
+                      <input
+                        type="number"
+                        value={val !== undefined ? val : 0}
+                        onChange={(e) => handleFieldChange(col.key, parseFloat(e.target.value) || 0)}
+                        style={{
+                          width: '100%',
+                          maxWidth: '180px',
+                          border: '1px solid #cbd5e1',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          fontSize: '0.84rem',
+                          outline: 'none',
+                          backgroundColor: '#f8fafc',
+                          fontFamily: 'inherit'
+                        }}
+                      />
+                    ) : (col.key === 'unit') ? (
+                      <select
+                        value={val || '%'}
+                        onChange={(e) => handleFieldChange(col.key, e.target.value)}
+                        className="ws-notion-pill"
+                        style={{
+                          border: '1px solid #bfdbfe',
+                          backgroundColor: '#eff6ff',
+                          color: '#0284c7',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          padding: '5px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          fontFamily: 'inherit'
+                        }}
+                      >
+                        <option value="%">% (Persen)</option>
+                        <option value="IDR">IDR (Rupiah)</option>
+                        <option value="Detik">Detik (Kecepatan)</option>
+                        <option value="Leads">Leads</option>
+                        <option value="User">User</option>
+                        <option value="Klien">Klien</option>
                       </select>
                     ) : (
                       col.key === 'dueDate' || 

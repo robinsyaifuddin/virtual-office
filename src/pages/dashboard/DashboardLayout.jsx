@@ -33,6 +33,7 @@ import LaporanEvaluasi from './modules/LaporanEvaluasi';
 import DataArsip from './modules/DataArsip';
 import StaffAgent from './modules/StaffAgent';
 import PengaturanWorkspace from './modules/PengaturanWorkspace';
+import ErrorBoundary from '../../components/common/ErrorBoundary';
 
 export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
   const { activeModule, setActiveModule, workspaceSettings } = useWorkspaceStore();
@@ -466,7 +467,9 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
         {/* Scrollable Canvas for Modules */}
         <main className="ws-custom-scroll" style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', boxSizing: 'border-box' }}>
           <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-            {renderActiveModule()}
+            <ErrorBoundary key={activeModule} title={`Modul ${currentMenu?.label || activeModule}`}>
+              {renderActiveModule()}
+            </ErrorBoundary>
           </div>
         </main>
       </div>

@@ -1,4 +1,4 @@
-with open('frontend/public/digibooster_office_engine.html', 'r', encoding='utf-8') as f:
+with open('public/digibooster_office_engine.html', 'r', encoding='utf-8') as f:
     text = f.read()
 
 s_start = text.index('<script type="module">') + len('<script type="module">')

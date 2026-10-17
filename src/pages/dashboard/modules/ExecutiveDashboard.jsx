@@ -16,11 +16,28 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
     { label: 'Okt', value: 68, displayVal: '68.5M', color: '#0284c7' }
   ];
 
-  const executiveDonutData = [
-    { label: 'Retainer AI', value: 35, displayVal: 'Rp 35M', color: '#0284c7' },
-    { label: 'Custom Dev', value: 20, displayVal: 'Rp 20M', color: '#38bdf8' },
-    { label: 'Consulting', value: 13, displayVal: 'Rp 13.5M', color: '#818cf8' }
-  ];
+  // Data Donut Chart: Komposisi Status Pipeline Klien
+  const stageCounts = (Array.isArray(crmClients) ? crmClients : []).reduce((acc, c) => {
+    const stg = (c && c.stage && typeof c.stage === 'string' && c.stage.trim()) ? c.stage.trim() : 'Prospek Awal';
+    acc[stg] = (acc[stg] || 0) + 1;
+    return acc;
+  }, {});
+
+  const stageColorMap = {
+    'Lead Masuk': '#64748b',
+    'Discovery Call': '#0284c7',
+    'Proposal Terkirim': '#d97706',
+    'Negosiasi': '#0ea5e9',
+    'Deal Won': '#16a34a',
+    'Deal Lost': '#dc2626'
+  };
+
+  const executiveDonutData = Object.keys(stageCounts).map(stg => ({
+    label: stg,
+    value: stageCounts[stg],
+    displayVal: `${stageCounts[stg]} Klien`,
+    color: stageColorMap[stg] || '#0284c7'
+  }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -39,7 +56,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
             value={executiveSummary.monthlyNetCashflow}
             change={executiveSummary.cashflowGrowth}
             trend="up"
-            subtitle="vs bulan lalu (Klik Buka)"
+            subtitle="vs bulan lalu"
             icon={DollarSign}
           />
         </div>
@@ -47,7 +64,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           <MetricCard
             title="Active Pipeline Value"
             value={executiveSummary.activePipelineValue}
-            subtitle={`${crmClients.length} Prospek Aktif (Klik Buka)`}
+            subtitle={`${crmClients.length} Prospek Aktif`}
             icon={Briefcase}
           />
         </div>
@@ -55,7 +72,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           <MetricCard
             title="Task Velocity & Health"
             value={`${executiveSummary.taskVelocityPercent}%`}
-            subtitle={`${executiveSummary.taskVelocityStatus} delivery (Klik Buka)`}
+            subtitle={`${executiveSummary.taskVelocityStatus} delivery`}
             icon={Zap}
           />
         </div>
@@ -63,7 +80,7 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           <MetricCard
             title="Rata-rata Capaian OKR"
             value={`${executiveSummary.okrAverageProgress}%`}
-            subtitle="Target Kuartal Q4 (Klik Buka)"
+            subtitle="Target Kuartal Q4"
             icon={Target}
           />
         </div>
@@ -77,8 +94,8 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           data={cashflowBarData}
         />
         <DonutChart
-          title="Komposisi Pendapatan Layanan"
-          subtitle="Distribusi portofolio kontrak aktif"
+          title="Distribusi Tahapan Pipeline Klien"
+          subtitle="Status perjalanan konversi prospek bisnis"
           data={executiveDonutData}
         />
       </div>

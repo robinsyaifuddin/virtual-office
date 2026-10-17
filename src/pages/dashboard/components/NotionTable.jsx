@@ -26,12 +26,16 @@ import {
   Calendar,
   ChevronRight,
   CheckCircle2,
-  FileText
+  FileText,
+  Sparkles,
+  Bookmark
 } from 'lucide-react';
 import CategoryManagerModal from './CategoryManagerModal';
 import UniversalDetailModal from './UniversalDetailModal';
 import { exportRowAsPdf, exportTableAsPdf } from '../../../utils/exportPdf';
 import { exportTableAsExcel } from '../../../utils/exportExcel';
+import { useWorkspaceStore } from '../../../store/workspaceStore';
+import { DEFAULT_PRESET_TEMPLATES } from '../../../data/defaultTemplates';
 
 export default function NotionTable({
   title,
@@ -48,6 +52,8 @@ export default function NotionTable({
   categories = [],
   activeCategory = 'ALL',
   onSelectCategory,
+  onAddCategory,
+  onDeleteCategory,
   categoryKey = 'category',
   enableStickyFreeze = true,
   // View Switcher Props (Tabel, Kanban, Kalender)
@@ -100,6 +106,16 @@ export default function NotionTable({
   const viewDropdownRef = useRef(null);
   const layoutDropdownRef = useRef(null);
 
+  // Template Dropdown States & Ref
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
+  const [templateSearchTerm, setTemplateSearchTerm] = useState('');
+  const [expandedTemplateCategory, setExpandedTemplateCategory] = useState(null);
+  const templateDropdownRef = useRef(null);
+  const templateMobileRef = useRef(null);
+
+  // Workspace Store untuk Custom Templates
+  const { customTemplates, deleteCustomTemplate } = useWorkspaceStore();
+
   // In-table Accordion State: bulan mana saja yang sedang terbuka di dalam tabel saat mode Arsip
   const [expandedArchiveMonths, setExpandedArchiveMonths] = useState(
     archiveMonth ? [archiveMonth] : ['September 2026', 'Agustus 2026', 'Juli 2026']
@@ -128,6 +144,10 @@ export default function NotionTable({
       if (layoutDropdownRef.current && !layoutDropdownRef.current.contains(e.target)) {
         setIsLayoutDropdownOpen(false);
       }
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target) &&
+          templateMobileRef.current && !templateMobileRef.current.contains(e.target)) {
+        setIsTemplateDropdownOpen(false);
+      }
       if (actionMenuRef.current && !actionMenuRef.current.contains(e.target)) {
         setActiveMenuRowId(null);
         setMenuPosition(null);
@@ -148,6 +168,7 @@ export default function NotionTable({
       window.removeEventListener('resize', handleWindowChange);
     };
   }, []);
+
 
   // Filter Search & Category
   const [localCategoryFilter, setLocalCategoryFilter] = useState('ALL');
@@ -310,6 +331,65 @@ export default function NotionTable({
     }
   };
 
+  // Ambil Template Presets & Custom untuk Modul Ini (dengan fallback matching fleksibel)
+  const modulePresetTemplates = React.useMemo(() => {
+    if (DEFAULT_PRESET_TEMPLATES[title]) return DEFAULT_PRESET_TEMPLATES[title];
+    // Fallback pencarian case-insensitive atau partial matching
+    const foundKey = Object.keys(DEFAULT_PRESET_TEMPLATES).find(k => 
+      k.toLowerCase().includes((title || '').toLowerCase()) || 
+      (title || '').toLowerCase().includes(k.toLowerCase())
+    );
+    return foundKey ? DEFAULT_PRESET_TEMPLATES[foundKey] : {};
+  }, [title]);
+
+  const moduleCustomTemplates = React.useMemo(() => {
+    if (customTemplates && customTemplates[title]) return customTemplates[title];
+    const foundKey = Object.keys(customTemplates || {}).find(k => 
+      k.toLowerCase().includes((title || '').toLowerCase()) || 
+      (title || '').toLowerCase().includes(k.toLowerCase())
+    );
+    return foundKey ? customTemplates[foundKey] : {};
+  }, [customTemplates, title]);
+
+  // Handler Terapkan Template Terpilih (Langsung buat baris dan buka modal detail isian)
+  const handleApplyTemplate = (tpl) => {
+    if (!onAddRow) return;
+    setIsTemplateDropdownOpen(false);
+
+    // Kloning template dan siapkan nilai atributnya
+    const targetCat = tpl[categoryKey] || tpl.category || tpl.pillar || (currentCategoryFilter !== 'ALL' ? currentCategoryFilter : undefined);
+    const baseNewRow = onAddRow(targetCat);
+
+    // Merge template data ke dalam created row
+    if (baseNewRow && typeof baseNewRow === 'object') {
+      const mergedRow = {
+        ...baseNewRow,
+        ...tpl,
+        id: baseNewRow.id || `ROW-${Date.now().toString().slice(-4)}`,
+        [categoryKey]: targetCat || baseNewRow[categoryKey] || 'General'
+      };
+
+      // Pastikan properti title/objective terisi sesuai objek
+      if (!mergedRow.title && (tpl.objective || tpl.name || tpl.period)) {
+        mergedRow.title = tpl.objective || tpl.name || tpl.period;
+      }
+
+      // Update seluruh field yang dibawa template ke store
+      if (onUpdateCell) {
+        Object.entries(mergedRow).forEach(([fKey, fVal]) => {
+          if (fKey !== 'isCustom' && fKey !== 'savedAt' && fVal !== undefined) {
+            onUpdateCell(mergedRow.id, fKey, fVal);
+          }
+        });
+      }
+
+      // Otomatis buka kotak modal lebar isian data
+      setTimeout(() => {
+        handleOpenRowModal(mergedRow);
+      }, 50);
+    }
+  };
+
   const handleExportExcel = () => {
     if (!sortedData || sortedData.length === 0) {
       alert('Tidak ada data tabel untuk diekspor ke Excel.');
@@ -338,6 +418,281 @@ export default function NotionTable({
       return;
     }
     exportTableAsPdf(sortedData, columns, { title: title || 'Laporan Data Operasional' });
+  };
+
+  // Helper untuk merender Menu Popover Dropdown Pilihan Template
+  const renderTemplatePopover = (alignRight = true) => {
+    if (!isTemplateDropdownOpen) return null;
+
+    // Kumpulkan semua kategori yang ada template-nya (gabungan preset + custom)
+    const allCatKeys = Array.from(new Set([
+      ...Object.keys(modulePresetTemplates),
+      ...Object.keys(moduleCustomTemplates)
+    ]));
+
+    // Prioritaskan kategori aktif bila sedang difilter
+    const targetCats = (currentCategoryFilter && currentCategoryFilter !== 'ALL')
+      ? [
+          ...allCatKeys.filter(c => c.toLowerCase() === currentCategoryFilter.toLowerCase()),
+          ...allCatKeys.filter(c => c.toLowerCase() !== currentCategoryFilter.toLowerCase())
+        ]
+      : allCatKeys;
+
+    return (
+      <div
+        className="ws-template-popover ws-custom-scroll"
+        style={{
+          position: 'absolute',
+          top: 'calc(100% + 6px)',
+          ...(alignRight ? { right: 0 } : { left: 0 }),
+          width: '330px',
+          maxWidth: '92vw',
+          maxHeight: '440px',
+          overflowY: 'auto',
+          backgroundColor: '#ffffff',
+          border: '1px solid #cbd5e1',
+          borderRadius: '12px',
+          boxShadow: '0 15px 35px -5px rgba(15, 23, 42, 0.2), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
+          zIndex: 200,
+          padding: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px'
+        }}
+      >
+        {/* Header Popover & Info Kategori Aktif */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px 4px 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Sparkles size={14} color="#0284c7" />
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Pilih Template
+            </span>
+          </div>
+          {currentCategoryFilter !== 'ALL' && (
+            <span className="ws-notion-pill" style={{ backgroundColor: '#eff6ff', color: '#0284c7', fontSize: '0.68rem', maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {currentCategoryFilter}
+            </span>
+          )}
+        </div>
+
+        {/* Filter Search Input */}
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search size={13} style={{ position: 'absolute', left: '8px', color: '#94a3b8' }} />
+          <input
+            type="text"
+            placeholder={currentCategoryFilter !== 'ALL' ? `Cari template (${currentCategoryFilter})...` : "Cari contoh template..."}
+            value={templateSearchTerm}
+            onChange={(e) => setTemplateSearchTerm(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '6px 8px 6px 26px',
+              borderRadius: '6px',
+              border: '1px solid #e2e8f0',
+              fontSize: '0.74rem',
+              outline: 'none',
+              backgroundColor: '#f8fafc'
+            }}
+          />
+          {templateSearchTerm && (
+            <button
+              onClick={() => setTemplateSearchTerm('')}
+              style={{ position: 'absolute', right: '6px', border: 'none', background: 'none', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+            >
+              <X size={12} />
+            </button>
+          )}
+        </div>
+
+        {/* List Template Berdasarkan Kategori */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
+          {(() => {
+            let hasAnyMatch = false;
+
+            const renderedCategories = targetCats.map((catName) => {
+              const presets = modulePresetTemplates[catName] || [];
+              const customs = moduleCustomTemplates[catName] || [];
+              const combined = [...customs, ...presets];
+
+              const filtered = combined.filter((tpl) => {
+                if (!templateSearchTerm.trim()) return true;
+                const q = templateSearchTerm.toLowerCase();
+                const tTitle = (tpl.title || tpl.name || tpl.period || tpl.objective || '').toLowerCase();
+                const tDesc = (tpl.description || tpl.notes || '').toLowerCase();
+                return tTitle.includes(q) || tDesc.includes(q);
+              });
+
+              if (filtered.length === 0) return null;
+              hasAnyMatch = true;
+
+              const isExpanded = (expandedTemplateCategory === catName) || (Boolean(templateSearchTerm.trim()));
+
+              return (
+                <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderRadius: '8px', border: '1px solid #f1f5f9', overflow: 'hidden' }}>
+                  <div 
+                    onClick={() => setExpandedTemplateCategory(prev => prev === catName ? null : catName)}
+                    className="ws-btn-transition"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      color: isExpanded ? '#0284c7' : '#334155',
+                      padding: '7px 9px',
+                      backgroundColor: isExpanded ? '#eff6ff' : '#f8fafc',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isExpanded) e.currentTarget.style.backgroundColor = '#f1f5f9';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isExpanded) e.currentTarget.style.backgroundColor = '#f8fafc';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '0.85rem' }}>📁</span>
+                      <span>{catName}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ fontSize: '0.64rem', color: isExpanded ? '#0284c7' : '#94a3b8', backgroundColor: isExpanded ? '#dbeafe' : '#e2e8f0', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
+                        {filtered.length} contoh
+                      </span>
+                      <ChevronDown 
+                        size={12} 
+                        color={isExpanded ? '#0284c7' : '#94a3b8'} 
+                        style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} 
+                      />
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '5px 6px 7px 6px', backgroundColor: '#ffffff' }}>
+                      {filtered.map((tpl, tIdx) => {
+                        const tplTitle = tpl.title || tpl.name || tpl.period || tpl.objective || 'Template Tanpa Judul';
+                        return (
+                          <div
+                            key={tpl.id || tIdx}
+                            onClick={() => handleApplyTemplate(tpl)}
+                            className="ws-btn-transition"
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '3px',
+                              padding: '7px 9px',
+                              borderRadius: '6px',
+                              border: '1px solid #f1f5f9',
+                              backgroundColor: '#ffffff',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              position: 'relative'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#f0f9ff';
+                              e.currentTarget.style.borderColor = '#bae6fd';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = '#ffffff';
+                              e.currentTarget.style.borderColor = '#f1f5f9';
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
+                                {tpl.isCustom && <Bookmark size={11} color="#ea580c" style={{ marginRight: '4px', display: 'inline' }} />}
+                                {tplTitle}
+                              </span>
+                              {tpl.isCustom ? (
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', backgroundColor: '#fff7ed', padding: '1px 5px', borderRadius: '4px' }}>
+                                  Kustom
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', backgroundColor: '#eff6ff', padding: '1px 5px', borderRadius: '4px' }}>
+                                  Preset
+                                </span>
+                              )}
+                            </div>
+
+                            {(tpl.description || tpl.notes || tpl.services) && (
+                              <span style={{
+                                fontSize: '0.7rem',
+                                color: '#64748b',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 1,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden'
+                              }}>
+                                {tpl.description || tpl.notes || (Array.isArray(tpl.services) ? tpl.services.join(', ') : '')}
+                              </span>
+                            )}
+
+                            {/* Badges metadata template */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', fontSize: '0.66rem', color: '#94a3b8' }}>
+                              {tpl.priority && (
+                                <span style={{ fontWeight: 700, color: tpl.priority === 'P1' ? '#dc2626' : '#0284c7' }}>
+                                  {tpl.priority}
+                                </span>
+                              )}
+                              {tpl.assignee && (
+                                <span>• PIC: {tpl.assignee}</span>
+                              )}
+                              {tpl.stage && (
+                                <span>• Tahap: {tpl.stage}</span>
+                              )}
+                              {tpl.dealValue !== undefined && (
+                                <span style={{ fontWeight: 700, color: '#0284c7' }}>
+                                  • Rp {(tpl.dealValue || 0).toLocaleString('id-ID')}
+                                </span>
+                              )}
+                              {tpl.amount !== undefined && (
+                                <span style={{ fontWeight: 700, color: tpl.type === 'Pemasukan' ? '#16a34a' : '#dc2626' }}>
+                                  • Rp {(tpl.amount || 0).toLocaleString('id-ID')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            });
+
+            if (!hasAnyMatch) {
+              return (
+                <div style={{ padding: '16px 10px', textAlign: 'center', color: '#94a3b8', fontSize: '0.74rem' }}>
+                  <p style={{ margin: '0 0 4px 0' }}>Tidak ada template yang cocok.</p>
+                  <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                    Buka baris data mana saja &amp; klik tombol <b>"Simpan sbg Template"</b> untuk menambah template baru.
+                  </span>
+                </div>
+              );
+            }
+
+            return renderedCategories;
+          })()}
+        </div>
+
+        {/* Petunjuk Bawah Popover */}
+        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.68rem', color: '#94a3b8', paddingLeft: '4px', paddingRight: '4px' }}>
+          <span>💡 Klik untuk mengisi baris otomatis</span>
+          <button
+            type="button"
+            onClick={() => handleTriggerAdd()}
+            style={{
+              border: 'none',
+              background: 'none',
+              color: '#0284c7',
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontSize: '0.68rem'
+            }}
+          >
+            + Baris Kosong
+          </button>
+        </div>
+      </div>
+    );
   };
 
   const wrapClass = isWrapEnabled ? 'ws-cell-wrap' : 'ws-cell-nowrap';
@@ -1235,25 +1590,49 @@ export default function NotionTable({
             </button>
 
             {onAddRow && (
-              <button
-                onClick={handleTriggerAdd}
-                className="ws-btn-transition"
-                title="Tambah Baru"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
-                  cursor: 'pointer'
-                }}
-              >
-                <Plus size={16} />
-              </button>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={templateMobileRef}>
+                <div style={{ display: 'inline-flex', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)' }}>
+                  <button
+                    onClick={handleTriggerAdd}
+                    className="ws-btn-transition"
+                    title="Tambah Baru (Kosong)"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '30px',
+                      height: '34px',
+                      border: 'none',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Plus size={15} />
+                  </button>
+                  <button
+                    onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                    className="ws-btn-transition"
+                    title="Pilih Template Kategori"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '22px',
+                      height: '34px',
+                      border: 'none',
+                      borderLeft: '1px solid rgba(255, 255, 255, 0.3)',
+                      backgroundColor: isTemplateDropdownOpen ? '#0369a1' : '#0284c7',
+                      color: '#ffffff',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                  >
+                    <ChevronDown size={12} style={{ transform: isTemplateDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} />
+                  </button>
+                </div>
+                {renderTemplatePopover(false)}
+              </div>
             )}
           </div>
         </div>
@@ -1286,31 +1665,76 @@ export default function NotionTable({
           </button>
 
           {onAddRow && (
-            <button
-              onClick={handleTriggerAdd}
-              className="ws-btn-transition"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '7px 12px',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#0284c7',
-                color: '#ffffff',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
-            >
-              <Plus size={14} />
-              Baru
-            </button>
+            <div style={{ position: 'relative', display: 'inline-flex' }} ref={templateDropdownRef}>
+              <div 
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'stretch',
+                  borderRadius: '8px', 
+                  backgroundColor: '#0284c7',
+                  boxShadow: '0 1px 2px rgba(2, 132, 199, 0.25)',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Tombol Utama Tambah Baru */}
+                <button
+                  onClick={handleTriggerAdd}
+                  className="ws-btn-transition"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '7px 12px',
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.parentElement.style.backgroundColor = '#0369a1'}
+                  onMouseLeave={(e) => e.currentTarget.parentElement.style.backgroundColor = '#0284c7'}
+                >
+                  <Plus size={14} />
+                  Baru
+                </button>
+
+                {/* Tombol Panah Bawah Dropdown Template */}
+                <button
+                  onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                  className="ws-btn-transition"
+                  title="Pilih Template Berdasarkan Kategori"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 9px',
+                    border: 'none',
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.25)',
+                    backgroundColor: isTemplateDropdownOpen ? 'rgba(0,0,0,0.15)' : 'transparent',
+                    color: '#ffffff',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.parentElement.style.backgroundColor = '#0369a1'}
+                  onMouseLeave={(e) => e.currentTarget.parentElement.style.backgroundColor = '#0284c7'}
+                >
+                  <ChevronDown
+                    size={13}
+                    style={{
+                      transform: isTemplateDropdownOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 150ms ease'
+                    }}
+                  />
+                </button>
+              </div>
+
+              {/* Popover Menu Dropdown Pilihan Template */}
+              {renderTemplatePopover(true)}
+            </div>
           )}
         </div>
       </div>
+
 
       {/* Content Area: Custom View (Kanban / Calendar) atau Table Canvas dengan Sticky Columns */}
       {currentViewMode && currentViewMode !== 'table' && (renderCustomView || children) ? (
@@ -1561,6 +1985,9 @@ export default function NotionTable({
       <CategoryManagerModal
         isOpen={isCatModalOpen}
         onClose={() => setIsCatModalOpen(false)}
+        categories={computedCategories}
+        onAddCategory={onAddCategory}
+        onDeleteCategory={onDeleteCategory}
       />
 
       {/* Kotak Modal Lebar Detail & Pengeditan Penuh Notion-Style */}
@@ -1572,6 +1999,8 @@ export default function NotionTable({
         }}
         data={activeModalRow}
         columns={columns}
+        title={title}
+        categoryKey={categoryKey}
         onUpdateField={(rowId, fieldKey, val) => {
           if (onUpdateCell) {
             onUpdateCell(rowId, fieldKey, val);

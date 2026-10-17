@@ -22,11 +22,27 @@ export const useWorkspaceStore = create((set, get) => ({
     ]
   },
 
+  crmCategories: [
+    'Enterprise Corp',
+    'UKM / Ritel',
+    'Startup & Tech',
+    'Pemerintahan / BUMN',
+    'Agensi Mitra'
+  ],
+  addCrmCategory: (newCategory) => set((state) => {
+    if (!newCategory || state.crmCategories.includes(newCategory)) return state;
+    return { crmCategories: [...state.crmCategories, newCategory] };
+  }),
+  deleteCrmCategory: (categoryToDelete) => set((state) => ({
+    crmCategories: state.crmCategories.filter((c) => c !== categoryToDelete)
+  })),
+
   // 2. CRM & Klien
   crmClients: [
     {
       id: 'CRM-001',
       name: 'PT Sinergi Digital Utama',
+      category: 'Enterprise Corp',
       contact: '+62 812-8899-1234',
       stage: 'Negosiasi',
       dealValue: 75000000,
@@ -38,6 +54,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-002',
       name: 'Kopi Nusantara Group',
+      category: 'UKM / Ritel',
       contact: '+62 811-2233-4455',
       stage: 'Proposal Terkirim',
       dealValue: 35000000,
@@ -49,6 +66,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-003',
       name: 'Nusa Cipta Solusi',
+      category: 'Startup & Tech',
       contact: '+62 813-7766-5544',
       stage: 'Deal Won',
       dealValue: 60000000,
@@ -60,6 +78,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-004',
       name: 'Bina Finansial Solusindo',
+      category: 'Enterprise Corp',
       contact: '+62 821-9988-7711',
       stage: 'Discovery Call',
       dealValue: 45000000,
@@ -71,6 +90,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-005',
       name: 'Artha Mandiri Logistik',
+      category: 'UKM / Ritel',
       contact: '+62 818-4455-6677',
       stage: 'Lead Masuk',
       dealValue: 30000000,
@@ -82,6 +102,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-006',
       name: 'PT Mitra Retail Mandiri (Arsip Sept)',
+      category: 'Enterprise Corp',
       contact: '+62 811-9922-3344',
       stage: 'Deal Won',
       dealValue: 85000000,
@@ -93,6 +114,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-007',
       name: 'CV Samudera Cargo (Arsip Agt)',
+      category: 'UKM / Ritel',
       contact: '+62 817-3344-5566',
       stage: 'Deal Won',
       dealValue: 40000000,
@@ -104,6 +126,7 @@ export const useWorkspaceStore = create((set, get) => ({
     {
       id: 'CRM-008',
       name: 'Resto Rasa Nusantara (Arsip Juli)',
+      category: 'UKM / Ritel',
       contact: '+62 819-5566-7788',
       stage: 'Deal Won',
       dealValue: 28000000,
@@ -550,11 +573,27 @@ export const useWorkspaceStore = create((set, get) => ({
   })),
 
   // 6. Sasaran & KPI (OKR)
+  okrCategories: [
+    'Revenue & Pertumbuhan',
+    'Teknologi & Infrastruktur',
+    'Brand & Komunitas',
+    'Efisiensi Operasional',
+    'Kepuasan Klien'
+  ],
+  addOkrCategory: (newCategory) => set((state) => {
+    if (!newCategory || state.okrCategories.includes(newCategory)) return state;
+    return { okrCategories: [...state.okrCategories, newCategory] };
+  }),
+  deleteOkrCategory: (categoryToDelete) => set((state) => ({
+    okrCategories: state.okrCategories.filter((c) => c !== categoryToDelete)
+  })),
+
   okrGoals: [
     {
       id: 'OKR-001',
       objective: 'Ekspansi Pendapatan Retainer Agency ke Skala Enterprise',
       keyResult: 'Capai Monthly Recurring Revenue (MRR) Rp 100 Juta',
+      category: 'Revenue & Pertumbuhan',
       division: 'Sales & Marketing',
       quarter: 'Q4',
       targetNum: 100000000,
@@ -568,6 +607,7 @@ export const useWorkspaceStore = create((set, get) => ({
       id: 'OKR-002',
       objective: 'Optimalisasi Latensi Sistem Multi-Agent Realtime',
       keyResult: 'Tekan rata-rata respons inferensi LLM di bawah 2 detik',
+      category: 'Teknologi & Infrastruktur',
       division: 'Operasional/Produksi',
       quarter: 'Q4',
       targetNum: 2.0,
@@ -581,6 +621,7 @@ export const useWorkspaceStore = create((set, get) => ({
       id: 'OKR-003',
       objective: 'Tingkatkan Brand Authority di Media Sosial Bisnis',
       keyResult: 'Raih 50.000 Followers Organik & 500 Leads Masuk',
+      category: 'Brand & Komunitas',
       division: 'Kreatif',
       quarter: 'Q4',
       targetNum: 500,
@@ -744,7 +785,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Online / Bertugas',
       activeProjects: ['Nusa Cipta Solusi', 'Internal Legal'],
       contact: 'kevin@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
+      persona: 'Lead Operasional yang memastikan kepatuhan jadwal, alokasi PIC tim, dan kelengkapan dokumen legal klien.',
+      systemPrompt: '',
+      aiEngine: 'Human Operator',
+      capabilities: ['Manajemen PIC', 'Review Legalitas', 'Persetujuan Sprint'],
+      executionCount: 0
     },
     {
       id: 'STF-002',
@@ -755,7 +801,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Online / Bertugas',
       activeProjects: ['Dashboard Notion 2.0', 'Custom AI Pipeline'],
       contact: 'maya@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80'
+      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=80',
+      persona: 'Technical Architect yang mengawal pipeline data, integritas sistem, dan review arsitektur aplikasi.',
+      systemPrompt: '',
+      aiEngine: 'Human Operator',
+      capabilities: ['Code Review', 'System Architecture', 'API Management'],
+      executionCount: 0
     },
     {
       id: 'STF-003',
@@ -766,7 +817,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Online / Bertugas',
       activeProjects: ['Kopi Nusantara Group', 'Brand Launch'],
       contact: 'dina@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80'
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=80',
+      persona: 'Creative Director perancang narasi branding, persona campaign, dan estetika visual agency.',
+      systemPrompt: '',
+      aiEngine: 'Human Operator',
+      capabilities: ['Campaign Strategy', 'Copywriting Review', 'Visual Direction'],
+      executionCount: 0
     },
     {
       id: 'STF-004',
@@ -777,7 +833,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Online / Bertugas',
       activeProjects: ['Arus Kas Q4', 'Rekapitulasi Faktur'],
       contact: 'nadira@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80'
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80',
+      persona: 'Financial Officer pengendali arus kas, validasi termin faktur, dan pajak korporasi.',
+      systemPrompt: '',
+      aiEngine: 'Human Operator',
+      capabilities: ['Audit Arus Kas', 'Verifikasi Invoice', 'Pajak & Pembukuan'],
+      executionCount: 0
     },
     {
       id: 'STF-005',
@@ -788,7 +849,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Istirahat',
       activeProjects: ['Intelijen Kompetitor 2026'],
       contact: 'tomi@digibooster.id',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80'
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
+      persona: 'Riset tren pasar, profiling calon klien strategis, dan pengolahan data persaingan bisnis.',
+      systemPrompt: '',
+      aiEngine: 'Human Operator',
+      capabilities: ['Market Survey', 'Competitor Analysis', 'Lead Scouting'],
+      executionCount: 0
     },
     {
       id: 'STF-006',
@@ -799,7 +865,12 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Standby',
       activeProjects: ['Market Intelligence', 'Lead Profiler'],
       contact: 'bot-research@digibooster.internal',
-      avatar: null
+      avatar: null,
+      persona: 'AI Spesialis Riset Cepat & Intelijen Data yang menganalisis tren pasar, kompetitor, referensi arsitektur, dan ringkasan insight otomatis.',
+      systemPrompt: 'Kamu adalah DigiBot Researcher, AI Agent dari DigiBooster. Tugasmu adalah menganalisis topik tugas yang diberikan oleh Executive/PIC, mengumpulkan data rujukan esensial, menganalisis kompetitor, dan menghasilkan ringkasan eksekutif actionable.',
+      aiEngine: 'Groq Llama 3.3 70B Versatile',
+      capabilities: ['Web Scraping Insight', 'Analisis Data Riset', 'Ekstraksi Ringkasan Eksekutif'],
+      executionCount: 14
     },
     {
       id: 'STF-007',
@@ -810,7 +881,28 @@ export const useWorkspaceStore = create((set, get) => ({
       status: 'Online / Bertugas',
       activeProjects: ['Social Media Copy', 'Email Blast'],
       contact: 'bot-writer@digibooster.internal',
-      avatar: null
+      avatar: null,
+      persona: 'AI Spesialis Penulis Salinan & Kampanye Kreatif dengan hook viral tinggi, struktur AIDA, dan CTA tajam berkonversi tinggi.',
+      systemPrompt: 'Kamu adalah DigiBot Copywriter, AI Agent DigiBooster. Tugasmu adalah menyusun draf copy konten, script reels/TikTok, email broadcast, atau proposal naratif berdasar nama tugas dan keterangan yang diberikan PIC.',
+      aiEngine: 'Google Gemini 2.5 Flash',
+      capabilities: ['Script Video & Reels', 'Copywriting AIDA & PAS', 'Email Campaign Draft'],
+      executionCount: 28
+    },
+    {
+      id: 'STF-008',
+      name: 'DigiBot TaskOps Specialist',
+      type: 'AI Agent DigiBooster',
+      role: 'Autonomous Task Executor & QA Validator',
+      department: 'Manajemen',
+      status: 'Online / Bertugas',
+      activeProjects: ['SOP Verification', 'Sprint Automation'],
+      contact: 'bot-taskops@digibooster.internal',
+      avatar: null,
+      persona: 'AI Spesialis Eksekusi Proyek & Penjadwalan Operasional yang otomatis menguraikan tugas, membuat checklist kerja terukur, serta memvalidasi deliverable.',
+      systemPrompt: 'Kamu adalah DigiBot TaskOps Specialist. Tugasmu adalah membaca tugas yang di-assign ke kamu, membedah langkah implementasi, checklist eksekusi, serta menghasilkan laporan deliverable yang siap di-review PIC Manajemen.',
+      aiEngine: 'Groq Llama 3.3 70B Versatile',
+      capabilities: ['Breakdown Task Checklist', 'Validasi Output', 'Notulen & Status Update'],
+      executionCount: 9
     }
   ],
   addStaffAgent: (stf) => set((state) => ({ staffAgents: [stf, ...state.staffAgents] })),
@@ -847,5 +939,71 @@ export const useWorkspaceStore = create((set, get) => ({
   },
   updateWorkspaceSettings: (newSettings) => set((state) => ({
     workspaceSettings: { ...state.workspaceSettings, ...newSettings }
-  }))
+  })),
+
+  // 12. Kustom Template User (Disimpan di localStorage)
+  customTemplates: (() => {
+    try {
+      const stored = localStorage.getItem('digibooster_custom_templates');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  })(),
+
+  addCustomTemplate: (moduleName, category, templateData) => set((state) => {
+    const prev = state.customTemplates || {};
+    const modKey = moduleName || 'General';
+    const catKey = category || 'General';
+    const modTemplates = prev[modKey] || {};
+    const catList = modTemplates[catKey] || [];
+    
+    const newTemplate = {
+      ...templateData,
+      id: `CUST-TPL-${Date.now()}`,
+      isCustom: true,
+      savedAt: new Date().toISOString()
+    };
+
+    const next = {
+      ...prev,
+      [modKey]: {
+        ...modTemplates,
+        [catKey]: [newTemplate, ...catList]
+      }
+    };
+
+    try {
+      localStorage.setItem('digibooster_custom_templates', JSON.stringify(next));
+    } catch (err) {
+      console.warn('Gagal menyimpan custom template ke localStorage', err);
+    }
+
+    return { customTemplates: next };
+  }),
+
+  deleteCustomTemplate: (moduleName, category, templateId) => set((state) => {
+    const prev = state.customTemplates || {};
+    const modKey = moduleName || 'General';
+    const catKey = category || 'General';
+    const modTemplates = prev[modKey] || {};
+    const catList = modTemplates[catKey] || [];
+
+    const next = {
+      ...prev,
+      [modKey]: {
+        ...modTemplates,
+        [catKey]: catList.filter(t => t.id !== templateId)
+      }
+    };
+
+    try {
+      localStorage.setItem('digibooster_custom_templates', JSON.stringify(next));
+    } catch (err) {
+      console.warn('Gagal menghapus custom template dari localStorage', err);
+    }
+
+    return { customTemplates: next };
+  })
 }));
+

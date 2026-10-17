@@ -3,6 +3,7 @@ import Office3D from './Office3D';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './pages/dashboard/DashboardLayout';
 import { useWorkspaceStore } from './store/workspaceStore';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 function App() {
   // Routes: 'office3d' | 'login' | 'dashboard'
@@ -14,13 +15,13 @@ function App() {
       return false;
     }
   });
-  const { setActiveModule } = useWorkspaceStore();
+  const { setActiveModule, activeModule } = useWorkspaceStore();
 
   // Deteksi path URL saat ini (sinkron direct link browser)
   useEffect(() => {
     const path = window.location.pathname;
     
-    // Cek apakah ada direct subpath dashboard, misal /dashboard/crmdanklien
+    // Cek apakah ada direct subpath dashboard, misal /dashboard/tugasdankalender
     const validModules = [
       'executivedashboard',
       'crmdanklien',
@@ -37,7 +38,7 @@ function App() {
 
     if (path.includes('dashboard') || path.includes('manajemen') || path.includes('admin')) {
       // Ekstrak nama submodul jika ada
-      const matchedModule = validModules.find(m => path.includes(m));
+      const matchedModule = validModules.find(m => path.toLowerCase().includes(m));
       if (matchedModule) {
         setActiveModule(matchedModule);
       }
@@ -69,7 +70,8 @@ function App() {
     }
     setIsAuthenticated(true);
     setCurrentRoute('dashboard');
-    window.history.pushState({}, '', '/dashboard');
+    const targetModule = activeModule && activeModule !== 'executivedashboard' ? activeModule : '';
+    window.history.pushState({}, '', targetModule ? `/dashboard/${targetModule}` : '/dashboard');
   };
 
   const handleLogout = () => {
@@ -99,30 +101,32 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ width: '100%', height: '100%', minHeight: '100vh' }}>
-      {/* Route 1: Denah 3D Interaktif */}
-      {currentRoute === 'office3d' && (
-        <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
-          <Office3D />
-        </div>
-      )}
+    <ErrorBoundary title="Aplikasi DigiBooster Mengalami Kendala">
+      <div className="App" style={{ width: '100%', height: '100%', minHeight: '100vh' }}>
+        {/* Route 1: Denah 3D Interaktif */}
+        {currentRoute === 'office3d' && (
+          <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
+            <Office3D />
+          </div>
+        )}
 
-      {/* Route 2: Login Eksekutif */}
-      {currentRoute === 'login' && (
-        <LoginPage 
-          onLoginSuccess={handleLoginSuccess}
-          onCancel={handleSwitchTo3D}
-        />
-      )}
+        {/* Route 2: Login Eksekutif */}
+        {currentRoute === 'login' && (
+          <LoginPage 
+            onLoginSuccess={handleLoginSuccess}
+            onCancel={handleSwitchTo3D}
+          />
+        )}
 
-      {/* Route 3: Dashboard Manajemen Notion Lengkap (Modular) */}
-      {currentRoute === 'dashboard' && (
-        <DashboardLayout 
-          onLogout={handleLogout}
-          onSwitchTo3D={handleSwitchTo3D}
-        />
-      )}
-    </div>
+        {/* Route 3: Dashboard Manajemen Notion Lengkap (Modular) */}
+        {currentRoute === 'dashboard' && (
+          <DashboardLayout 
+            onLogout={handleLogout}
+            onSwitchTo3D={handleSwitchTo3D}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
   );
 }
 

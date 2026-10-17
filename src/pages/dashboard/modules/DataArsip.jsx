@@ -19,20 +19,10 @@ import {
 export default function DataArsip() {
   const { archives, addArchive, updateArchive, deleteArchive } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table');
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Draft', 'Review', 'Disetujui', 'Aktif', 'Arsip'];
-
-  // Filter berkas berdasarkan status dokumen
-  const filteredArchives = archives.filter((doc) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
-    }
-    if (statusFilter === 'Aktif') {
-      return doc.status === 'Aktif' || doc.status === 'Publik';
-    }
-    return doc.status === statusFilter;
-  });
 
   const fileCategoryOptions = [
     'Dokumen PDF / Legalitas',
@@ -43,6 +33,22 @@ export default function DataArsip() {
     'Arsip Terkompresi (ZIP/RAR)',
     'Kode & Konfigurasi'
   ];
+
+  // Filter berkas berdasarkan status dokumen & kategori dokumen
+  const filteredArchives = archives.filter((doc) => {
+    let matchesStatus = true;
+    if (statusFilter && statusFilter !== 'Semua Status' && statusFilter !== 'ALL' && statusFilter !== 'all') {
+      if (statusFilter === 'Aktif') {
+        matchesStatus = (doc.status === 'Aktif' || doc.status === 'Publik');
+      } else {
+        matchesStatus = (doc.status === statusFilter);
+      }
+    }
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : doc.category === activeCategory;
+    return matchesStatus && matchesCat;
+  });
 
   // Data Bar Chart: Dokumen per Kategori
   const catDocCounts = archives.reduce((acc, a) => {
@@ -63,28 +69,27 @@ export default function DataArsip() {
     };
   });
 
-  // Data Donut Chart: Komposisi Ekstensi Format File
-  const formatCounts = archives.reduce((acc, a) => {
-    const fmt = a.fileFormat || a.format || 'PDF';
-    acc[fmt] = (acc[fmt] || 0) + 1;
+  // Data Donut Chart: Distribusi Status Berkas Arsip
+  const statusCounts = archives.reduce((acc, a) => {
+    const s = (a.status && typeof a.status === 'string' && a.status.trim()) ? a.status.trim() : 'Publik';
+    acc[s] = (acc[s] || 0) + 1;
     return acc;
   }, {});
 
-  const formatColors = {
-    'PDF': '#ef4444',
-    'XLSX': '#10b981',
-    'DOCX': '#0284c7',
-    'ZIP': '#f59e0b',
-    'PNG': '#06b6d4',
-    'JPG': '#ec4899',
-    'MP4': '#6366f1'
+  const statusColors = {
+    'Publik': '#16a34a',
+    'Aktif': '#16a34a',
+    'Disetujui': '#0284c7',
+    'Review': '#4f46e5',
+    'Draft': '#d97706',
+    'Arsip': '#64748b'
   };
 
-  const archiveDonutData = Object.keys(formatCounts).map(fmt => ({
-    label: fmt,
-    value: formatCounts[fmt],
-    displayVal: `${formatCounts[fmt]} File`,
-    color: formatColors[fmt] || '#64748b'
+  const archiveDonutData = Object.keys(statusCounts).map(st => ({
+    label: st,
+    value: statusCounts[st],
+    displayVal: `${statusCounts[st]} Berkas`,
+    color: statusColors[st] || '#0284c7'
   }));
 
   const columns = [
@@ -308,11 +313,15 @@ export default function DataArsip() {
     }
   ];
 
-  const handleAddArchive = () => {
+  const handleAddArchive = (overrideCat) => {
+    const defaultCat = overrideCat || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : fileCategoryOptions[0]);
+
     const newDoc = {
       id: `ARC-${Date.now().toString().slice(-4)}`,
       title: '',
-      category: 'Dokumen PDF / Legalitas',
+      category: defaultCat,
       fileFormat: 'PDF',
       version: 'v1.0',
       status: 'Draft',
@@ -356,8 +365,8 @@ export default function DataArsip() {
           data={archiveBarData}
         />
         <DonutChart
-          title="Komposisi Ekstensi Berkas"
-          subtitle="Distribusi format dokumen tersimpan"
+          title="Distribusi Status Berkas Arsip"
+          subtitle="Status validasi & publikasi arsip digital"
           data={archiveDonutData}
         />
       </div>
@@ -371,6 +380,10 @@ export default function DataArsip() {
         onDeleteRow={deleteArchive}
         onUpdateCell={(id, field, val) => updateArchive(id, { [field]: val })}
         exportFileName="arsip_data_digibooster.csv"
+        categories={fileCategoryOptions}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        categoryKey="category"
         currentViewMode={viewMode}
         onChangeViewMode={setViewMode}
         availableViewModes={['table', 'kanban']}

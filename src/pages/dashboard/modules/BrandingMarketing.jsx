@@ -19,19 +19,34 @@ import {
 export default function BrandingMarketing() {
   const { marketingCampaigns, addMarketingCampaign, updateMarketingCampaign, deleteMarketingCampaign } = useWorkspaceStore();
   const [viewMode, setViewMode] = useState('table');
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const statusOptions = ['Semua Status', 'Ide', 'Design/Video', 'Review', 'Siap Tayang', 'Selesai Tayang'];
 
-  // Filter kampanye berdasarkan status tahapan konten
+  const marketingPillars = [
+    'Edukasi',
+    'Case Study',
+    'Promo/Hard Sell',
+    'Branding',
+    'Behind The Scenes',
+    'Tips & Trick'
+  ];
+
+  // Filter kampanye berdasarkan status tahapan konten & pilar kategori
   const filteredCampaigns = marketingCampaigns.filter((c) => {
-    if (!statusFilter || statusFilter === 'Semua Status' || statusFilter === 'ALL' || statusFilter === 'all') {
-      return true;
+    let matchesStatus = true;
+    if (statusFilter && statusFilter !== 'Semua Status' && statusFilter !== 'ALL' && statusFilter !== 'all') {
+      if (statusFilter === 'Ide' || statusFilter === 'Ide Konten') {
+        matchesStatus = (c.stage === 'Ide' || c.stage === 'Ide Konten');
+      } else {
+        matchesStatus = (c.stage === statusFilter);
+      }
     }
-    if (statusFilter === 'Ide' || statusFilter === 'Ide Konten') {
-      return c.stage === 'Ide' || c.stage === 'Ide Konten';
-    }
-    return c.stage === statusFilter;
+    const matchesCat = (!activeCategory || activeCategory === 'ALL' || activeCategory === 'all')
+      ? true 
+      : c.pillar === activeCategory;
+    return matchesStatus && matchesCat;
   });
 
   const totalReach = marketingCampaigns.reduce((acc, c) => acc + (c.metrics?.reach || 0), 0);
@@ -51,29 +66,26 @@ export default function BrandingMarketing() {
     };
   });
 
-  // Data Donut Chart: Distribusi Saluran / Channel Konten
-  const channelCounts = marketingCampaigns.reduce((acc, c) => {
-    const rawCh = Array.isArray(c.channel) ? c.channel[0] : (c.channel || 'Instagram');
-    const ch = typeof rawCh === 'string' && rawCh.trim() ? rawCh : 'Instagram';
-    acc[ch] = (acc[ch] || 0) + 1;
+  // Data Donut Chart: Distribusi Status Produksi Kampanye
+  const stageCounts = marketingCampaigns.reduce((acc, c) => {
+    const stg = (c.stage && typeof c.stage === 'string' && c.stage.trim()) ? c.stage.trim() : 'Ide';
+    acc[stg] = (acc[stg] || 0) + 1;
     return acc;
   }, {});
 
-  const channelColors = {
-    'Instagram': '#e1306c',
-    'LinkedIn': '#0077b5',
-    'TikTok': '#0f172a',
-    'Website': '#0284c7',
-    'YouTube': '#ff0000',
-    'Meta Ads': '#0081fb',
-    'Email': '#8b5cf6'
+  const stageColors = {
+    'Ide': '#64748b',
+    'Design/Video': '#0284c7',
+    'Review': '#d97706',
+    'Siap Tayang': '#6366f1',
+    'Selesai Tayang': '#16a34a'
   };
 
-  const marketingDonutData = Object.keys(channelCounts).map(ch => ({
-    label: ch,
-    value: channelCounts[ch],
-    displayVal: `${channelCounts[ch]} Post`,
-    color: channelColors[ch] || '#0284c7'
+  const marketingDonutData = Object.keys(stageCounts).map(stg => ({
+    label: stg,
+    value: stageCounts[stg],
+    displayVal: `${stageCounts[stg]} Konten`,
+    color: stageColors[stg] || '#0284c7'
   }));
 
   const columns = [
@@ -130,6 +142,7 @@ export default function BrandingMarketing() {
         </span>
       ),
       minWidth: '150px',
+      options: marketingPillars,
       render: (val, row, update) => (
         <select
           value={val || 'Edukasi'}
@@ -241,12 +254,16 @@ export default function BrandingMarketing() {
     { id: 'Selesai Tayang', title: 'Selesai Tayang', color: '#22c55e' }
   ];
 
-  const handleAddCampaign = () => {
+  const handleAddCampaign = (overridePillar) => {
+    const defaultPillar = overridePillar || ((activeCategory && activeCategory !== 'ALL' && activeCategory !== 'all')
+      ? activeCategory
+      : marketingPillars[0]);
+
     const newCamp = {
       id: `MKT-${Date.now().toString().slice(-4)}`,
       title: '',
       channel: ['Instagram'],
-      pillar: 'Edukasi',
+      pillar: defaultPillar,
       stage: 'Ide',
       publishDate: new Date().toISOString().split('T')[0],
       adSpend: 0,
@@ -296,8 +313,8 @@ export default function BrandingMarketing() {
           data={marketingBarData}
         />
         <DonutChart
-          title="Sebaran Konten per Channel Media"
-          subtitle="Komposisi jalur publikasi digital"
+          title="Distribusi Status Produksi Konten"
+          subtitle="Status siklus kampanye & publikasi"
           data={marketingDonutData}
         />
       </div>
@@ -311,6 +328,10 @@ export default function BrandingMarketing() {
         onDeleteRow={deleteMarketingCampaign}
         onUpdateCell={(id, field, val) => updateMarketingCampaign(id, { [field]: val })}
         exportFileName="marketing_campaigns_digibooster.csv"
+        categories={marketingPillars}
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => setActiveCategory(cat)}
+        categoryKey="pillar"
         currentViewMode={viewMode}
         onChangeViewMode={setViewMode}
         availableViewModes={['table', 'kanban']}
