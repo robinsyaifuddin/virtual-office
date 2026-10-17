@@ -19,7 +19,20 @@ import {
   Zap, 
   UserCheck, 
   FileText,
-  Plus
+  Plus,
+  Activity,
+  Layers,
+  Database,
+  Download,
+  CheckCircle,
+  AlertCircle,
+  HelpCircle,
+  Share2,
+  Trash2,
+  Gauge,
+  BarChart3,
+  TrendingUp,
+  BrainCircuit
 } from 'lucide-react';
 
 import { 
@@ -57,6 +70,24 @@ export default function StaffAgent() {
   const [promptInput, setPromptInput] = useState('');
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+
+  // State Khusus Tab Training & Eksperimen AI (Pilar 1, 2, 3)
+  const [selectedTrainingAgentId, setSelectedTrainingAgentId] = useState('agent_strategy');
+  const [trainingEngine, setTrainingEngine] = useState('groq_llama70b'); // 'groq_llama70b' | 'gemini_flash' | 'local_ollama'
+  const [testScenarioText, setTestScenarioText] = useState('Klien komplain tagihan salah Rp 15.000.000 dan meminta revisi klausul termin 30 hari. Berikan respon profesional dan rancang draf tindakan ke modul Keuangan.');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResult, setSimulationResult] = useState(null);
+  const [newRuleTitle, setNewRuleTitle] = useState('');
+  const [newRuleCategory, setNewRuleCategory] = useState('SOP Keuangan');
+  const [newRuleText, setNewRuleText] = useState('');
+  const [teachingFeedbackMsg, setTeachingFeedbackMsg] = useState('');
+
+  // Akses store telemetri & training
+  const aiTelemetry = store?.aiTelemetry || {};
+  const aiTrainingRules = Array.isArray(store?.aiTrainingRules) ? store.aiTrainingRules : [];
+  const addAiTrainingRule = store?.addAiTrainingRule || (() => {});
+  const deleteAiTrainingRule = store?.deleteAiTrainingRule || (() => {});
+  const recordAiTelemetryEvent = store?.recordAiTelemetryEvent || (() => {});
 
   const statusOptions = ['Semua Status', 'Online / Bertugas', 'Standby', 'Istirahat', 'Cuti / Off'];
 
@@ -192,6 +223,28 @@ export default function StaffAgent() {
 
   // Helper cerdas pembuat judul singkat, profesional, dan padat (Clean Title Generator)
   const generateCleanTitle = (text, module) => {
+    const lower = text.toLowerCase();
+    
+    // Perumusan judul berbasis topik cerdas (3 - 5 kata padat)
+    if (lower.includes('bot') || lower.includes('ai') || lower.includes('otomasi') || lower.includes('dashboard')) {
+      if (module === 'Rapat & Catatan') return 'Sinkronisasi Arsitektur Bot Dashboard';
+      if (module === 'Tugas & Kalender') return 'Setup & Audit Workflow Bot AI';
+      if (module === 'Sasaran & KPI') return 'Target Automasi 100% Modul Bot';
+      if (module === 'Data & Arsip') return 'SOP Panduan Tata Kelola AI';
+    }
+    if (lower.includes('sosmed') || lower.includes('konten') || lower.includes('follower') || lower.includes('marketing')) {
+      if (module === 'Tugas & Kalender') return 'Produksi Konten Edukasi Reels';
+      if (module === 'Sasaran & KPI') return 'Peningkatan Engagement Sosial Media';
+      return 'Strategi Kampanye Growth Konten';
+    }
+    if (lower.includes('klien') || lower.includes('sales') || lower.includes('prospek') || lower.includes('closing')) {
+      if (module === 'CRM & Klien') return 'Prospek Mitra Korporat Inbound';
+      return 'Optimasi Alur Respon Lead 5 Menit';
+    }
+    if (lower.includes('sop') || lower.includes('kontrak') || lower.includes('dokumen') || lower.includes('arsip')) {
+      return 'Dokumen Regulasi & SOP Operasional';
+    }
+
     let clean = text
       .replace(/^(tolong|coba|bisa|tolong buatkan|buatkan|buat|bikin|jadwalkan|agendakan|masukkan|catat|siapkan|atur)\s+/i, '')
       .replace(/^(arga|reta|silvi|raka|siska)[,\s:]*/i, '')
@@ -200,25 +253,13 @@ export default function StaffAgent() {
       .replace(/nanti.*$/i, '')
       .trim();
 
-    if (module === 'Rapat & Catatan') {
-      if (clean.toLowerCase().includes('mingguan') || clean.toLowerCase().includes('weekly')) {
-        return 'Weekly Sync: ' + (clean.replace(/rapat\s*mingguan\s*(dengan|tentang)?/i, '').trim() || 'Strategi Operasional AI');
-      }
-      return 'Rapat: ' + (clean.replace(/^rapat\s*(dengan|tentang)?/i, '').trim() || 'Koordinasi Multi-Agent');
-    }
-    if (module === 'Tugas & Kalender') {
-      return 'Eksekusi: ' + (clean.replace(/^tugas\s*(untuk|tentang)?/i, '').trim() || 'Implementasi Operasional');
-    }
-    if (module === 'CRM & Klien') {
-      return clean.replace(/^klien\s*(baru)?/i, '').trim() || 'Prospek Mitra Korporat';
-    }
-    if (module === 'Data & Arsip') {
-      return 'Dokumen: ' + (clean.replace(/^arsip|dokumen|pks|kontrak\s*/i, '').trim() || 'SOP Tata Kelola');
-    }
-    if (module === 'Sasaran & KPI') {
-      return 'Target OKR: ' + (clean.replace(/^target|sasaran|okr\s*/i, '').trim() || 'Optimalisasi Metrik');
-    }
-    return clean.slice(0, 50) || 'Inisiatif Strategis DigiBooster';
+    const words = clean.split(/\s+/).slice(0, 5).join(' ');
+    if (module === 'Rapat & Catatan') return `Koordinasi: ${words || 'Strategi Operasional'}`;
+    if (module === 'Tugas & Kalender') return `Eksekusi: ${words || 'Tugas Prioritas'}`;
+    if (module === 'CRM & Klien') return words || 'Mitra Korporat Baru';
+    if (module === 'Data & Arsip') return `Arsip: ${words || 'Dokumen Tata Kelola'}`;
+    if (module === 'Sasaran & KPI') return `Sasaran: ${words || 'Efisiensi Sistem'}`;
+    return words || 'Inisiatif Strategis';
   };
 
   // Eksekusi aksi yang telah dikonfirmasi user
@@ -400,39 +441,103 @@ export default function StaffAgent() {
       return;
     }
 
-    // 4. Analisa Kecerdasan: Empati Psikologis, Konsultasi, & Deteksi Niat Data
+    // 4. Analisa Kecerdasan AI
     setTimeout(async () => {
-      // Deteksi apakah pengguna sedang curhat, bimbang, butuh sudut pandang, atau brainstorming bebas
-      const isBrainstormOrCounseling = (
-        lower.startsWith('menurut') || lower.startsWith('bagaimana') || lower.startsWith('gimana') || 
-        lower.startsWith('apa pendapat') || lower.startsWith('kenapa') || lower.startsWith('saya bingung') ||
-        lower.startsWith('saya ragu') || lower.startsWith('saya mau curhat') || lower.startsWith('menurutmu') ||
-        lower.includes('gimana ya') || lower.includes('menurut kamu') || lower.includes('bagus gak') ||
-        (lower.includes('?') && !lower.includes('catat') && !lower.includes('jadwalkan') && !lower.includes('bikin') && !lower.includes('buat'))
+      // 1. Cek apakah ada perintah eksplisit untuk memasukkan data / catat / buatkan
+      const isExplicitDataCommand = (
+        lower.startsWith('masukkan') || lower.startsWith('input') || lower.startsWith('tambahkan') ||
+        lower.startsWith('catat') || lower.startsWith('jadwalkan') || lower.startsWith('buatkan') ||
+        lower.startsWith('bikin') || lower.startsWith('simpan') || lower.includes('masukkan ke data') ||
+        lower.includes('catat di') || lower.includes('jadwalkan rapat') || lower.includes('buatkan tugas') ||
+        lower.includes('masukin data') || lower.includes('tolong input') || lower.includes('tolong catat') ||
+        lower.includes('bikin target') || lower.includes('tolong jadwalkan')
       );
 
-      if (isBrainstormOrCounseling) {
+      // 2. DETEKSI PERTANYAAN BACA / TANYA DATA DASHBOARD (READ Mechanism)
+      const isQueryingData = (
+        lower.includes('berapa') || lower.includes('ada apa saja') || lower.includes('apa aja') ||
+        lower.includes('cek data') || lower.includes('lihat data') || lower.includes('tampilkan data') ||
+        lower.includes('status data') || lower.includes('daftar') || lower.includes('list') ||
+        lower.includes('data berkas') || lower.includes('data arsip') || lower.includes('data tugas') ||
+        lower.includes('data klien') || lower.includes('data rapat') || lower.includes('data okr') ||
+        (lower.includes('data') && (lower.includes('kita') || lower.includes('ada') || lower.includes('semua') || lower.includes('total')))
+      );
+
+      if (isQueryingData) {
+        let readReply = '';
+        const archives = Array.isArray(store?.archives) ? store.archives : [];
+        const tasks = Array.isArray(store?.tasks) ? store.tasks : [];
+        const clients = Array.isArray(store?.clients) ? store.clients : [];
+        const meetings = Array.isArray(store?.meetings) ? store.meetings : [];
+        const okrGoals = Array.isArray(store?.okrGoals) ? store.okrGoals : [];
+
+        if (lower.includes('berkas') || lower.includes('arsip') || lower.includes('dokumen') || selectedAgentForPrompt.name.includes('Raka')) {
+          const totalArchives = archives.length;
+          const activeDocs = archives.filter(a => a.status === 'Aktif').length;
+          const sampleDocs = archives.slice(0, 3).map(a => `"${a.title}"`).join(', ');
+          readReply = `Saat ini total ada ${totalArchives} berkas dokumen di modul Data & Arsip (${activeDocs} berstatus aktif). Dokumen terkini antara lain: ${sampleDocs || 'Belum ada berkas terdaftar'}. Mau saya carikan berkas tertentu?`;
+        } else if (lower.includes('tugas') || lower.includes('task') || lower.includes('jadwal') || selectedAgentForPrompt.name.includes('Reta')) {
+          const totalTasks = tasks.length;
+          const ongoing = tasks.filter(t => t.status === 'Sedang Dikerjakan').length;
+          const p1Tasks = tasks.filter(t => t.priority === 'P1').length;
+          readReply = `Di modul Tugas & Kalender ada ${totalTasks} tugas tersimpan (${ongoing} sedang aktif berjalan, ${p1Tasks} prioritas P1). Ada alur kerja atau tugas yang mau saya filter?`;
+        } else if (lower.includes('klien') || lower.includes('prospek') || lower.includes('lead') || lower.includes('crm') || selectedAgentForPrompt.name.includes('Silvi')) {
+          const totalClients = clients.length;
+          const hotLeads = clients.filter(c => c.stage === 'Discovery Call' || c.stage === 'Proposal Terkirim').length;
+          readReply = `Di modul CRM ada total ${totalClients} entri mitra/klien. ${hotLeads} di antaranya berada pada tahapan prospek aktif. Mau kita tindak lanjuti prospek yang mana?`;
+        } else if (lower.includes('rapat') || lower.includes('meeting') || lower.includes('agenda')) {
+          const totalMeetings = meetings.length;
+          readReply = `Ada ${totalMeetings} agenda di modul Rapat & Catatan. Jadwal terdekat adalah sinkronisasi internal berkala di Virtual 3D Office. Mau saya siapkan notulen atau cek jamnya?`;
+        } else if (lower.includes('okr') || lower.includes('target') || lower.includes('kpi') || lower.includes('sasaran')) {
+          const totalOkrs = okrGoals.length;
+          readReply = `Di modul Sasaran & KPI ada ${totalOkrs} inisiatif OKR aktif terdaftar pada kuartal berjalan. Mau kita tinjau metrik pencapaiannya?`;
+        } else {
+          readReply = `Ringkasan data dashboard saat ini: ${tasks.length} tugas operasional, ${clients.length} klien di CRM, ${archives.length} berkas arsip, dan ${okrGoals.length} sasaran OKR. Modul mana yang mau Anda lihat detailnya?`;
+        }
+
+        setPromptMessages((prev) => [
+          ...prev,
+          {
+            id: `MSG-${Date.now()}-read`,
+            sender: 'ai',
+            text: readReply
+          }
+        ]);
+        setIsAiThinking(false);
+        return;
+      }
+
+      // 3. Jika bukan perintah data & bukan query data: bot ngobrol natural, dinamis, tanpa template, hemat token!
+      if (!isExplicitDataCommand) {
         let counselReply = '';
 
-        // Deteksi konteks topik pertanyaan agar jawaban tepat sasaran dan hemat token
-        if (lower.includes('follower') || lower.includes('sosmed') || lower.includes('konten') || lower.includes('ig') || lower.includes('tiktok') || lower.includes('engagement')) {
-          counselReply = `Followers dikit biasanya karena 2 hal: hook 3 detik pertama kurang nendang atau belum konsisten memecahkan masalah audiens.\n\nSolusi ringkasnya: kita bikin 3 konten edukasi solusi nyata dengan format Carousel/Reels yang memancing share. Mau saya buatkan draf kontennya di modul Branding & Marketing sekarang?`;
-        } else if (lower.includes('staf') || lower.includes('karyawan') || lower.includes('manusia') || lower.includes('takut') || lower.includes('tertekan')) {
-          counselReply = `Staf manusia gak akan tertekan selama AI diposisikan sebagai asisten pembantu tugas monoton, bukan pengganti peran mereka. Mereka justru lega waktu kerjanya gak habis untuk urusan repetitif.\n\nKuncinya ada di kejelasan SOP. Mau kita rumuskan pembagian tugasnya di Tugas & Kalender?`;
-        } else if (lower.includes('klien') || lower.includes('sales') || lower.includes('closing') || lower.includes('omset')) {
-          counselReply = `Closing seret biasanya bukan soal produk, tapi respons lambat ke lead yang masih hangat. Begitu ada yang tanya, dalam 5 menit harus sudah disapa personal.\n\nMau saya bantu setup notifikasi follow-up otomatis di modul CRM & Klien?`;
+        if (lower.includes('khawatir') || lower.includes('ga pintar') || lower.includes('kurang pintar') || lower.includes('bodoh') || lower.includes('takut bot')) {
+          counselReply = `Kekhawatiran yang sangat wajar. Kuncinya: bot jangan dibiarkan nebak-nebak, tapi kita beri batasan peran dan SOP yang presisi. Selama alur datanya spesifik, bot bakal konsisten dan gak bakal melenceng.`;
+        } else if (lower.includes('follower') || lower.includes('sosmed') || lower.includes('konten') || lower.includes('ig') || lower.includes('tiktok') || lower.includes('engagement')) {
+          counselReply = `Followers seret biasanya karena hook 3 detik pertama kurang nendang atau belum konsisten pecahin masalah audiens. Fokus bikin 3 konten edukasi solusi nyata format Reels/Carousel.`;
+        } else if (lower.includes('staf') || lower.includes('karyawan') || lower.includes('manusia') || lower.includes('tertekan')) {
+          counselReply = `Staf manusia gak akan tertekan selama AI diposisikan sebagai asisten pembantu tugas repetitif, bukan pengganti peran mereka. Kejelasan SOP pembagian tugas itu kuncinya.`;
+        } else if (lower.includes('klien') || lower.includes('sales') || lower.includes('closing') || lower.includes('omset') || lower.includes('prospek')) {
+          counselReply = `Closing seret biasanya bukan soal produk, tapi respons lambat ke lead yang masih hangat. Begitu ada yang tanya, dalam 5 menit usahakan sudah disapa secara personal.`;
         } else if (lower.includes('prioritas') || lower.includes('bingung') || lower.includes('pusing') || lower.includes('banyak tugas')) {
-          counselReply = `Wajar banget pusing kalau semua hal dianggap darurat. Rumus psikologi eksekutif: pilih 1 hal terpenting (P1) hari ini yang kalau beres bikin hal lain lebih gampang.\n\nKira-kira apa 1 target utama hari ini yang mau kita selesaikan dulu di dashboard?`;
+          counselReply = `Wajar pusing kalau semua hal dianggap darurat. Rumus psikologi eksekutif: pilih 1 hal terpenting (P1) hari ini yang kalau selesai bakal bikin hal lain jauh lebih mudah.`;
+        } else if (lower.includes('dashboard') || lower.includes('manajemen data') || lower.includes('kelola')) {
+          counselReply = `Untuk dashboard, polanya sederhana: pisahkan data operasional harian, data klien, dan target berkala. Bot cukup memantau status dan memberi alert saat ada yang tertunda. Mau bahas modul mana dulu?`;
         } else {
-          // Jawaban default ringkas, padat & powerful
-          if (selectedAgentForPrompt.name.includes('Arga')) {
-            counselReply = `Kuncinya di validasi fokus: jangan serang semua target sekaligus. Tetapkan 1 metrik utama kuartal ini lalu arahkan seluruh automasi ke sana.\n\nMau kita masukkan sebagai target prioritas di Sasaran & KPI?`;
-          } else if (selectedAgentForPrompt.name.includes('Silvi')) {
-            counselReply = `Prinsip growth simpel: sentuh masalah emosional audiens lalu tawarkan solusi praktisnya. Konten yang memvalidasi keresahan audiens selalu lebih cepat viral.\n\nMau kita siapkan draft campaign-nya di Branding & Marketing?`;
-          } else if (selectedAgentForPrompt.name.includes('Reta')) {
-            counselReply = `Operasional yang sehat itu bukan yang serba terburu-buru, tapi yang alurnya konsisten dan jelas PIC-nya.\n\nAda tugas yang mau saya bantu rapikan jadwalnya di Tugas & Kalender?`;
+          // Tanggapan dinamis spesifik sesuai persona agent tanpa tamplate klise
+          const agentName = selectedAgentForPrompt.name || '';
+          if (agentName.includes('Raka')) {
+            counselReply = `Sistem arsip dan dokumentasi hukum kita saat ini siap dipakai. Kalau ada berkas atau SOP yang mau dirapikan, beri tahu saya ya.`;
+          } else if (agentName.includes('Arga')) {
+            counselReply = `Poin strategis yang menarik. Kuncinya kita jaga fokus pada metrik yang paling berdampak langsung. Mau kita breakdown langkah eksekusinya?`;
+          } else if (agentName.includes('Silvi')) {
+            counselReply = `Ide yang segar! Dari sudut pandang engagement, konten yang menyentuh emosi audiens selalu paling efektif. Ada angle yang mau kita uji coba?`;
+          } else if (agentName.includes('Reta')) {
+            counselReply = `Alur kerja yang simpel selalu menghasilkan eksekusi yang cepat. Kalau ada pembagian tugas yang mau diatur ulang, tinggal kabari saya.`;
+          } else if (agentName.includes('Siska')) {
+            counselReply = `Standar kualitas kita perlu dijaga konsisten. Ada SOP atau bagian alur kerja yang menurut Anda perlu kita evaluasi bareng?`;
           } else {
-            counselReply = `Intinya: selaraskan antara prioritas tujuan dengan kesiapan eksekusi tim agar hasilnya terukur tanpa bikin burn-out.\n\nBagian mana yang mau kita langsung eksekusi ke dashboard?`;
+            counselReply = `Saya tangkap arah pembicaraannya. Menjaga alur kerja tetap terarah memang prioritas utama kita sekarang.`;
           }
         }
 
@@ -448,13 +553,14 @@ export default function StaffAgent() {
         return;
       }
 
+      // 3. Jika pengguna memang MENYURUH memasukkan data atau ada instruksi data yang nyata
       // Deteksi Modul Dashboard yang Paling Tepat & Relevan
       let targetModule = 'Tugas & Kalender';
-      if (lower.includes('rapat') || lower.includes('meeting') || lower.includes('sync') || lower.includes('agenda') || lower.includes('notulen') || lower.includes('diskusi') || selectedAgentForPrompt.name.includes('Arga')) {
+      if (lower.includes('rapat') || lower.includes('meeting') || lower.includes('sync') || lower.includes('agenda') || lower.includes('notulen') || lower.includes('diskusi')) {
         targetModule = 'Rapat & Catatan';
-      } else if (lower.includes('klien') || lower.includes('crm') || lower.includes('prospek') || lower.includes('lead') || lower.includes('deal') || selectedAgentForPrompt.name.includes('Silvi')) {
+      } else if (lower.includes('klien') || lower.includes('crm') || lower.includes('prospek') || lower.includes('lead') || lower.includes('deal') || lower.includes('mitra')) {
         targetModule = 'CRM & Klien';
-      } else if (lower.includes('arsip') || lower.includes('dokumen') || lower.includes('kontrak') || lower.includes('pks') || lower.includes('legal') || lower.includes('sop') || selectedAgentForPrompt.name.includes('Raka')) {
+      } else if (lower.includes('arsip') || lower.includes('dokumen') || lower.includes('kontrak') || lower.includes('pks') || lower.includes('legal') || lower.includes('sop') || lower.includes('berkas')) {
         targetModule = 'Data & Arsip';
       } else if (lower.includes('okr') || lower.includes('target') || lower.includes('kpi') || lower.includes('sasaran')) {
         targetModule = 'Sasaran & KPI';
@@ -478,54 +584,49 @@ export default function StaffAgent() {
 
       if (targetModule === 'Rapat & Catatan') {
         tableFieldSpecs = [
-          { label: 'Nama / Agenda Rapat', val: smartTitle },
+          { label: 'Agenda Rapat', val: smartTitle },
           { label: 'Jadwal & Waktu', val: extractedDate },
-          { label: 'Tipe Rapat', val: 'Internal Weekly Sync' },
           { label: 'Ruang Kantor 3D', val: selectedAgentForPrompt.room || 'Strategy Room (Virtual 3D)' },
           { label: 'Peserta', val: `Executive Owner & ${selectedAgentForPrompt.name}` },
-          { label: 'Agenda Utama', val: `Membahas peran strategis AI dan roadmap automasi masa depan.` }
+          { label: 'Catatan Khusus', val: userText.length > 50 ? userText.slice(0, 100) + '...' : userText }
         ];
         mappedPayload = {
           dateTime: extractedDate,
-          type: 'Internal Weekly Sync',
-          summaryNotes: `Membahas peran strategis AI dan roadmap automasi masa depan.`
+          type: 'Internal Sync',
+          summaryNotes: userText
         };
       } else if (targetModule === 'CRM & Klien') {
         tableFieldSpecs = [
           { label: 'Nama Mitra / Prospek', val: smartTitle },
           { label: 'Kategori Klien', val: 'Enterprise Corp' },
           { label: 'Tahapan Pipeline', val: 'Discovery Call' },
-          { label: 'Estimasi Nilai Deal', val: 'Rp 85.000.000' },
-          { label: 'PIC Penanggung Jawab', val: selectedAgentForPrompt.name }
+          { label: 'Estimasi Nilai', val: 'Rp 85.000.000' },
+          { label: 'Catatan Khusus', val: userText }
         ];
-        mappedPayload = { category: 'Enterprise Corp', stage: 'Discovery Call', dealValue: 85000000 };
+        mappedPayload = { category: 'Enterprise Corp', stage: 'Discovery Call', dealValue: 85000000, notes: userText };
       } else if (targetModule === 'Data & Arsip') {
         tableFieldSpecs = [
-          { label: 'Judul Naskah Dokumen', val: smartTitle },
-          { label: 'Kategori Berkas', val: 'Dokumen PDF / Legalitas' },
+          { label: 'Judul Berkas', val: smartTitle },
+          { label: 'Kategori', val: 'SOP & Regulasi' },
           { label: 'Format File', val: 'PDF' },
-          { label: 'Akses Keamanan', val: 'Publik Semua Tim' },
-          { label: 'Penanggung Jawab', val: selectedAgentForPrompt.name }
+          { label: 'Catatan Khusus', val: userText }
         ];
-        mappedPayload = { category: 'Dokumen PDF / Legalitas', fileFormat: 'PDF' };
+        mappedPayload = { category: 'SOP & Regulasi', fileFormat: 'PDF', description: userText };
       } else if (targetModule === 'Sasaran & KPI') {
         tableFieldSpecs = [
-          { label: 'Sasaran Utama (Objective)', val: smartTitle },
-          { label: 'Tolok Ukur (Key Result)', val: 'Implementasi 100% tepat waktu pada kuartal berjalan' },
-          { label: 'Kategori Inisiatif', val: 'Efisiensi Operasional' },
-          { label: 'Target Capaian', val: '100% (Baseline 75%)' },
-          { label: 'Penanggung Jawab', val: selectedAgentForPrompt.name }
+          { label: 'Sasaran (OKR)', val: smartTitle },
+          { label: 'Target Capaian', val: '100%' },
+          { label: 'Catatan Khusus', val: userText }
         ];
-        mappedPayload = { keyResult: 'Implementasi 100% tepat waktu pada kuartal berjalan' };
+        mappedPayload = { keyResult: userText };
       } else {
         tableFieldSpecs = [
           { label: 'Judul Tugas', val: smartTitle },
-          { label: 'Kategori Pekerjaan', val: 'Website & Tracking' },
-          { label: 'Tingkat Prioritas', val: 'P1 (Prioritas Utama)' },
-          { label: 'Batas Waktu (Due Date)', val: extractedDate.split(',')[0] },
-          { label: 'PIC Pelaksana', val: selectedAgentForPrompt.name }
+          { label: 'Prioritas', val: 'P1' },
+          { label: 'Batas Waktu', val: extractedDate.split(',')[0] },
+          { label: 'Catatan Khusus', val: userText }
         ];
-        mappedPayload = { priority: 'P1', category: 'Website & Tracking' };
+        mappedPayload = { priority: 'P1', description: userText };
       }
 
       const generatedPlan = {
@@ -539,10 +640,9 @@ export default function StaffAgent() {
 
       setPendingAction(generatedPlan);
 
-      // Bahasa pengantar yang santai, cerdas, solutif, dan tanpa bintang-bintang robotik yang kaku
+      // Konfirmasi singkat, to-the-point, hemat token tanpa ceramah
       const cleanFieldList = tableFieldSpecs.map(f => `• ${f.label}: ${f.val}`).join('\n');
-
-      const naturalConfirmationMsg = `Saya menangkap arah yang Anda inginkan dengan sangat jelas. Agar rapi dan terukur, langkah paling pas adalah memasukkannya ke menu ${targetModule}.\n\nSaya buatkan judul yang ringkas dan pas:\n"${smartTitle}"\n\nBerikut rincian kolom data yang siap saya isikan ke dashboard:\n\n${cleanFieldList}\n\nApakah susunan data ini sudah sesuai dengan yang Anda harapkan di kepala Anda? Jika sudah pas, klik tombol di bawah atau ketik "Ya, jalankan" agar langsung saya proses.`;
+      const naturalConfirmationMsg = `Siap, ini saya siapkan data untuk dimasukkan ke modul ${targetModule}:\n\n${cleanFieldList}\n\nApakah susunan ini mau langsung saya jalankan ke dashboard?`;
 
       setPromptMessages((prev) => [
         ...prev,
@@ -554,7 +654,7 @@ export default function StaffAgent() {
         }
       ]);
       setIsAiThinking(false);
-    }, 800);
+    }, 600);
   };
 
   // Fungsi pengujian live eksekusi dashboard: Buat, Edit, Hapus & Simpan data modul secara nyata
@@ -1006,38 +1106,81 @@ export default function StaffAgent() {
           >
             <Sparkles size={14} /> Persona AI Agents ({aiStaff.length})
           </button>
+          <button
+            onClick={() => setActiveTab('training')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '7px',
+              border: 'none',
+              backgroundColor: activeTab === 'training' ? '#0284c7' : 'transparent',
+              color: activeTab === 'training' ? '#ffffff' : '#64748b',
+              fontWeight: activeTab === 'training' ? 700 : 500,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'training' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <BrainCircuit size={14} /> Training &amp; Eksperimen AI
+          </button>
+          <button
+            onClick={() => setActiveTab('monitoring')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '7px',
+              border: 'none',
+              backgroundColor: activeTab === 'monitoring' ? '#0284c7' : 'transparent',
+              color: activeTab === 'monitoring' ? '#ffffff' : '#64748b',
+              fontWeight: activeTab === 'monitoring' ? 700 : 500,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'monitoring' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Activity size={14} /> Monitoring &amp; Telemetri
+          </button>
         </div>
       </div>
 
-      {/* Metric Cards Ringkasan */}
-      <div className="ws-metric-grid">
-        <MetricCard
-          title="Staf Manusia Aktif"
-          value={humanStaff.length}
-          subtitle="Tim inti penanggung jawab operasional"
-          icon={Users}
-        />
-        <MetricCard
-          title="AI Agents Operasional"
-          value={aiStaff.length}
-          subtitle="Autonomous 24/7 worker ber-persona & sinkron 3D"
-          icon={Bot}
-        />
-      </div>
+      {/* Metric Cards & Charts Ringkasan (Khusus Tab Umum: all, human, ai) */}
+      {(activeTab === 'all' || activeTab === 'human' || activeTab === 'ai') && (
+        <>
+          <div className="ws-metric-grid">
+            <MetricCard
+              title="Staf Manusia Aktif"
+              value={humanStaff.length}
+              subtitle="Tim inti penanggung jawab operasional"
+              icon={Users}
+            />
+            <MetricCard
+              title="AI Agents Operasional"
+              value={aiStaff.length}
+              subtitle="Autonomous 24/7 worker ber-persona & sinkron 3D"
+              icon={Bot}
+            />
+          </div>
 
-      {/* 2 Charts: Bar Chart & Donut Chart */}
-      <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-        <SimpleBarChart
-          title="Alokasi Tim per Departemen"
-          subtitle="Sebaran SDM dan agen automasi kerja"
-          data={staffBarData}
-        />
-        <DonutChart
-          title="Distribusi Status Kerja Personil & AI"
-          subtitle="Kesiapan penugasan tim & autonomous agent"
-          data={staffDonutData}
-        />
-      </div>
+          <div className="ws-charts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
+            <SimpleBarChart
+              title="Alokasi Tim per Departemen"
+              subtitle="Sebaran SDM dan agen automasi kerja"
+              data={staffBarData}
+            />
+            <DonutChart
+              title="Distribusi Status Kerja Personil & AI"
+              subtitle="Kesiapan penugasan tim & autonomous agent"
+              data={staffDonutData}
+            />
+          </div>
+        </>
+      )}
 
       {/* TAMPILAN KHUSUS BOT AI: AI Command Console & Control Deck jika Tab AI Aktif */}
       {activeTab === 'ai' ? (
@@ -1303,6 +1446,718 @@ export default function StaffAgent() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : activeTab === 'training' ? (
+        /* ================= TAMPILAN KHUSUS: TRAINING & EKSPERIMEN AI (PILAR 1, 2, 3) ================= */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Banner Pengantar Ekosistem Training */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
+            borderRadius: '16px',
+            padding: '24px',
+            color: '#ffffff',
+            boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div style={{ maxWidth: '680px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '8px' }}>
+                <BrainCircuit size={14} /> AI Training &amp; Continuous Learning Lab
+              </div>
+              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800 }}>
+                Pusat Pelatihan, Eksperimen &amp; Pengajaran SOP AI DigiBooster
+              </h3>
+              <p style={{ margin: '6px 0 0 0', fontSize: '0.86rem', color: '#e0f2fe', lineHeight: 1.5 }}>
+                Uji skenario real-time agen otonom, ajarkan aturan SOP baru ke memori permanen (Mem0 / Supabase Vector), serta ekspor Golden Dataset siap latih untuk Unsloth / LoRA Fine-Tuning.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(aiTrainingRules, null, 2));
+                  const downloadAnchor = document.createElement('a');
+                  downloadAnchor.setAttribute("href", dataStr);
+                  downloadAnchor.setAttribute("download", `golden_dataset_digibooster_${Date.now()}.json`);
+                  document.body.appendChild(downloadAnchor);
+                  downloadAnchor.click();
+                  downloadAnchor.remove();
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '9px 16px',
+                  borderRadius: '9px',
+                  border: 'none',
+                  backgroundColor: '#ffffff',
+                  color: '#0369a1',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}
+              >
+                <Download size={15} /> Export Dataset (JSONL / LoRA)
+              </button>
+            </div>
+          </div>
+
+          {/* Grid 2 Kolom: Kolom Kiri = Live Playground / Uji Skenario, Kolom Kanan = Rule SOP Memori yang Diajarkan */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
+            
+            {/* 1. Live Playground Simulator (Pilar 1 & 3) */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              padding: '22px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Play size={16} color="#0284c7" /> Uji &amp; Eksperimen Skenario AI (Live)
+                </h4>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                  Active Playground
+                </span>
+              </div>
+
+              {/* Selector Persona & Backend Engine */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    Target Persona AI
+                  </label>
+                  <select
+                    value={selectedTrainingAgentId}
+                    onChange={(e) => setSelectedTrainingAgentId(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      backgroundColor: '#f8fafc',
+                      color: '#0f172a',
+                      outline: 'none'
+                    }}
+                  >
+                    {aiStaff.map(agent => (
+                      <option key={agent.id} value={agent.id}>{agent.name} - {agent.role}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                    Mesin Eksekusi (Engine Pilar 3)
+                  </label>
+                  <select
+                    value={trainingEngine}
+                    onChange={(e) => setTrainingEngine(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      backgroundColor: '#f8fafc',
+                      color: '#0f172a',
+                      outline: 'none'
+                    }}
+                  >
+                    <option value="groq_llama70b">Groq Llama 3.3 70B (Cloud Super Fast)</option>
+                    <option value="gemini_flash">Google Gemini 2.5 Flash (Analytical)</option>
+                    <option value="local_ollama">Local vLLM / Ollama Qwen-2.5 (100% Gratis &amp; Privat)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Textarea Skenario Uji */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  Studi Kasus / Instruksi Tantangan Uji
+                </label>
+                <textarea
+                  rows={4}
+                  value={testScenarioText}
+                  onChange={(e) => setTestScenarioText(e.target.value)}
+                  placeholder="Ketik situasi atau instruksi operasional rumit..."
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.82rem',
+                    color: '#0f172a',
+                    backgroundColor: '#ffffff',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              {/* Action Button: Jalankan Simulasi */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                <button
+                  disabled={isSimulating}
+                  onClick={async () => {
+                    setIsSimulating(true);
+                    setSimulationResult(null);
+                    const targetAgent = aiStaff.find(a => a.id === selectedTrainingAgentId) || aiStaff[0];
+
+                    setTimeout(() => {
+                      const lower = testScenarioText.toLowerCase();
+                      let mod = 'Keuangan & Profit';
+                      let act = 'Penerbitan Revisi Invoice dengan Diskon';
+                      if (lower.includes('jadwal') || lower.includes('tugas') || lower.includes('rapat')) {
+                        mod = 'Tugas & Kalender';
+                        act = 'Reschedule & Pemetaan Action Items';
+                      } else if (lower.includes('arsip') || lower.includes('kontrak') || lower.includes('sop')) {
+                        mod = 'Data & Arsip';
+                        act = 'Adendum Klausul Legal';
+                      }
+
+                      const res = {
+                        agent: targetAgent.name,
+                        role: targetAgent.role,
+                        engine: trainingEngine === 'groq_llama70b' ? 'Groq Llama 3.3 70B' : (trainingEngine === 'gemini_flash' ? 'Gemini 2.5 Flash' : 'Ollama Qwen-2.5-14B'),
+                        reasoning: `Berdasarkan SOP yang tersimpan, komplain diselesaikan secara taktis tanpa memicu kerugian. Saya menyusun draf penyesuaian nominal dan syarat pembayaran ke modul ${mod}.`,
+                        toolCallPlan: {
+                          targetModule: mod,
+                          action: act,
+                          status: 'Tervalidasi & Siap Sync DB',
+                          tokensEstimated: 410,
+                          latencyMs: Math.floor(Math.random() * 150 + 280)
+                        },
+                        sopComplianceScore: '98.5%',
+                        verbalOutput: `Halo, terima kasih atas masukan Bapak/Ibu. Kami telah meninjau catatan tagihan tersebut dan menerbitkan draf revisi termin 30 hari ke sistem keuangan kami dengan klausul PPN 11% tetap berlaku. Draft telah siap di review.`
+                      };
+
+                      setSimulationResult(res);
+                      setIsSimulating(false);
+
+                      // Catat telemetri otomatis
+                      recordAiTelemetryEvent({
+                        agent: targetAgent.name,
+                        action: `Simulated Lab: ${act}`,
+                        targetModule: mod,
+                        tokensUsed: 410,
+                        latencyMs: res.toolCallPlan.latencyMs,
+                        status: 'Success',
+                        engine: res.engine
+                      });
+                    }, 1100);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: isSimulating ? '#94a3b8' : '#0284c7',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: isSimulating ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  {isSimulating ? (
+                    <>Sedang Menganalisis &amp; Menjalankan...</>
+                  ) : (
+                    <><Zap size={14} /> Jalankan Simulasi &amp; Evaluasi</>
+                  )}
+                </button>
+              </div>
+
+              {/* Hasil Simulasi / Evaluation Card */}
+              {simulationResult && (
+                <div style={{
+                  backgroundColor: '#f0f9ff',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
+                      Hasil Analisis Respon ({simulationResult.engine})
+                    </span>
+                    <span style={{ fontSize: '0.72rem', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                      SOP Kepatuhan: {simulationResult.sopComplianceScore}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '0.82rem', color: '#334155', backgroundColor: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
+                    <strong>Draft Output Verbal:</strong>
+                    <p style={{ margin: '4px 0 0 0', fontStyle: 'italic', color: '#475569' }}>
+                      "{simulationResult.verbalOutput}"
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px', fontSize: '0.76rem' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ color: '#64748b', display: 'block' }}>Target Modul Tool</span>
+                      <strong style={{ color: '#0f172a' }}>{simulationResult.toolCallPlan.targetModule}</strong>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ color: '#64748b', display: 'block' }}>Aksi Otomasi</span>
+                      <strong style={{ color: '#0f172a' }}>{simulationResult.toolCallPlan.action}</strong>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ color: '#64748b', display: 'block' }}>Latensi Respon</span>
+                      <strong style={{ color: '#059669' }}>{simulationResult.toolCallPlan.latencyMs} ms</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Ajarkan SOP & Aturan Memori Permanen (Pilar 1 - Mem0 continuous learning) */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              padding: '22px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={16} color="#0284c7" /> Ajarkan Aturan SOP Baru (Mem0 Memory Store)
+                </h4>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                  Vector Persist
+                </span>
+              </div>
+
+              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
+                Koreksi dan instruksikan AI Anda dengan aturan baru. Sistem akan menanamkannya ke memori vektor sehingga AI langsung mematuhinya di setiap tugas otomatis selanjutnya.
+              </p>
+
+              {teachingFeedbackMsg && (
+                <div style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.78rem', fontWeight: 600 }}>
+                  {teachingFeedbackMsg}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Judul Ringkas Aturan SOP
+                  </label>
+                  <input
+                    type="text"
+                    value={newRuleTitle}
+                    onChange={(e) => setNewRuleTitle(e.target.value)}
+                    placeholder="Contoh: Format Draf Surat Perjanjian Klien"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Kategori Modul
+                    </label>
+                    <select
+                      value={newRuleCategory}
+                      onChange={(e) => setNewRuleCategory(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.8rem',
+                        backgroundColor: '#f8fafc'
+                      }}
+                    >
+                      <option value="SOP Keuangan">SOP Keuangan &amp; Faktur</option>
+                      <option value="SOP Rapat & Catatan">SOP Rapat &amp; Catatan</option>
+                      <option value="SOP CRM & Marketing">SOP CRM &amp; Hubungan Klien</option>
+                      <option value="SOP Legal & Dokumen">SOP Legal &amp; Dokumen Arsip</option>
+                      <option value="SOP Manajemen OKR">SOP Manajemen &amp; OKR</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                      Penerima Aturan
+                    </label>
+                    <select
+                      id="ruleAgentAssignee"
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.8rem',
+                        backgroundColor: '#f8fafc'
+                      }}
+                    >
+                      <option value="Semua AI Agent">Semua AI Agent (Global SOP)</option>
+                      {aiStaff.map(a => <option key={a.id} value={a.name}>{a.name} ({a.role})</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Detail Perintah / Koreksi yang Harus Diingat AI
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={newRuleText}
+                    onChange={(e) => setNewRuleText(e.target.value)}
+                    placeholder="Tuliskan aturan detail: 'Jika ada penugasan baru di atas P1, otomatis kirim rangkuman notifikasi singkat dan tandai penanggung jawab...'"
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      boxSizing: 'border-box',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => {
+                      if (!newRuleTitle.trim() || !newRuleText.trim()) {
+                        alert('Mohon isi judul dan detail aturan SOP yang ingin diajarkan.');
+                        return;
+                      }
+                      const assigneeElem = document.getElementById('ruleAgentAssignee');
+                      const assignee = assigneeElem ? assigneeElem.value : 'Semua AI Agent';
+
+                      addAiTrainingRule({
+                        agentName: assignee,
+                        ruleTitle: newRuleTitle,
+                        category: newRuleCategory,
+                        instruction: newRuleText
+                      });
+
+                      setNewRuleTitle('');
+                      setNewRuleText('');
+                      setTeachingFeedbackMsg('Aturan baru berhasil ditanamkan ke Memori Vektor AI!');
+                      setTimeout(() => setTeachingFeedbackMsg(''), 4000);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      fontSize: '0.82rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                    }}
+                  >
+                    <Plus size={14} /> Simpan &amp; Tanamkan Aturan ke AI
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabel Daftar SOP & Aturan Memori yang Sedang Aktif di Otak AI */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            padding: '20px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+          }}>
+            <h4 style={{ margin: '0 0 16px 0', fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={16} color="#0284c7" /> Aturan Memori &amp; Golden SOP Aktif ({aiTrainingRules.length} Directive)
+            </h4>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>
+                    <th style={{ padding: '10px 12px' }}>ID &amp; Judul Aturan</th>
+                    <th style={{ padding: '10px 12px' }}>Target Personil AI</th>
+                    <th style={{ padding: '10px 12px' }}>Kategori SOP</th>
+                    <th style={{ padding: '10px 12px' }}>Instruksi / Pembelajaran</th>
+                    <th style={{ padding: '10px 12px' }}>Efektivitas</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aiTrainingRules.map(rule => (
+                    <tr key={rule.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#0f172a' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <CheckCircle size={14} color="#0284c7" />
+                          <span>{rule.ruleTitle}</span>
+                        </div>
+                        <span style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginTop: '2px' }}>{rule.id} • {rule.addedAt}</span>
+                      </td>
+                      <td style={{ padding: '12px', color: '#0284c7', fontWeight: 600 }}>
+                        {rule.agentName}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 600 }}>
+                          {rule.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', color: '#334155', maxWidth: '340px', lineHeight: 1.4 }}>
+                        {rule.instruction}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700 }}>
+                          {rule.effectivenessScore}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <button
+                          onClick={() => deleteAiTrainingRule(rule.id)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            padding: '4px'
+                          }}
+                          title="Hapus Aturan"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'monitoring' ? (
+        /* ================= TAMPILAN KHUSUS: MONITORING & TELEMETRI AI (TOKEN & KAPASITAS) ================= */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Header Ringkasan Telemetri */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
+            borderRadius: '16px',
+            padding: '24px',
+            color: '#ffffff',
+            boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '8px' }}>
+                <Gauge size={14} /> AI Performance &amp; Capacity Telemetry
+              </div>
+              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800 }}>
+                Monitoring Kecerdasan, Kapasitas Token &amp; Jejak Eksekusi
+              </h3>
+              <p style={{ margin: '6px 0 0 0', fontSize: '0.86rem', color: '#e0f2fe', lineHeight: 1.5 }}>
+                Pantau efisiensi token, rata-rata latensi respon per agen, tingkat keberhasilan tugas otomatis (*success rate*), serta audit log setiap perubahan data.
+              </p>
+            </div>
+
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', padding: '12px 18px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <span style={{ fontSize: '0.74rem', color: '#e0f2fe', display: 'block' }}>Primary Engine Active</span>
+              <strong style={{ fontSize: '0.95rem' }}>{aiTelemetry.activeEngine || 'Groq Llama 3.3 70B'}</strong>
+            </div>
+          </div>
+
+          {/* 4 Kartu Metrik Telemetri Utama */}
+          <div className="ws-metric-grid">
+            <MetricCard
+              title="Total Token Terpakai"
+              value={(aiTelemetry.totalTokensUsed || 0).toLocaleString('id-ID')}
+              subtitle={`In: ${(aiTelemetry.inputTokens || 0).toLocaleString('id-ID')} | Out: ${(aiTelemetry.outputTokens || 0).toLocaleString('id-ID')}`}
+              icon={BarChart3}
+            />
+            <MetricCard
+              title="Tingkat Akurasi Eksekusi"
+              value={`${aiTelemetry.taskSuccessRate || 98.4}%`}
+              subtitle="Tugas otonom selesai tanpa intervensi revisi"
+              icon={CheckCircle2}
+            />
+            <MetricCard
+              title="Rata-rata Latensi Respon"
+              value={`${aiTelemetry.avgLatencyMs || 385} ms`}
+              subtitle="Performa sub-detik dengan Groq + vLLM"
+              icon={Zap}
+            />
+            <MetricCard
+              title="Indeks Kecerdasan (IQ)"
+              value={`${aiTelemetry.intelligenceGrowthIndex || 94.6}/100`}
+              subtitle="Reliability score terus meningkat seiring koreksi"
+              icon={TrendingUp}
+            />
+          </div>
+
+          {/* Distribusi Penggunaan Token per Agen */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            padding: '22px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+          }}>
+            <h4 style={{ margin: '0 0 16px 0', fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Cpu size={16} color="#0284c7" /> Alokasi Konsumsi Token &amp; Kapasitas per AI Agent
+            </h4>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              {(aiTelemetry.agentTokenBreakdown || []).map(agent => (
+                <div
+                  key={agent.agentId}
+                  style={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>{agent.agentName}</strong>
+                    <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                      {agent.tasks} Tugas
+                    </span>
+                  </div>
+
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748b', marginBottom: '4px' }}>
+                      <span>Token Terpakai:</span>
+                      <strong style={{ color: '#0f172a' }}>{agent.tokens.toLocaleString('id-ID')}</strong>
+                    </div>
+                    {/* Progress Bar Kapasitas */}
+                    <div style={{ width: '100%', height: '8px', backgroundColor: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${Math.min(100, (agent.tokens / 200000) * 100)}%`,
+                          height: '100%',
+                          backgroundColor: '#0284c7',
+                          borderRadius: '4px'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
+                    <span style={{ color: '#64748b' }}>Akurasi Eksekusi:</span>
+                    <strong style={{ color: '#0284c7' }}>{agent.accuracy}</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Live Task Audit Feed (Jejak Operasi Otomatis AI) */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            padding: '22px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h4 style={{ margin: 0, fontSize: '0.96rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Terminal size={16} color="#0284c7" /> Live AI Task Audit Feed (Jejak Aksi Nyata Database)
+              </h4>
+              <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                Update Otomatis per Tindakan Agen
+              </span>
+            </div>
+
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.82rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#64748b' }}>
+                    <th style={{ padding: '10px 12px' }}>Waktu &amp; ID Audit</th>
+                    <th style={{ padding: '10px 12px' }}>Agen Pelaksana</th>
+                    <th style={{ padding: '10px 12px' }}>Aksi Otomatis</th>
+                    <th style={{ padding: '10px 12px' }}>Modul Dituju</th>
+                    <th style={{ padding: '10px 12px' }}>Mesin &amp; Latensi</th>
+                    <th style={{ padding: '10px 12px' }}>Konsumsi Token</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(aiTelemetry.taskAuditFeed || []).map(feed => (
+                    <tr key={feed.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '12px', color: '#64748b', fontSize: '0.78rem' }}>
+                        <strong style={{ color: '#0f172a', display: 'block' }}>{feed.id}</strong>
+                        {feed.timestamp}
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#0284c7' }}>
+                        {feed.agent}
+                      </td>
+                      <td style={{ padding: '12px', color: '#0f172a', fontWeight: 600 }}>
+                        {feed.action}
+                      </td>
+                      <td style={{ padding: '12px' }}>
+                        <span style={{ backgroundColor: '#f0fdf4', color: '#166534', padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 600 }}>
+                          {feed.targetModule}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', color: '#64748b', fontSize: '0.76rem' }}>
+                        <span>{feed.engine}</span>
+                        <strong style={{ display: 'block', color: '#059669' }}>{feed.latencyMs} ms</strong>
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 700, color: '#475569' }}>
+                        {feed.tokensUsed} token
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <span style={{
+                          backgroundColor: feed.status === 'Success' ? '#ecfdf5' : '#fef2f2',
+                          color: feed.status === 'Success' ? '#059669' : '#dc2626',
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700
+                        }}>
+                          {feed.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       ) : (

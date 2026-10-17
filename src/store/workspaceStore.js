@@ -1250,5 +1250,152 @@ export const useWorkspaceStore = create((set, get) => ({
     } catch (err) {
       console.warn('Supabase custom_templates delete failed:', err);
     }
-  }
+  },
+
+  // 11. AI Telemetry & Token Monitoring (Pilar 1 & 3)
+  aiTelemetry: {
+    totalTokensUsed: 384520,
+    inputTokens: 254120,
+    outputTokens: 130400,
+    monthlyQuotaBudget: 2000000,
+    avgLatencyMs: 385,
+    taskSuccessRate: 98.4,
+    intelligenceGrowthIndex: 94.6, // Score 0-100
+    activeEngine: 'Groq Llama 3.3 70B (Primary) + Local vLLM Fallback',
+    agentTokenBreakdown: [
+      { agentId: 'agent_strategy', agentName: 'Arga (CSO)', tokens: 112400, tasks: 148, accuracy: '99.1%' },
+      { agentId: 'agent_marketing', agentName: 'Reta (COO)', tokens: 138900, tasks: 215, accuracy: '98.5%' },
+      { agentId: 'agent_finance', agentName: 'Silvi (CFO)', tokens: 74200, tasks: 104, accuracy: '99.4%' },
+      { agentId: 'agent_tech', agentName: 'Raka (CTO)', tokens: 59020, tasks: 87, accuracy: '97.8%' }
+    ],
+    taskAuditFeed: [
+      {
+        id: 'AUD-901',
+        timestamp: '18 Okt 2026, 03:45 WIB',
+        agent: 'Arga (CSO)',
+        action: 'Auto-Generate OKR Q4 Goal',
+        targetModule: 'Sasaran & KPI',
+        tokensUsed: 420,
+        latencyMs: 320,
+        status: 'Success',
+        engine: 'Groq Llama-3.3-70b'
+      },
+      {
+        id: 'AUD-902',
+        timestamp: '18 Okt 2026, 02:15 WIB',
+        agent: 'Reta (COO)',
+        action: 'Publish Task Breakdown & Sprint Plan',
+        targetModule: 'Tugas & Kalender',
+        tokensUsed: 680,
+        latencyMs: 410,
+        status: 'Success',
+        engine: 'Gemini 2.5 Flash'
+      },
+      {
+        id: 'AUD-903',
+        timestamp: '18 Okt 2026, 01:10 WIB',
+        agent: 'Silvi (CFO)',
+        action: 'Reconcile Tax & Create Invoice Draft',
+        targetModule: 'Keuangan & Profit',
+        tokensUsed: 512,
+        latencyMs: 380,
+        status: 'Success',
+        engine: 'Local Ollama Qwen-2.5-14B'
+      },
+      {
+        id: 'AUD-904',
+        timestamp: '17 Okt 2026, 23:55 WIB',
+        agent: 'Raka (CTO)',
+        action: 'SLA Zero-Trust Integrity Compliance Check',
+        targetModule: 'Data & Arsip',
+        tokensUsed: 390,
+        latencyMs: 290,
+        status: 'Success',
+        engine: 'Groq Llama-3.3-70b'
+      }
+    ]
+  },
+
+  recordAiTelemetryEvent: (event) => set((state) => {
+    const prev = state.aiTelemetry || {};
+    const tokens = Number(event.tokensUsed || 350);
+    const inTok = Math.round(tokens * 0.65);
+    const outTok = tokens - inTok;
+    const newFeedItem = {
+      id: `AUD-${Date.now().toString().slice(-4)}`,
+      timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB',
+      agent: event.agent || 'AI Agent',
+      action: event.action || 'Interactive Tool Calling',
+      targetModule: event.targetModule || 'General',
+      tokensUsed: tokens,
+      latencyMs: event.latencyMs || Math.floor(Math.random() * 200 + 250),
+      status: event.status || 'Success',
+      engine: event.engine || prev.activeEngine
+    };
+
+    return {
+      aiTelemetry: {
+        ...prev,
+        totalTokensUsed: (prev.totalTokensUsed || 0) + tokens,
+        inputTokens: (prev.inputTokens || 0) + inTok,
+        outputTokens: (prev.outputTokens || 0) + outTok,
+        taskAuditFeed: [newFeedItem, ...(prev.taskAuditFeed || [])].slice(0, 50)
+      }
+    };
+  }),
+
+  // 12. AI Training & Continuous Memory Rules (Pilar 1 & 2)
+  aiTrainingRules: [
+    {
+      id: 'RULE-01',
+      agentId: 'agent_finance',
+      agentName: 'Silvi (CFO)',
+      ruleTitle: 'Klausul PPN 11% Otomatis Transaksi > 10 Juta',
+      category: 'SOP Keuangan',
+      instruction: 'Setiap kali membuat faktur atau transaksi bernilai di atas Rp 10.000.000, wajib mencantumkan sub-klausul PPN 11% dan terms pembayaran 14 hari kerja.',
+      addedAt: '16 Okt 2026',
+      status: 'Active (Tersimpan di Mem0 Vector)',
+      effectivenessScore: '99%'
+    },
+    {
+      id: 'RULE-02',
+      agentId: 'agent_strategy',
+      agentName: 'Arga (CSO)',
+      ruleTitle: 'Formula Penamaan Judul Tugas & Notulensi',
+      category: 'SOP Rapat & Catatan',
+      instruction: 'Judul tugas atau agenda rapat tidak boleh menggunakan kata pembuka santai. Harus ringkas 3-5 kata formal: [Departemen]: [Tindakan Konkret].',
+      addedAt: '17 Okt 2026',
+      status: 'Active (Tersimpan di Mem0 Vector)',
+      effectivenessScore: '100%'
+    },
+    {
+      id: 'RULE-03',
+      agentId: 'agent_marketing',
+      agentName: 'Reta (COO)',
+      ruleTitle: 'Tone Komunikasi WhatsApp Client-Facing',
+      category: 'SOP CRM & Marketing',
+      instruction: 'Selalu gunakan salam hangat formal, sapa nama klien, hindari istilah teknis tanpa penjelasan, dan akhiri dengan call-to-action yang jelas.',
+      addedAt: '17 Okt 2026',
+      status: 'Active (Tersimpan di Mem0 Vector)',
+      effectivenessScore: '98%'
+    }
+  ],
+
+  addAiTrainingRule: (newRule) => set((state) => ({
+    aiTrainingRules: [
+      {
+        id: `RULE-${Date.now().toString().slice(-4)}`,
+        addedAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+        status: 'Active (Tersimpan di Mem0 Vector)',
+        effectivenessScore: '100%',
+        ...newRule
+      },
+      ...state.aiTrainingRules
+    ]
+  })),
+
+  deleteAiTrainingRule: (ruleId) => set((state) => ({
+    aiTrainingRules: state.aiTrainingRules.filter(r => r.id !== ruleId)
+  }))
 }));
+
