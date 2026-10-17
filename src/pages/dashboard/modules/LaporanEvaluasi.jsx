@@ -14,6 +14,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function LaporanEvaluasi() {
   const { reports, addReport, updateReport, deleteReport } = useWorkspaceStore();
@@ -127,7 +128,7 @@ export default function LaporanEvaluasi() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : '2026-10-14'}
+          value={toInputDateFormat(val) || '2026-10-14'}
           onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { date: e.target.value })}
           style={{
             border: 'none',

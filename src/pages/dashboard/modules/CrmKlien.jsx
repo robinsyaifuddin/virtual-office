@@ -16,6 +16,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { formatDateID } from '../../../utils/dateFormatter';
 
 export default function CrmKlien() {
   const { crmClients, addCrmClient, updateCrmClient, deleteCrmClient, staffAgents, crmCategories, addCrmCategory, deleteCrmCategory } = useWorkspaceStore();
@@ -259,7 +260,7 @@ export default function CrmKlien() {
       minWidth: '135px',
       render: (val) => (
         <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-          {val ? String(val).split(' ')[0] : '-'}
+          {formatDateID(val)}
         </span>
       )
     },

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { exportRowAsPdf } from '../../../utils/exportPdf';
+import { formatDateID, toInputDateFormat } from '../../../utils/dateFormatter';
 
 import { 
   Icon3DClipboard, 
@@ -782,7 +783,7 @@ export default function UniversalDetailModal({
                     ) ? (
                       <input
                         type="date"
-                        value={val ? String(val).split(' ')[0] : ''}
+                        value={toInputDateFormat(val)}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
                         style={{
                           border: '1px solid #cbd5e1',
@@ -1160,11 +1161,11 @@ export default function UniversalDetailModal({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Dibuat</span>
-                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.createdAt || '8 September 2026 14.23'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.createdAt ? formatDateID(data.createdAt, true) : '08 Sep 2026 14:23'}</span>
                 </div>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Terakhir Diedit</span>
-                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.updatedAt || '15 Oktober 2026 11.20'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.updatedAt ? formatDateID(data.updatedAt, true) : '15 Okt 2026 11:20'}</span>
                 </div>
               </div>
             </div>
@@ -1263,7 +1264,7 @@ export default function UniversalDetailModal({
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>{comm.author}</span>
-                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{comm.createdAt}</span>
+                      <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{formatDateID(comm.createdAt, true)}</span>
                     </div>
                     <p style={{ margin: 0, fontSize: '0.82rem', color: '#334155', lineHeight: 1.45 }}>
                       {comm.text}

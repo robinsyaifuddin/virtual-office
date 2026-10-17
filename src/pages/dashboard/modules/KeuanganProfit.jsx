@@ -14,6 +14,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function KeuanganProfit() {
   const { financeTransactions, addFinanceTransaction, updateFinanceTransaction, deleteFinanceTransaction } = useWorkspaceStore();
@@ -192,7 +193,7 @@ export default function KeuanganProfit() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : ''}
+          value={toInputDateFormat(val)}
           onChange={(e) => update ? update(e.target.value) : updateFinanceTransaction(row.id, { date: e.target.value })}
           style={{
             border: 'none',

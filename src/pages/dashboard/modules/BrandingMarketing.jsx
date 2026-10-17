@@ -15,6 +15,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function BrandingMarketing() {
   const { marketingCampaigns, addMarketingCampaign, updateMarketingCampaign, deleteMarketingCampaign } = useWorkspaceStore();
@@ -219,7 +220,7 @@ export default function BrandingMarketing() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : ''}
+          value={toInputDateFormat(val)}
           onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { publishDate: e.target.value })}
           style={{
             border: 'none',

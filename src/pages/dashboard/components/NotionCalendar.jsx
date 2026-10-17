@@ -6,6 +6,11 @@ const MONTH_NAMES_ID = [
   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
 ];
 
+const MONTH_NAMES_SHORT_ID = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+];
+
 // Warna event berdasarkan prioritas / kategori
 const EVENT_COLORS = [
   { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
@@ -322,7 +327,7 @@ export default function NotionCalendar({
             marginBottom: '10px',
           }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
-              {selectedDay} {MONTH_NAMES_ID[month]} {year}
+              {String(selectedDay).padStart(2, '0')} {MONTH_NAMES_SHORT_ID[month]} {year}
             </span>
             <button
               onClick={() => setSelectedDay(null)}

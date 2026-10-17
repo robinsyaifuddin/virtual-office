@@ -42,20 +42,54 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
   useEffect(() => {
     fetchWorkspaceData();
 
-    // Berlangganan event REALTIME: Jika bot mengubah data via WhatsApp, UI otomatis update instan!
+    // Realtime per-tabel: update otomatis tanpa full re-fetch semua data
+    // Saat ada perubahan di device lain (WhatsApp bot, kolega, dsb) — tampilan langsung update!
+    let channel;
     import('../../utils/supabaseClient').then(({ supabase }) => {
-      const channel = supabase
+      channel = supabase
         .channel('dashboard-realtime-sync')
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => {
+        // CRM
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_clients' }, () => {
+          fetchWorkspaceData();
+        })
+        // Keuangan
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'finance_transactions' }, () => {
+          fetchWorkspaceData();
+        })
+        // Tugas
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+          fetchWorkspaceData();
+        })
+        // Marketing
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'marketing_campaigns' }, () => {
+          fetchWorkspaceData();
+        })
+        // OKR
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'okr_goals' }, () => {
+          fetchWorkspaceData();
+        })
+        // Rapat
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, () => {
+          fetchWorkspaceData();
+        })
+        // Laporan
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+          fetchWorkspaceData();
+        })
+        // Arsip
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'archives' }, () => {
           fetchWorkspaceData();
         })
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     });
+
+    return () => {
+      import('../../utils/supabaseClient').then(({ supabase }) => {
+        if (channel) supabase.removeChannel(channel);
+      });
+    };
   }, [fetchWorkspaceData]);
+
 
   // State: isSidebarCollapsed (true = hanya icon ~68px, false = penuh ~260px)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);

@@ -15,6 +15,7 @@ import {
   Icon3DNotes,
   Icon3DDownload
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function DataArsip() {
   const { archives, addArchive, updateArchive, deleteArchive } = useWorkspaceStore();
@@ -261,7 +262,7 @@ export default function DataArsip() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : '2026-10-14'}
+          value={toInputDateFormat(val) || '2026-10-14'}
           onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { updatedAt: e.target.value })}
           style={{
             border: 'none',

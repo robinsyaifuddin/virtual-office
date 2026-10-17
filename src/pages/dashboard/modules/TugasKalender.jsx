@@ -18,6 +18,7 @@ import {
   Icon3DStatusDot, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { formatDateID, toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function TugasKalender() {
   const store = useWorkspaceStore();
@@ -229,7 +230,7 @@ export default function TugasKalender() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val || ''}
+          value={toInputDateFormat(val)}
           onChange={(e) => update(e.target.value)}
           style={{
             border: 'none',
@@ -591,7 +592,7 @@ export default function TugasKalender() {
                       </p>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '6px' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><User size={12} color="#0284c7" /> {t.assignee || 'Unassigned'}</span>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} color="#0284c7" /> {typeof t.dueDate === 'string' ? t.dueDate.slice(5) : '-'}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Calendar size={12} color="#0284c7" /> {formatDateID(t.dueDate)}</span>
                       </div>
                     </div>
                   );

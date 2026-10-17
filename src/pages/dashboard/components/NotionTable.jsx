@@ -36,6 +36,7 @@ import { exportRowAsPdf, exportTableAsPdf } from '../../../utils/exportPdf';
 import { exportTableAsExcel } from '../../../utils/exportExcel';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { DEFAULT_PRESET_TEMPLATES } from '../../../data/defaultTemplates';
+import { formatDateID } from '../../../utils/dateFormatter';
 
 export default function NotionTable({
   title,
@@ -207,11 +208,11 @@ export default function NotionTable({
     const rawDate = row.dueDate || row.date || row.dateTime || row.publishDate || row.updatedAt || row.createdAt;
     if (!rawDate) return 'Lainnya';
     const dateStr = String(rawDate);
-    if (dateStr.startsWith('2026-09') || dateStr.includes('-09-')) return 'September 2026';
-    if (dateStr.startsWith('2026-08') || dateStr.includes('-08-')) return 'Agustus 2026';
-    if (dateStr.startsWith('2026-07') || dateStr.includes('-07-')) return 'Juli 2026';
-    if (dateStr.startsWith('2026-06') || dateStr.includes('-06-')) return 'Juni 2026';
-    if (dateStr.startsWith('2026-10') || dateStr.includes('-10-')) return 'Oktober 2026';
+    if (dateStr.startsWith('2026-10') || dateStr.includes('-10-') || /Okt/i.test(dateStr)) return 'Oktober 2026';
+    if (dateStr.startsWith('2026-09') || dateStr.includes('-09-') || /Sep/i.test(dateStr)) return 'September 2026';
+    if (dateStr.startsWith('2026-08') || dateStr.includes('-08-') || /Agu/i.test(dateStr)) return 'Agustus 2026';
+    if (dateStr.startsWith('2026-07') || dateStr.includes('-07-') || /Jul/i.test(dateStr)) return 'Juli 2026';
+    if (dateStr.startsWith('2026-06') || dateStr.includes('-06-') || /Jun/i.test(dateStr)) return 'Juni 2026';
     return 'Bulan Lainnya';
   };
 

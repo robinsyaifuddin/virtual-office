@@ -14,6 +14,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function SasaranKpi() {
   const { okrGoals, addOkrGoal, updateOkrGoal, deleteOkrGoal, okrCategories, addOkrCategory, deleteOkrCategory } = useWorkspaceStore();
@@ -48,19 +49,22 @@ export default function SasaranKpi() {
 
   // Data Bar Chart: Progres Capaian per Sasaran (OKR)
   const okrBarData = okrGoals.slice(0, 5).map((g, idx) => {
-    let pct = Math.round((g.currentNum / g.targetNum) * 100);
-    if (g.unit === 'Detik') pct = Math.round((g.targetNum / g.currentNum) * 100);
+    const tgt = g.targetNum || 1;
+    const cur = g.currentNum || 0;
+    let pct = Math.round((cur / tgt) * 100);
+    if (g.unit === 'Detik' && cur > 0) pct = Math.round((tgt / cur) * 100);
     const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
     // Ambil kata pertama yang informatif agar pas di layar mobile tanpa terpotong
     const rawObj = (g.objective && typeof g.objective === 'string') ? g.objective : `OKR ${idx+1}`;
     const firstWord = rawObj.split(' ')[0] || `OKR ${idx+1}`;
     return {
       label: firstWord,
-      value: Math.min(pct, 100),
-      displayVal: `${pct}%`,
+      value: Math.min(Math.max(pct, 0), 100),
+      displayVal: `${Math.max(pct, 0)}%`,
       color: colors[idx % colors.length]
     };
   });
+
 
   // Data Donut Chart: Distribusi Status Capaian OKR
   const statusCounts = okrGoals.reduce((acc, g) => {
@@ -211,7 +215,7 @@ export default function SasaranKpi() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : '2026-12-31'}
+          value={toInputDateFormat(val) || '2026-12-31'}
           onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { targetDeadline: e.target.value })}
           style={{
             border: 'none',

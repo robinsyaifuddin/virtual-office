@@ -4,6 +4,8 @@
  * Rapi, font Poppins, logo di kiri atas, catatan di paling bawah, tanpa tanda tangan.
  */
 
+import { formatDateID } from './dateFormatter';
+
 let cachedLogoBase64 = null;
 
 /**
@@ -25,29 +27,10 @@ export function extractTextFromReactNode(node) {
 }
 
 /**
- * Format tanggal Indonesia ramah cetak
+ * Format tanggal Indonesia ramah cetak (Format konsisten: DD Mmm YYYY, contoh: 05 Okt 2026)
  */
 function formatIndonesianDate(dateStr) {
-  if (!dateStr) {
-    const now = new Date();
-    return now.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  }
-
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return String(dateStr);
-    return d.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  } catch {
-    return String(dateStr);
-  }
+  return formatDateID(dateStr);
 }
 
 /**
@@ -227,13 +210,7 @@ function buildRowHtml(row, columns = [], logoBase64 = '/logo.webp') {
   const hasRating = row.rating !== undefined && row.rating !== null && row.rating !== '';
   const rating = row.rating || 5;
   const printDate = formatIndonesianDate(row.date || row.dateTime || row.tanggal || row.updatedAt);
-  const nowFormatted = new Date().toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const nowFormatted = formatDateID(new Date(), true);
 
   const fieldItems = columns.map(col => {
     const label = extractTextFromReactNode(col.label) || col.key;
@@ -413,13 +390,7 @@ export async function exportTableAsPdf(rows = [], columns = [], options = {}) {
 
   const logoBase64 = await getBase64Image('/logo.webp');
   const tableTitle = options.title || 'Laporan Data Operasional';
-  const nowFormatted = new Date().toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  const nowFormatted = formatDateID(new Date(), true);
 
   const headers = columns.map(col => ({
     key: col.key,

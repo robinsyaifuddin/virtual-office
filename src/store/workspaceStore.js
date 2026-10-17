@@ -35,13 +35,19 @@ export const useWorkspaceStore = create((set, get) => ({
         { data: txs, error: errTxs },
         { data: tasks, error: errTasks },
         { data: mkt, error: errMkt },
-        { data: okrs, error: errOkrs }
+        { data: okrs, error: errOkrs },
+        { data: meetingsRaw, error: errMeetings },
+        { data: reportsRaw, error: errReports },
+        { data: archivesRaw, error: errArchives }
       ] = await Promise.all([
         supabase.from('crm_clients').select('*').order('created_at', { ascending: false }),
         supabase.from('finance_transactions').select('*').order('date', { ascending: false }),
         supabase.from('tasks').select('*').order('created_at', { ascending: false }),
         supabase.from('marketing_campaigns').select('*').order('created_at', { ascending: false }),
-        supabase.from('okr_goals').select('*').order('updated_at', { ascending: false })
+        supabase.from('okr_goals').select('*').order('updated_at', { ascending: false }),
+        supabase.from('meetings').select('*').order('created_at', { ascending: false }),
+        supabase.from('reports').select('*').order('created_at', { ascending: false }),
+        supabase.from('archives').select('*').order('created_at', { ascending: false })
       ]);
 
       if (errClients) console.warn('Supabase clients error:', errClients.message);
@@ -49,6 +55,9 @@ export const useWorkspaceStore = create((set, get) => ({
       if (errTasks) console.warn('Supabase tasks error:', errTasks.message);
       if (errMkt) console.warn('Supabase marketing error:', errMkt.message);
       if (errOkrs) console.warn('Supabase OKRs error:', errOkrs.message);
+      if (errMeetings) console.warn('Supabase meetings error:', errMeetings.message);
+      if (errReports) console.warn('Supabase reports error:', errReports.message);
+      if (errArchives) console.warn('Supabase archives error:', errArchives.message);
 
       // Normalisasi kolom DB snake_case ke format state camelCase
       const formattedClients = (clients || []).map(c => ({
@@ -120,6 +129,48 @@ export const useWorkspaceStore = create((set, get) => ({
         owner: o.owner
       }));
 
+      const formattedMeetings = (meetingsRaw || []).map(m => ({
+        id: m.id,
+        title: m.title,
+        dateTime: m.date_time,
+        type: m.type,
+        status: m.status,
+        participants: m.participants || [],
+        link: m.link,
+        summaryNotes: m.summary_notes,
+        actionItems: m.action_items || [],
+        createdAt: m.created_at ? m.created_at.replace('T', ' ').substring(0, 16) : ''
+      }));
+
+      const formattedReports = (reportsRaw || []).map(r => ({
+        id: r.id,
+        title: r.title,
+        period: r.period,
+        category: r.category,
+        status: r.status,
+        date: r.date,
+        rating: Number(r.rating || 5),
+        whatWentWell: r.what_went_well,
+        bottlenecks: r.bottlenecks,
+        actionPlan: r.action_plan,
+        author: r.author,
+        attachmentDoc: r.attachment_doc,
+        createdAt: r.created_at ? r.created_at.replace('T', ' ').substring(0, 16) : ''
+      }));
+
+      const formattedArchives = (archivesRaw || []).map(a => ({
+        id: a.id,
+        title: a.title,
+        category: a.category,
+        fileFormat: a.file_format,
+        version: a.version,
+        status: a.status,
+        updatedAt: a.updated_at ? a.updated_at.split('T')[0] : '',
+        accessLevel: a.access_level,
+        fileSize: a.file_size,
+        downloadUrl: a.download_url
+      }));
+
       // Hitung ringkasan eksekutif murni dari data nyata Supabase
       const totalIncome = formattedTxs.filter(t => t.type === 'Pemasukan' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
       const totalExpense = formattedTxs.filter(t => t.type === 'Pengeluaran' && t.status === 'Lunas').reduce((acc, t) => acc + (t.amount || 0), 0);
@@ -145,6 +196,9 @@ export const useWorkspaceStore = create((set, get) => ({
         tasks: formattedTasks,
         marketingCampaigns: formattedMkt,
         okrGoals: formattedOkrs,
+        meetings: formattedMeetings,
+        reports: formattedReports,
+        archives: formattedArchives,
         executiveSummary: dynamicSummary,
         isDbLoading: false
       });
@@ -153,6 +207,8 @@ export const useWorkspaceStore = create((set, get) => ({
       set({ isDbLoading: false, dbError: e.message });
     }
   },
+
+
 
   // 1. Executive Summary & KPIs (Dihitung dinamis dari data nyata)
   executiveSummary: {
@@ -587,30 +643,182 @@ export const useWorkspaceStore = create((set, get) => ({
     }
   },
 
-  // 7. Rapat, Laporan, & Arsip (Fallback Kosong)
+  // 7. Rapat & Catatan (Supabase meetings table)
   meetings: [],
-  addMeeting: (m) => set((state) => ({ meetings: [m, ...state.meetings] })),
-  updateMeeting: (id, updated) => set((state) => ({
-    meetings: state.meetings.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteMeeting: (id) => set((state) => ({
-    meetings: state.meetings.filter((item) => item.id !== id)
-  })),
+  addMeeting: async (m) => {
+    const id = m.id || `MTG-${Date.now().toString().slice(-4)}`;
+    const newM = { ...m, id };
+    set((state) => ({ meetings: [newM, ...state.meetings] }));
+    try {
+      await supabase.from('meetings').insert([{
+        id: newM.id,
+        title: newM.title,
+        date_time: newM.dateTime || null,
+        type: newM.type || 'Internal Weekly Sync',
+        status: newM.status || 'Terjadwal',
+        participants: newM.participants || [],
+        link: newM.link || null,
+        summary_notes: newM.summaryNotes || '',
+        action_items: newM.actionItems || []
+      }]);
+      await recordAuditLog('INSERT', 'meetings', newM.id, newM);
+    } catch (err) {
+      console.error('Gagal simpan rapat ke Supabase:', err);
+    }
+  },
+  updateMeeting: async (id, updated) => {
+    set((state) => ({
+      meetings: state.meetings.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.dateTime !== undefined) payload.date_time = updated.dateTime || null;
+      if (updated.type !== undefined) payload.type = updated.type;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.participants !== undefined) payload.participants = updated.participants;
+      if (updated.link !== undefined) payload.link = updated.link || null;
+      if (updated.summaryNotes !== undefined) payload.summary_notes = updated.summaryNotes;
+      if (updated.actionItems !== undefined) payload.action_items = updated.actionItems;
+      payload.updated_at = new Date().toISOString();
+      await supabase.from('meetings').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'meetings', id, updated);
+    } catch (err) {
+      console.error('Gagal update rapat di Supabase:', err);
+    }
+  },
+  deleteMeeting: async (id) => {
+    set((state) => ({
+      meetings: state.meetings.filter((item) => item.id !== id)
+    }));
+    try {
+      await supabase.from('meetings').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'meetings', id, null);
+    } catch (err) {
+      console.error('Gagal hapus rapat di Supabase:', err);
+    }
+  },
 
+  // 8. Laporan & Evaluasi (Supabase reports table)
   reports: [],
-  addReport: (rpt) => set((state) => ({ reports: [rpt, ...state.reports] })),
-  updateReport: (id, updated) => set((state) => ({
-    reports: state.reports.map((item) => item.id === id ? { ...item, ...updated } : item)
-  })),
-  deleteReport: (id) => set((state) => ({
-    reports: state.reports.filter((item) => item.id !== id)
-  })),
+  addReport: async (rpt) => {
+    const id = rpt.id || `RPT-${Date.now().toString().slice(-4)}`;
+    const newRpt = { ...rpt, id };
+    set((state) => ({ reports: [newRpt, ...state.reports] }));
+    try {
+      await supabase.from('reports').insert([{
+        id: newRpt.id,
+        title: newRpt.title || newRpt.period || '',
+        period: newRpt.period || '',
+        category: newRpt.category || 'Audit Kualitas',
+        status: newRpt.status || 'Draft',
+        date: newRpt.date || new Date().toISOString().split('T')[0],
+        rating: newRpt.rating || 5,
+        what_went_well: newRpt.whatWentWell || '',
+        bottlenecks: newRpt.bottlenecks || '',
+        action_plan: newRpt.actionPlan || '',
+        author: newRpt.author || '',
+        attachment_doc: newRpt.attachmentDoc || null
+      }]);
+      await recordAuditLog('INSERT', 'reports', newRpt.id, newRpt);
+    } catch (err) {
+      console.error('Gagal simpan laporan ke Supabase:', err);
+    }
+  },
+  updateReport: async (id, updated) => {
+    set((state) => ({
+      reports: state.reports.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.period !== undefined) payload.period = updated.period;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.date !== undefined) payload.date = updated.date;
+      if (updated.rating !== undefined) payload.rating = updated.rating;
+      if (updated.whatWentWell !== undefined) payload.what_went_well = updated.whatWentWell;
+      if (updated.bottlenecks !== undefined) payload.bottlenecks = updated.bottlenecks;
+      if (updated.actionPlan !== undefined) payload.action_plan = updated.actionPlan;
+      if (updated.author !== undefined) payload.author = updated.author;
+      if (updated.attachmentDoc !== undefined) payload.attachment_doc = updated.attachmentDoc;
+      payload.updated_at = new Date().toISOString();
+      await supabase.from('reports').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'reports', id, updated);
+    } catch (err) {
+      console.error('Gagal update laporan di Supabase:', err);
+    }
+  },
+  deleteReport: async (id) => {
+    set((state) => ({
+      reports: state.reports.filter((item) => item.id !== id)
+    }));
+    try {
+      await supabase.from('reports').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'reports', id, null);
+    } catch (err) {
+      console.error('Gagal hapus laporan di Supabase:', err);
+    }
+  },
 
+  // 9. Data & Arsip (Supabase archives table)
   archives: [],
-  addArchive: (arc) => set((state) => ({ archives: [arc, ...state.archives] })),
-  deleteArchive: (id) => set((state) => ({
-    archives: state.archives.filter((item) => item.id !== id)
-  })),
+  addArchive: async (arc) => {
+    const id = arc.id || `ARC-${Date.now().toString().slice(-4)}`;
+    const newArc = { ...arc, id };
+    set((state) => ({ archives: [newArc, ...state.archives] }));
+    try {
+      await supabase.from('archives').insert([{
+        id: newArc.id,
+        title: newArc.title || '',
+        category: newArc.category || 'Dokumen PDF / Legalitas',
+        file_format: newArc.fileFormat || 'PDF',
+        version: newArc.version || 'v1.0',
+        status: newArc.status || 'Draft',
+        access_level: newArc.accessLevel || 'Publik Semua Tim',
+        file_size: newArc.fileSize || '',
+        download_url: newArc.downloadUrl || null
+      }]);
+      await recordAuditLog('INSERT', 'archives', newArc.id, newArc);
+    } catch (err) {
+      console.error('Gagal simpan arsip ke Supabase:', err);
+    }
+  },
+  updateArchive: async (id, updated) => {
+    set((state) => ({
+      archives: state.archives.map((item) => item.id === id ? { ...item, ...updated } : item)
+    }));
+    try {
+      const payload = {};
+      if (updated.title !== undefined) payload.title = updated.title;
+      if (updated.category !== undefined) payload.category = updated.category;
+      if (updated.fileFormat !== undefined) payload.file_format = updated.fileFormat;
+      if (updated.version !== undefined) payload.version = updated.version;
+      if (updated.status !== undefined) payload.status = updated.status;
+      if (updated.accessLevel !== undefined) payload.access_level = updated.accessLevel;
+      if (updated.fileSize !== undefined) payload.file_size = updated.fileSize;
+      if (updated.downloadUrl !== undefined) payload.download_url = updated.downloadUrl;
+      if (updated.updatedAt !== undefined) payload.updated_at = updated.updatedAt ? new Date(updated.updatedAt).toISOString() : new Date().toISOString();
+      else payload.updated_at = new Date().toISOString();
+      await supabase.from('archives').update(payload).eq('id', id);
+      await recordAuditLog('UPDATE', 'archives', id, updated);
+    } catch (err) {
+      console.error('Gagal update arsip di Supabase:', err);
+    }
+  },
+  deleteArchive: async (id) => {
+    set((state) => ({
+      archives: state.archives.filter((item) => item.id !== id)
+    }));
+    try {
+      await supabase.from('archives').delete().eq('id', id);
+      await recordAuditLog('DELETE', 'archives', id, null);
+    } catch (err) {
+      console.error('Gagal hapus arsip di Supabase:', err);
+    }
+  },
+
+
 
   // 8. Staff AI Agents (Dewan 5 Agen AI DigiBooster)
   staffAgents: [

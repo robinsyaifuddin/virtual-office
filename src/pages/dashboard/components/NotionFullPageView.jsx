@@ -21,6 +21,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
+import { formatDateID, toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function NotionFullPageView({ taskId, onClose }) {
   const store = useWorkspaceStore();
@@ -206,7 +207,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
             </span>
             <input
               type="date"
-              value={task.dueDate || ''}
+              value={toInputDateFormat(task.dueDate)}
               onChange={(e) => handleFieldChange('dueDate', e.target.value)}
               style={{
                 width: '180px',
@@ -406,7 +407,7 @@ Hasil otomatis untuk "${task.title}":
             </span>
             <input
               type="date"
-              value={task.completedDate || ''}
+              value={toInputDateFormat(task.completedDate)}
               onChange={(e) => handleFieldChange('completedDate', e.target.value)}
               style={{
                 width: '180px',
@@ -454,7 +455,7 @@ Hasil otomatis untuk "${task.title}":
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Dibuat</span>
-              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.createdAt || '2026-09-08 14:23'}</span>
+              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.createdAt ? formatDateID(task.createdAt, true) : '08 Sep 2026 14:23'}</span>
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Terakhir Diedit Oleh</span>
@@ -464,7 +465,7 @@ Hasil otomatis untuk "${task.title}":
             </div>
             <div>
               <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Terakhir Diedit</span>
-              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.updatedAt || '15 Oktober 2026 11:20'}</span>
+              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.updatedAt ? formatDateID(task.updatedAt, true) : '15 Okt 2026 11:20'}</span>
             </div>
           </div>
         </div>
@@ -497,7 +498,7 @@ Hasil otomatis untuk "${task.title}":
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>{comm.author}</span>
-                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{comm.createdAt}</span>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{formatDateID(comm.createdAt, true)}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.82rem', color: '#334155', lineHeight: 1.5 }}>
                     {comm.text}

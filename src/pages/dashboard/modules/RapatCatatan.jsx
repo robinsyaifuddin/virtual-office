@@ -14,6 +14,7 @@ import {
   Icon3DUser, 
   Icon3DNotes 
 } from '../../../components/ui/Modern3DIcons';
+import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function RapatCatatan() {
   const { meetings, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
@@ -96,7 +97,7 @@ export default function RapatCatatan() {
       render: (val, row, update) => (
         <input
           type="date"
-          value={val ? String(val).split(' ')[0] : ''}
+          value={toInputDateFormat(val)}
           onChange={(e) => update ? update(e.target.value) : updateMeeting(row.id, { dateTime: e.target.value })}
           style={{
             border: 'none',
