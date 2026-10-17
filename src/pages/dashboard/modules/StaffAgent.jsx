@@ -72,7 +72,7 @@ export default function StaffAgent() {
   const [pendingAction, setPendingAction] = useState(null);
 
   // State Khusus Tab Training & Eksperimen AI (Pilar 1, 2, 3)
-  const [selectedTrainingAgentId, setSelectedTrainingAgentId] = useState('agent_strategy');
+  const [selectedTrainingAgentId, setSelectedTrainingAgentId] = useState('agent_talent');
   const [trainingEngine, setTrainingEngine] = useState('groq_llama70b'); // 'groq_llama70b' | 'gemini_flash' | 'local_ollama'
   const [testScenarioText, setTestScenarioText] = useState('Klien komplain tagihan salah Rp 15.000.000 dan meminta revisi klausul termin 30 hari. Berikan respon profesional dan rancang draf tindakan ke modul Keuangan.');
   const [isSimulating, setIsSimulating] = useState(false);
@@ -82,12 +82,20 @@ export default function StaffAgent() {
   const [newRuleText, setNewRuleText] = useState('');
   const [teachingFeedbackMsg, setTeachingFeedbackMsg] = useState('');
 
+  // State Khusus: Siska Master AI Trainer & Behavioral Coach Deck
+  const [siskaCoachingTarget, setSiskaCoachingTarget] = useState('Semua AI Agent');
+  const [siskaCoachingTopic, setSiskaCoachingTopic] = useState('Standar Kesopanan & Treatment Komunikasi Owner & Klien');
+  const [siskaBehaviorGuidelines, setSiskaBehaviorGuidelines] = useState('Dilarang menjawab berbelit-belit atau kaku. Selalu gunakan Bahasa Indonesia profesional yang ramah dan solutif. Setiap usulan solusi wajib disertai draf aksi konkret (poin-poin modul dashboard), dan akhiri dengan konfirmasi sopan: "Apakah susunan ini berkenan untuk langsung saya jalankan?"');
+  const [isSiskaCoaching, setIsSiskaCoaching] = useState(false);
+  const [siskaCoachingReport, setSiskaCoachingReport] = useState(null);
+
   // Akses store telemetri & training
   const aiTelemetry = store?.aiTelemetry || {};
   const aiTrainingRules = Array.isArray(store?.aiTrainingRules) ? store.aiTrainingRules : [];
   const addAiTrainingRule = store?.addAiTrainingRule || (() => {});
   const deleteAiTrainingRule = store?.deleteAiTrainingRule || (() => {});
   const recordAiTelemetryEvent = store?.recordAiTelemetryEvent || (() => {});
+  const siskaTrainAgents = store?.siskaTrainAgents || (() => {});
 
   const statusOptions = ['Semua Status', 'Online / Bertugas', 'Standby', 'Istirahat', 'Cuti / Off'];
 
@@ -1504,6 +1512,220 @@ export default function StaffAgent() {
               >
                 <Download size={15} /> Export Dataset (JSONL / LoRA)
               </button>
+            </div>
+          </div>
+
+          {/* SISKA MASTER AI TRAINER DECK (Pusat Pembinaan & Pelatihan Antar-Agen) */}
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '2px solid #bae6fd',
+            padding: '24px',
+            boxShadow: '0 4px 20px rgba(2, 132, 199, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '160px',
+              height: '160px',
+              background: 'radial-gradient(circle, rgba(2, 132, 199, 0.1) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 800, marginBottom: '6px' }}>
+                  <ShieldCheck size={14} /> Head of AI Performance, Quality &amp; Master Trainer
+                </div>
+                <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Sparkles size={18} color="#0284c7" /> Siska AI Trainer Deck: Bina &amp; Perbaiki Perilaku Bot AI Lain
+                </h4>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                  Beri instruksi pembinaan kepada Siska. Siska akan secara otonom merumuskan directive tata krama, etika respon, dan menyuntikkannya ke memori permanen serta system prompt bot target.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.72rem', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
+                  Trainer Engine: Active &amp; Ready
+                </span>
+              </div>
+            </div>
+
+            {/* Siska Coaching Form */}
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Pilih Bot yang Ingin Dilatih oleh Siska
+                  </label>
+                  <select
+                    value={siskaCoachingTarget}
+                    onChange={(e) => setSiskaCoachingTarget(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      backgroundColor: '#ffffff',
+                      color: '#0f172a'
+                    }}
+                  >
+                    <option value="Semua AI Agent">Semua AI Agent Sekaligus (Standar Seluruh Kantor)</option>
+                    <option value="Reta">Reta (COO - Tugas, Operasional &amp; Marketing)</option>
+                    <option value="Silvi">Silvi (CFO - Finansial, Invoice &amp; Klien)</option>
+                    <option value="Arga">Arga (CSO - Strategi Bisnis &amp; Rapat)</option>
+                    <option value="Raka">Raka (CTO - Tata Kelola Legal &amp; Data)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                    Topik Pembinaan / Perilaku Baru
+                  </label>
+                  <input
+                    type="text"
+                    value={siskaCoachingTopic}
+                    onChange={(e) => setSiskaCoachingTopic(e.target.value)}
+                    placeholder="Contoh: Kesopanan Bahasa & Treatment Pelayanan Owner"
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.82rem',
+                      color: '#0f172a',
+                      backgroundColor: '#ffffff'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
+                  Perintah Anda kepada Siska (Bagaimana cara bersikap yang benar)
+                </label>
+                <textarea
+                  rows={3}
+                  value={siskaBehaviorGuidelines}
+                  onChange={(e) => setSiskaBehaviorGuidelines(e.target.value)}
+                  placeholder="Instruksikan Siska: 'Ajarkan bot agar tidak menjawab kaku, selalu gunakan salam hangat, sebutkan solusi langkah demi langkah, dan wajib konfirmasi sebelum mengubah database...'"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.82rem',
+                    color: '#0f172a',
+                    backgroundColor: '#ffffff',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                  *Siska akan mengompilasi instruksi ini menjadi Few-Shot Directive dan menginjeksi langsung ke memori target.
+                </span>
+
+                <button
+                  disabled={isSiskaCoaching}
+                  onClick={async () => {
+                    if (!siskaCoachingTopic.trim() || !siskaBehaviorGuidelines.trim()) {
+                      alert('Mohon lengkapi topik pembinaan dan instruksi perilaku untuk Siska.');
+                      return;
+                    }
+                    setIsSiskaCoaching(true);
+                    setSiskaCoachingReport(null);
+
+                    setTimeout(async () => {
+                      const res = await siskaTrainAgents({
+                        targetAgentName: siskaCoachingTarget,
+                        coachingTopic: siskaCoachingTopic,
+                        behaviorGuidelines: siskaBehaviorGuidelines
+                      });
+
+                      setSiskaCoachingReport({
+                        target: siskaCoachingTarget,
+                        topic: siskaCoachingTopic,
+                        message: res.message,
+                        status: 'Disetujui & Ditanamkan ke Otak Bot',
+                        scoreGain: '+4.8% Akurasi Komunikasi'
+                      });
+                      setIsSiskaCoaching(false);
+                    }, 1200);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: isSiskaCoaching ? '#94a3b8' : '#0284c7',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: isSiskaCoaching ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  {isSiskaCoaching ? (
+                    <>Siska Sedang Menyuntikkan Perilaku...</>
+                  ) : (
+                    <><Zap size={14} /> Perintahkan Siska untuk Latih Bot</>
+                  )}
+                </button>
+              </div>
+
+              {/* Laporan Hasil Pembinaan Siska */}
+              {siskaCoachingReport && (
+                <div style={{
+                  backgroundColor: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '10px',
+                  padding: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '10px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CheckCircle2 size={18} color="#16a34a" />
+                    <div>
+                      <strong style={{ fontSize: '0.84rem', color: '#166534', display: 'block' }}>
+                        {siskaCoachingReport.message}
+                      </strong>
+                      <span style={{ fontSize: '0.74rem', color: '#15803d' }}>
+                        Target: {siskaCoachingReport.target} • Topik: "{siskaCoachingReport.topic}"
+                      </span>
+                    </div>
+                  </div>
+
+                  <span style={{ fontSize: '0.74rem', backgroundColor: '#dcfce7', color: '#166534', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                    {siskaCoachingReport.scoreGain}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

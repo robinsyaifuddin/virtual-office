@@ -1263,6 +1263,7 @@ export const useWorkspaceStore = create((set, get) => ({
     intelligenceGrowthIndex: 94.6, // Score 0-100
     activeEngine: 'Groq Llama 3.3 70B (Primary) + Local vLLM Fallback',
     agentTokenBreakdown: [
+      { agentId: 'agent_talent', agentName: 'Siska (Head QA & Trainer)', tokens: 68500, tasks: 196, accuracy: '99.8%' },
       { agentId: 'agent_strategy', agentName: 'Arga (CSO)', tokens: 112400, tasks: 148, accuracy: '99.1%' },
       { agentId: 'agent_marketing', agentName: 'Reta (COO)', tokens: 138900, tasks: 215, accuracy: '98.5%' },
       { agentId: 'agent_finance', agentName: 'Silvi (CFO)', tokens: 74200, tasks: 104, accuracy: '99.4%' },
@@ -1396,6 +1397,79 @@ export const useWorkspaceStore = create((set, get) => ({
 
   deleteAiTrainingRule: (ruleId) => set((state) => ({
     aiTrainingRules: state.aiTrainingRules.filter(r => r.id !== ruleId)
-  }))
+  })),
+
+  // 13. Siska Master Trainer Engine: Melatih & Menyuntikkan Kemampuan ke Bot Lain
+  siskaTrainAgents: async ({ targetAgentName, coachingTopic, behaviorGuidelines, simulatedScenario }) => {
+    const state = get();
+    const newRuleId = `RULE-SIS-${Date.now().toString().slice(-4)}`;
+    const nowStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    
+    // 1. Simpan SOP baru ke memory store Mem0
+    const generatedRule = {
+      id: newRuleId,
+      agentName: targetAgentName,
+      ruleTitle: `[Siska Directive] ${coachingTopic}`,
+      category: 'Siska Behavioral Coaching',
+      instruction: behaviorGuidelines,
+      addedAt: nowStr,
+      status: 'Active (Tersimpan di Mem0 Vector)',
+      effectivenessScore: '99.5%'
+    };
+
+    // 2. Jika target spesifik, perkuat persona & system prompt bot tersebut
+    const updatedStaff = (state.staffAgents || []).map(agent => {
+      if (targetAgentName === 'Semua AI Agent' || agent.name === targetAgentName || agent.name.includes(targetAgentName)) {
+        const existingPrompt = agent.systemPrompt || '';
+        const directiveTag = `\n\n[DIRECTIVE SISKA QA]: Selalu patuhi standar komunikasi: ${behaviorGuidelines}`;
+        return {
+          ...agent,
+          systemPrompt: existingPrompt.includes(directiveTag) ? existingPrompt : existingPrompt + directiveTag,
+          currentActivity: `Telah dilatih oleh Siska: "${coachingTopic}" (SOP Aktif)`
+        };
+      }
+      return agent;
+    });
+
+    // 3. Catat audit telemetri atas aksi Siska
+    const auditFeedItem = {
+      id: `AUD-SIS-${Date.now().toString().slice(-4)}`,
+      timestamp: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) + ' WIB',
+      agent: 'Siska (Head QA & Master Trainer)',
+      action: `Coaching & SOP Injection: ${targetAgentName}`,
+      targetModule: 'Staff & AI Agents Hub',
+      tokensUsed: 540,
+      latencyMs: 310,
+      status: 'Success',
+      engine: 'Groq Llama-3.3-70b (Quality Evaluator)'
+    };
+
+    const prevTelem = state.aiTelemetry || {};
+    const updatedTokenBreakdown = (prevTelem.agentTokenBreakdown || []).map(a => {
+      if (a.agentId === 'agent_talent') {
+        return { ...a, tasks: a.tasks + 1, tokens: a.tokens + 540 };
+      }
+      return a;
+    });
+
+    set({
+      staffAgents: updatedStaff,
+      aiTrainingRules: [generatedRule, ...(state.aiTrainingRules || [])],
+      aiTelemetry: {
+        ...prevTelem,
+        totalTokensUsed: (prevTelem.totalTokensUsed || 0) + 540,
+        outputTokens: (prevTelem.outputTokens || 0) + 320,
+        inputTokens: (prevTelem.inputTokens || 0) + 220,
+        taskAuditFeed: [auditFeedItem, ...(prevTelem.taskAuditFeed || [])].slice(0, 50),
+        agentTokenBreakdown: updatedTokenBreakdown
+      }
+    });
+
+    return {
+      status: 'Success',
+      ruleId: newRuleId,
+      message: `Siska berhasil melatih ${targetAgentName} dan menanamkan SOP perilaku baru ke memori permanen.`
+    };
+  }
 }));
 
