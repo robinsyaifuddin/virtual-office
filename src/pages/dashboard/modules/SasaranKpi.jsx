@@ -118,29 +118,22 @@ export default function SasaranKpi() {
       ),
       minWidth: '180px',
       options: categoryOptions,
-      render: (val, row, update) => (
-        <select
-          value={val || categoryOptions[0]}
-          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { category: e.target.value })}
+      render: (val) => (
+        <span
           className="ws-notion-pill"
           style={{
             border: '1px solid #bfdbfe',
             backgroundColor: '#eff6ff',
             color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '3px 8px',
-            borderRadius: '6px'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          {categoryOptions.map((cat) => (
-            <option key={cat} value={cat} style={{ color: '#0f172a', fontWeight: 500 }}>
-              {cat}
-            </option>
-          ))}
-        </select>
+          {val || categoryOptions[0]}
+        </span>
       )
     },
     { 
@@ -151,27 +144,21 @@ export default function SasaranKpi() {
         </span>
       ), 
       minWidth: '150px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Sales & Marketing'}
-          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { division: e.target.value })}
+      render: (val) => (
+        <span
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            backgroundColor: '#f1f5f9',
+            color: '#334155'
           }}
         >
-          <option value="Sales & Marketing" style={{ color: '#0f172a', fontWeight: 500 }}>Sales & Marketing</option>
-          <option value="Operasional/Produksi" style={{ color: '#0f172a', fontWeight: 500 }}>Operasional/Produksi</option>
-          <option value="Kreatif" style={{ color: '#0f172a', fontWeight: 500 }}>Kreatif</option>
-          <option value="Teknologi" style={{ color: '#0f172a', fontWeight: 500 }}>Teknologi</option>
-          <option value="Manajemen & Legal" style={{ color: '#0f172a', fontWeight: 500 }}>Manajemen & Legal</option>
-        </select>
+          {val || 'Sales & Marketing'}
+        </span>
       )
     },
     { 
@@ -182,26 +169,22 @@ export default function SasaranKpi() {
         </span>
       ), 
       minWidth: '110px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Q4'}
-          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { quarter: e.target.value })}
+      render: (val) => (
+        <span
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
-            fontSize: '0.8rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
             fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            backgroundColor: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            color: '#0284c7'
           }}
         >
-          <option value="Q1" style={{ color: '#0f172a', fontWeight: 500 }}>Q1</option>
-          <option value="Q2" style={{ color: '#0f172a', fontWeight: 500 }}>Q2</option>
-          <option value="Q3" style={{ color: '#0f172a', fontWeight: 500 }}>Q3</option>
-          <option value="Q4" style={{ color: '#0f172a', fontWeight: 500 }}>Q4</option>
-        </select>
+          {val || 'Q4'}
+        </span>
       )
     },
     { 
@@ -212,22 +195,10 @@ export default function SasaranKpi() {
         </span>
       ), 
       minWidth: '135px',
-      render: (val, row, update) => (
-        <input
-          type="date"
-          value={toInputDateFormat(val) || '2026-12-31'}
-          onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { targetDeadline: e.target.value })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.8rem',
-            fontFamily: 'inherit',
-            color: '#0f172a',
-            outline: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
       )
     },
     {
@@ -261,40 +232,36 @@ export default function SasaranKpi() {
         </span>
       ),
       minWidth: '140px',
-      render: (val, row, update) => {
+      render: (val, row) => {
         let pct = Math.round((row.currentNum / row.targetNum) * 100);
         if (row.unit === 'Detik') pct = Math.round((row.targetNum / row.currentNum) * 100);
         const autoStatus = pct >= 100 ? 'Tercapai' : pct > 0 ? 'On Track' : 'Belum Mulai';
         const displayStatus = val || autoStatus;
 
         const statusColors = {
-          'Belum Mulai': '#dc2626',
-          'On Track': '#0284c7',
-          'At Risk': '#d97706',
-          'Tercapai': '#16a34a'
+          'Belum Mulai': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
+          'On Track': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
+          'At Risk': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Tercapai': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
         };
-        const currentTextColor = statusColors[displayStatus] || '#0284c7';
+        const current = statusColors[displayStatus] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
 
         return (
-          <select
-            value={displayStatus}
-            onChange={(e) => update ? update(e.target.value) : updateOkrGoal(row.id, { status: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="On Track" style={{ color: '#0284c7', fontWeight: 600 }}>On Track</option>
-            <option value="At Risk" style={{ color: '#d97706', fontWeight: 600 }}>At Risk</option>
-            <option value="Belum Mulai" style={{ color: '#dc2626', fontWeight: 600 }}>Belum Mulai</option>
-            <option value="Tercapai" style={{ color: '#16a34a', fontWeight: 600 }}>Tercapai</option>
-          </select>
+            {displayStatus}
+          </span>
         );
       }
     },

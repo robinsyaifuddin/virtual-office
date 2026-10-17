@@ -102,23 +102,10 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '220px',
-      render: (val, row, update) => (
-        <input
-          type="text"
-          value={val || ''}
-          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { title: e.target.value })}
-          placeholder="Nama Dokumen..."
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontWeight: 600,
-            color: '#0f172a',
-            fontSize: '0.82rem',
-            width: '100%',
-            outline: 'none',
-            padding: '2px 4px'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>
+          {val || 'Tanpa Judul'}
+        </span>
       )
     },
     { 
@@ -130,25 +117,22 @@ export default function DataArsip() {
       ),
       minWidth: '200px',
       options: fileCategoryOptions,
-      render: (val, row, update) => (
-        <select
-          value={val || fileCategoryOptions[0]}
-          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { category: e.target.value })}
+      render: (val) => (
+        <span
+          className="ws-notion-pill"
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          {fileCategoryOptions.map((opt) => (
-            <option key={opt} value={opt} style={{ color: '#0f172a', fontWeight: 500 }}>{opt}</option>
-          ))}
-        </select>
+          {val || fileCategoryOptions[0]}
+        </span>
       )
     },
     {
@@ -159,31 +143,22 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '100px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'PDF'}
-          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { fileFormat: e.target.value })}
+      render: (val) => (
+        <span
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
-            fontSize: '0.8rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '0.75rem',
             fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            backgroundColor: '#f1f5f9',
+            color: '#475569',
+            border: '1px solid #e2e8f0'
           }}
         >
-          <option value="PDF" style={{ color: '#0f172a', fontWeight: 500 }}>PDF</option>
-          <option value="DOCX" style={{ color: '#0f172a', fontWeight: 500 }}>DOCX</option>
-          <option value="XLSX" style={{ color: '#0f172a', fontWeight: 500 }}>XLSX</option>
-          <option value="ZIP" style={{ color: '#0f172a', fontWeight: 500 }}>ZIP</option>
-          <option value="RAR" style={{ color: '#0f172a', fontWeight: 500 }}>RAR</option>
-          <option value="PNG" style={{ color: '#0f172a', fontWeight: 500 }}>PNG</option>
-          <option value="JPG" style={{ color: '#0f172a', fontWeight: 500 }}>JPG</option>
-          <option value="MP4" style={{ color: '#0f172a', fontWeight: 500 }}>MP4</option>
-          <option value="JSON" style={{ color: '#0f172a', fontWeight: 500 }}>JSON</option>
-        </select>
+          {val || 'PDF'}
+        </span>
       )
     },
     { 
@@ -203,25 +178,22 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '150px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Publik Semua Tim'}
-          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { accessLevel: e.target.value })}
+      render: (val) => (
+        <span
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '2px 8px',
+            borderRadius: '6px',
+            fontSize: '0.78rem',
+            fontWeight: 600,
+            backgroundColor: val?.includes('Rahasia') ? '#fef2f2' : (val?.includes('Manager') ? '#fffbeb' : '#f0fdf4'),
+            color: val?.includes('Rahasia') ? '#dc2626' : (val?.includes('Manager') ? '#d97706' : '#16a34a'),
+            border: `1px solid ${val?.includes('Rahasia') ? '#fecaca' : (val?.includes('Manager') ? '#fef3c7' : '#bbf7d0')}`
           }}
         >
-          <option value="Publik Semua Tim" style={{ color: '#0f172a', fontWeight: 600 }}>Publik Semua Tim</option>
-          <option value="Hanya Manager" style={{ color: '#0f172a', fontWeight: 600 }}>Hanya Manager</option>
-          <option value="Rahasia/Direksi" style={{ color: '#0f172a', fontWeight: 600 }}>Rahasia/Direksi</option>
-        </select>
+          {val || 'Publik Semua Tim'}
+        </span>
       )
     },
     {
@@ -233,37 +205,32 @@ export default function DataArsip() {
       ),
       minWidth: '130px',
       options: ['Draft', 'Review', 'Disetujui', 'Aktif', 'Arsip'],
-      render: (val, row, update) => {
+      render: (val) => {
         const statusColors = {
-          'Draft': '#d97706',
-          'Review': '#4f46e5',
-          'Disetujui': '#0284c7',
-          'Aktif': '#16a34a',
-          'Publik': '#16a34a',
-          'Arsip': '#64748b'
+          'Draft': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
+          'Disetujui': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
+          'Aktif': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
+          'Publik': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
+          'Arsip': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
         };
-        const currentTextColor = statusColors[val] || '#0284c7';
+        const current = statusColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
         return (
-          <select
-            value={val || 'Disetujui'}
-            onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { status: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="Draft" style={{ color: '#d97706', fontWeight: 600 }}>Draft</option>
-            <option value="Review" style={{ color: '#4f46e5', fontWeight: 600 }}>Review</option>
-            <option value="Disetujui" style={{ color: '#0284c7', fontWeight: 600 }}>Disetujui</option>
-            <option value="Aktif" style={{ color: '#16a34a', fontWeight: 600 }}>Aktif</option>
-            <option value="Arsip" style={{ color: '#64748b', fontWeight: 600 }}>Arsip</option>
-          </select>
+            {val || 'Disetujui'}
+          </span>
         );
       }
     },
@@ -275,22 +242,10 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '135px',
-      render: (val, row, update) => (
-        <input
-          type="date"
-          value={toInputDateFormat(val) || '2026-10-14'}
-          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { updatedAt: e.target.value })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.8rem',
-            fontFamily: 'inherit',
-            color: '#0f172a',
-            outline: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
       )
     },
     {

@@ -208,26 +208,26 @@ export default function StaffAgent() {
         </span>
       ),
       minWidth: '160px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Staf Manusia'}
-          onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { type: e.target.value })}
-          style={{
-            border: '1px solid #e2e8f0',
-            backgroundColor: val?.includes('AI') ? '#f0f9ff' : '#ffffff',
-            borderRadius: '6px',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            color: val?.includes('AI') ? '#0284c7' : '#0f172a',
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '4px 8px'
-          }}
-        >
-          <option value="Staf Manusia" style={{ color: '#0f172a', fontWeight: 600 }}>Staf Manusia</option>
-          <option value="AI Agent DigiBooster" style={{ color: '#0284c7', fontWeight: 700 }}>AI Agent DigiBooster</option>
-        </select>
-      )
+      render: (val) => {
+        const isAI = val?.includes('AI');
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              backgroundColor: isAI ? '#eff6ff' : '#f8fafc',
+              border: `1px solid ${isAI ? '#bfdbfe' : '#e2e8f0'}`,
+              color: isAI ? '#0284c7' : '#0f172a'
+            }}
+          >
+            {isAI ? '🤖 AI DigiBooster' : '👤 Staf Manusia'}
+          </span>
+        );
+      }
     },
     { 
       key: 'role', 
@@ -246,26 +246,49 @@ export default function StaffAgent() {
         </span>
       ),
       minWidth: '150px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Manajemen'}
-          onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { department: e.target.value })}
+      render: (val) => (
+        <span
+          className="ws-notion-pill"
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          <option value="Manajemen" style={{ color: '#0f172a', fontWeight: 500 }}>Manajemen</option>
-          <option value="Tech" style={{ color: '#0f172a', fontWeight: 500 }}>Tech</option>
-          <option value="Kreatif" style={{ color: '#0f172a', fontWeight: 500 }}>Kreatif</option>
-          <option value="Sales & Marketing" style={{ color: '#0f172a', fontWeight: 500 }}>Sales & Marketing</option>
-        </select>
+          {val || 'Manajemen'}
+        </span>
+      )
+    },
+    { 
+      key: 'room', 
+      label: (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <Briefcase size={14} color="#0284c7" /> Ruangan Kantor
+        </span>
+      ),
+      minWidth: '170px',
+      render: (val) => (
+        <span
+          style={{
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#f8fafc',
+            color: '#0f172a',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            padding: '3px 10px',
+            borderRadius: '6px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          🏢 {val || 'Kantor Utama'}
+        </span>
       )
     },
     {
@@ -276,31 +299,34 @@ export default function StaffAgent() {
         </span>
       ),
       minWidth: '150px',
-      render: (val, row, update) => {
+      render: (val) => {
         const isOnline = val?.includes('Online');
         const isRest = val?.includes('Istirahat');
         const isStandby = val?.includes('Standby');
-        const statusColor = isOnline ? '#16a34a' : isRest ? '#d97706' : isStandby ? '#0284c7' : '#64748b';
+        const statusColors = isOnline
+          ? { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
+          : isRest
+          ? { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' }
+          : isStandby
+          ? { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' }
+          : { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
+
         return (
-          <select
-            value={val || 'Online / Bertugas'}
-            onChange={(e) => update ? update(e.target.value) : updateStaffAgent(row.id, { status: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              color: statusColor,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: statusColors.bg,
+              border: `1px solid ${statusColors.border}`,
+              color: statusColors.text
             }}
           >
-            <option value="Online / Bertugas" style={{ color: '#16a34a', fontWeight: 600 }}>Online / Bertugas</option>
-            <option value="Standby" style={{ color: '#0284c7', fontWeight: 600 }}>Standby</option>
-            <option value="Istirahat" style={{ color: '#d97706', fontWeight: 600 }}>Istirahat</option>
-            <option value="Cuti / Off" style={{ color: '#64748b', fontWeight: 600 }}>Cuti / Off</option>
-          </select>
+            {val || 'Online / Bertugas'}
+          </span>
         );
       }
     },
@@ -586,8 +612,8 @@ export default function StaffAgent() {
                     </span>
                   </div>
 
-                  {/* Engine Tag */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+                  {/* Engine & Room Tag */}
+                  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                     <span style={{
                       fontSize: '0.7rem',
                       fontWeight: 700,
@@ -599,10 +625,23 @@ export default function StaffAgent() {
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      <Zap size={11} /> {agent.aiEngine || 'Groq Llama 3.3 70B'}
+                      <Zap size={11} /> {agent.aiEngine || 'Groq Qwen 3.8 27B'}
                     </span>
+                    {agent.room && (
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        backgroundColor: '#f1f5f9',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid #cbd5e1'
+                      }}>
+                        🏢 {agent.room}
+                      </span>
+                    )}
                     <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                      Divisi: {agent.department}
+                      Divisi: {agent.department || agent.division}
                     </span>
                   </div>
 

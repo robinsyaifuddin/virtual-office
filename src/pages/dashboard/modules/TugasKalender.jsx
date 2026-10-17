@@ -170,24 +170,16 @@ export default function TugasKalender() {
       ),
       minWidth: '220px',
       maxWidth: '280px',
-      render: (val, row, update) => (
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => update(e.currentTarget.innerText)}
-          className="ws-cell-hover"
+      render: (val) => (
+        <span
           style={{
-            fontWeight: 600,
+            fontWeight: 700,
             color: '#0f172a',
-            padding: '4px 6px',
-            borderRadius: '4px',
-            outline: 'none',
-            cursor: 'text'
+            fontSize: '0.82rem'
           }}
-          title="Klik untuk ubah nama tugas"
         >
           {val || 'Tanpa Judul'}
-        </div>
+        </span>
       )
     },
     {
@@ -199,24 +191,16 @@ export default function TugasKalender() {
       ),
       minWidth: '260px',
       maxWidth: '360px',
-      render: (val, row, update) => (
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={(e) => update(e.currentTarget.innerText)}
-          className="ws-cell-hover"
+      render: (val) => (
+        <span
           style={{
             color: '#475569',
-            padding: '4px 6px',
-            borderRadius: '4px',
-            outline: 'none',
-            cursor: 'text',
+            fontSize: '0.8rem',
             lineHeight: 1.45
           }}
-          title="Klik untuk ubah keterangan"
         >
           {val || '-'}
-        </div>
+        </span>
       )
     },
     {
@@ -227,23 +211,10 @@ export default function TugasKalender() {
         </span>
       ),
       minWidth: '135px',
-      render: (val, row, update) => (
-        <input
-          type="date"
-          value={toInputDateFormat(val)}
-          onChange={(e) => update(e.target.value)}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.82rem',
-            fontFamily: 'inherit',
-            color: '#0f172a',
-            outline: 'none',
-            padding: '3px 4px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
       )
     },
     {
@@ -254,35 +225,31 @@ export default function TugasKalender() {
         </span>
       ),
       minWidth: '160px',
-      render: (val, row, update) => {
+      render: (val) => {
         const textColors = {
-          'Backlog': '#dc2626',
-          'Sedang Dikerjakan': '#d97706',
-          'Menunggu Review': '#4f46e5',
-          'Selesai': '#16a34a'
+          'Backlog': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
+          'Sedang Dikerjakan': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Menunggu Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
+          'Selesai': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
         };
-        const currentTextColor = textColors[val] || '#64748b';
+        const current = textColors[val] || { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
 
         return (
-          <select
-            value={val || 'Backlog'}
-            onChange={(e) => update(e.target.value)}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="Backlog" style={{ color: '#dc2626', fontWeight: 600 }}>Belum mulai / Backlog</option>
-            <option value="Sedang Dikerjakan" style={{ color: '#d97706', fontWeight: 600 }}>Sedang Dikerjakan</option>
-            <option value="Menunggu Review" style={{ color: '#4f46e5', fontWeight: 600 }}>Menunggu Review</option>
-            <option value="Selesai" style={{ color: '#16a34a', fontWeight: 600 }}>Selesai</option>
-          </select>
+            {val || 'Backlog'}
+          </span>
         );
       }
     },
@@ -294,25 +261,22 @@ export default function TugasKalender() {
         </span>
       ),
       minWidth: '180px',
-      render: (val, row, update) => (
-        <select
-          value={val || taskCategories[0] || 'General'}
-          onChange={(e) => update(e.target.value)}
+      render: (val) => (
+        <span
+          className="ws-notion-pill"
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          {taskCategories.map((c) => (
-            <option key={c} value={c} style={{ color: '#0f172a', fontWeight: 500 }}>{c}</option>
-          ))}
-        </select>
+          {val || 'General'}
+        </span>
       )
     },
     {
@@ -323,27 +287,32 @@ export default function TugasKalender() {
         </span>
       ),
       minWidth: '110px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'P2'}
-          onChange={(e) => update(e.target.value)}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            color: val === 'P1' || val === 'Urgent' ? '#dc2626' : (val === 'P2' ? '#0284c7' : '#64748b'),
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
-          }}
-        >
-          <option value="P1" style={{ color: '#dc2626', fontWeight: 600 }}>P1 (Tinggi)</option>
-          <option value="P2" style={{ color: '#0284c7', fontWeight: 600 }}>P2 (Sedang)</option>
-          <option value="P3" style={{ color: '#64748b', fontWeight: 600 }}>P3 (Rendah)</option>
-          <option value="Urgent" style={{ color: '#dc2626', fontWeight: 600 }}>Urgent</option>
-        </select>
-      )
+      render: (val) => {
+        const prioColors = {
+          'P1': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
+          'Urgent': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
+          'P2': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
+          'P3': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
+        };
+        const current = prioColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
+            }}
+          >
+            {val || 'P2'}
+          </span>
+        );
+      }
     },
     {
       key: 'assignee',
@@ -353,7 +322,7 @@ export default function TugasKalender() {
         </span>
       ),
       minWidth: '220px',
-      render: (val, row, update) => {
+      render: (val) => {
         const assignedStaff = Array.isArray(staffAgents) ? (staffAgents.find(s => s && s.name === val) || null) : null;
         const isAI = assignedStaff && typeof assignedStaff.type === 'string' && assignedStaff.type.includes('AI');
 
@@ -374,39 +343,15 @@ export default function TugasKalender() {
             }}>
               {isAI ? <Bot size={13} /> : (assignedStaff?.avatar ? <img src={assignedStaff.avatar} alt={val || 'PIC'} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : 'H')}
             </div>
-
-            <select
-              value={val || (staffAgents && staffAgents[0] ? staffAgents[0].name : 'Unassigned')}
-              onChange={(e) => update(e.target.value)}
+            <span
               style={{
-                border: isAI ? '1px solid #bae6fd' : '1px solid transparent',
-                backgroundColor: isAI ? '#f0f9ff' : 'transparent',
-                color: isAI ? '#0284c7' : '#0f172a',
                 fontSize: '0.8rem',
-                fontWeight: 700,
-                outline: 'none',
-                cursor: 'pointer',
-                padding: '3px 6px',
-                borderRadius: '6px',
-                maxWidth: '170px'
+                fontWeight: 600,
+                color: isAI ? '#0284c7' : '#0f172a'
               }}
-              title={isAI ? `PIC adalah Autonomous AI Agent (${assignedStaff?.aiEngine || 'Groq Engine'})` : 'PIC Staf Manusia'}
             >
-              <optgroup label="🤖 Autonomous AI Agents">
-                {(Array.isArray(staffAgents) ? staffAgents : []).filter(s => s && typeof s.type === 'string' && s.type.includes('AI')).map((staff) => (
-                  <option key={staff.id || staff.name} value={staff.name} style={{ color: '#0284c7', fontWeight: 600 }}>
-                    ✨ {staff.name} (AI)
-                  </option>
-                ))}
-              </optgroup>
-              <optgroup label="👤 Staf Manusia (PIC Tim)">
-                {(Array.isArray(staffAgents) ? staffAgents : []).filter(s => s && !(typeof s.type === 'string' && s.type.includes('AI'))).map((staff) => (
-                  <option key={staff.id || staff.name} value={staff.name} style={{ color: '#0f172a', fontWeight: 500 }}>
-                    👤 {staff.name}
-                  </option>
-                ))}
-              </optgroup>
-            </select>
+              {val || 'Unassigned'}
+            </span>
           </div>
         );
       }

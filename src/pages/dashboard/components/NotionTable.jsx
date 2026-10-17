@@ -352,7 +352,44 @@ export default function NotionTable({
     return foundKey ? customTemplates[foundKey] : {};
   }, [customTemplates, title]);
 
-  // Handler Terapkan Template Terpilih (Langsung buat baris dan buka modal detail isian)
+  // Handler Terapkan Template Kategori Langsung (Nama dikosongkan/default, atribut template kategori terisi otomatis)
+  const handleApplyCategoryTemplate = (catName) => {
+    if (!onAddRow) return;
+    setIsTemplateDropdownOpen(false);
+
+    const presets = modulePresetTemplates[catName] || [];
+    const customs = moduleCustomTemplates[catName] || [];
+    const representativeTpl = customs[0] || presets[0] || {};
+
+    const targetCat = catName || (currentCategoryFilter !== 'ALL' ? currentCategoryFilter : undefined);
+    const baseNewRow = onAddRow(targetCat);
+
+    if (baseNewRow && typeof baseNewRow === 'object') {
+      const mergedRow = {
+        ...baseNewRow,
+        ...representativeTpl,
+        id: baseNewRow.id || `ROW-${Date.now().toString().slice(-4)}`,
+        title: '', // Nama judul dikosongkan / default kosong agar pengguna bebas mengisi
+        [categoryKey]: targetCat || baseNewRow[categoryKey] || 'General'
+      };
+
+      // Update seluruh field yang dibawa template ke store
+      if (onUpdateCell) {
+        Object.entries(mergedRow).forEach(([fKey, fVal]) => {
+          if (fKey !== 'isCustom' && fKey !== 'savedAt' && fVal !== undefined) {
+            onUpdateCell(mergedRow.id, fKey, fVal);
+          }
+        });
+      }
+
+      // Otomatis buka kotak modal lebar isian data
+      setTimeout(() => {
+        handleOpenRowModal(mergedRow);
+      }, 50);
+    }
+  };
+
+  // Handler Terapkan Template Terpilih (Nama dikosongkan atau default sesuai preferensi)
   const handleApplyTemplate = (tpl) => {
     if (!onAddRow) return;
     setIsTemplateDropdownOpen(false);
@@ -367,13 +404,9 @@ export default function NotionTable({
         ...baseNewRow,
         ...tpl,
         id: baseNewRow.id || `ROW-${Date.now().toString().slice(-4)}`,
+        title: '', // Nama judul dikosongkan / default
         [categoryKey]: targetCat || baseNewRow[categoryKey] || 'General'
       };
-
-      // Pastikan properti title/objective terisi sesuai objek
-      if (!mergedRow.title && (tpl.objective || tpl.name || tpl.period)) {
-        mergedRow.title = tpl.objective || tpl.name || tpl.period;
-      }
 
       // Update seluruh field yang dibawa template ke store
       if (onUpdateCell) {
@@ -530,7 +563,6 @@ export default function NotionTable({
               return (
                 <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderRadius: '8px', border: '1px solid #f1f5f9', overflow: 'hidden' }}>
                   <div 
-                    onClick={() => setExpandedTemplateCategory(prev => prev === catName ? null : catName)}
                     className="ws-btn-transition"
                     style={{
                       display: 'flex',
@@ -539,9 +571,8 @@ export default function NotionTable({
                       fontSize: '0.74rem',
                       fontWeight: 700,
                       color: isExpanded ? '#0284c7' : '#334155',
-                      padding: '7px 9px',
+                      padding: '5px 8px',
                       backgroundColor: isExpanded ? '#eff6ff' : '#f8fafc',
-                      cursor: 'pointer',
                       userSelect: 'none'
                     }}
                     onMouseEnter={(e) => {
@@ -551,19 +582,63 @@ export default function NotionTable({
                       if (!isExpanded) e.currentTarget.style.backgroundColor = '#f8fafc';
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <div 
+                      onClick={() => handleApplyCategoryTemplate(catName)}
+                      title={`Klik untuk langsung buat data baru dari kategori "${catName}" (judul kosong/default)`}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        cursor: 'pointer',
+                        flex: 1,
+                        padding: '3px 0'
+                      }}
+                    >
                       <span style={{ fontSize: '0.85rem' }}>📁</span>
-                      <span>{catName}</span>
+                      <span style={{ fontWeight: 700 }}>{catName}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <span style={{ fontSize: '0.64rem', color: isExpanded ? '#0284c7' : '#94a3b8', backgroundColor: isExpanded ? '#dbeafe' : '#e2e8f0', padding: '1px 6px', borderRadius: '10px', fontWeight: 600 }}>
-                        {filtered.length} contoh
+                      <span 
+                        onClick={() => handleApplyCategoryTemplate(catName)}
+                        title="Klik untuk langsung buat baris baru dari template ini"
+                        style={{ 
+                          fontSize: '0.64rem', 
+                          color: '#0284c7', 
+                          backgroundColor: '#e0f2fe', 
+                          padding: '2px 7px', 
+                          borderRadius: '6px', 
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        + Buat
                       </span>
-                      <ChevronDown 
-                        size={12} 
-                        color={isExpanded ? '#0284c7' : '#94a3b8'} 
-                        style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} 
-                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedTemplateCategory(prev => prev === catName ? null : catName);
+                        }}
+                        title={isExpanded ? "Tutup daftar contoh" : "Lihat contoh template"}
+                        style={{
+                          border: 'none',
+                          background: 'none',
+                          padding: '3px 4px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '2px',
+                          cursor: 'pointer',
+                          color: isExpanded ? '#0284c7' : '#94a3b8',
+                          borderRadius: '4px'
+                        }}
+                      >
+                        <span style={{ fontSize: '0.62rem', fontWeight: 600 }}>{filtered.length} contoh</span>
+                        <ChevronDown 
+                          size={12} 
+                          color={isExpanded ? '#0284c7' : '#94a3b8'} 
+                          style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} 
+                        />
+                      </button>
                     </div>
                   </div>
 
@@ -737,6 +812,7 @@ export default function NotionTable({
           position: activeMenuRowId === row.id ? 'relative' : 'static',
           zIndex: activeMenuRowId === row.id ? 40 : 'auto'
         }}
+        onDoubleClick={() => handleOpenRowModal(row)}
         onMouseEnter={(e) => {
           if (!isRowSelected) {
             const rowEls = e.currentTarget.querySelectorAll('.ws-sticky-col-1, .ws-sticky-col-2');
@@ -997,25 +1073,15 @@ export default function NotionTable({
               {col.render ? (
                 col.render(row[col.key], row, (newVal) => onUpdateCell && onUpdateCell(row.id, col.key, newVal))
               ) : (
-                onUpdateCell ? (
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    onBlur={(e) => onUpdateCell(row.id, col.key, e.currentTarget.innerText)}
-                    className="ws-cell-hover"
-                    style={{
-                      padding: '4px 6px',
-                      borderRadius: '4px',
-                      outline: 'none',
-                      cursor: 'text',
-                      fontWeight: colIdx === 0 ? 600 : 400
-                    }}
-                  >
-                    {String(row[col.key] || '')}
-                  </div>
-                ) : (
-                  String(row[col.key] || '-')
-                )
+                <span
+                  style={{
+                    fontWeight: colIdx === 0 ? 600 : 400,
+                    color: colIdx === 0 ? '#0f172a' : '#334155',
+                    fontSize: '0.82rem'
+                  }}
+                >
+                  {String(row[col.key] ?? '-')}
+                </span>
               )}
             </td>
           );

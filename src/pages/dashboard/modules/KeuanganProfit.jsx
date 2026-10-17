@@ -110,25 +110,26 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '135px',
-      render: (val, row, update) => (
-        <select
-          value={val || 'Pemasukan'}
-          onChange={(e) => update ? update(e.target.value) : updateFinanceTransaction(row.id, { type: e.target.value })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: val === 'Pemasukan' ? '#16a34a' : '#dc2626',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
-          }}
-        >
-          <option value="Pemasukan" style={{ color: '#16a34a', fontWeight: 600 }}>▲ Pemasukan</option>
-          <option value="Pengeluaran" style={{ color: '#dc2626', fontWeight: 600 }}>▼ Pengeluaran</option>
-        </select>
-      )
+      render: (val) => {
+        const isIncome = val === 'Pemasukan';
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              backgroundColor: isIncome ? '#f0fdf4' : '#fef2f2',
+              color: isIncome ? '#16a34a' : '#dc2626',
+              border: `1px solid ${isIncome ? '#bbf7d0' : '#fecaca'}`
+            }}
+          >
+            {isIncome ? '▲ Pemasukan' : '▼ Pengeluaran'}
+          </span>
+        );
+      }
     },
     { 
       key: 'category', 
@@ -139,28 +140,22 @@ export default function KeuanganProfit() {
       ),
       minWidth: '160px',
       options: financeCategories,
-      render: (val, row, update) => (
-        <select
-          value={val || 'Pembayaran Klien'}
-          onChange={(e) => update ? update(e.target.value) : updateFinanceTransaction(row.id, { category: e.target.value })}
+      render: (val) => (
+        <span
+          className="ws-notion-pill"
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          <option value="Pembayaran Klien" style={{ color: '#0f172a', fontWeight: 500 }}>Pembayaran Klien</option>
-          <option value="Server & Tools" style={{ color: '#0f172a', fontWeight: 500 }}>Server & Tools</option>
-          <option value="Marketing Ads" style={{ color: '#0f172a', fontWeight: 500 }}>Marketing Ads</option>
-          <option value="Operasional Kantor" style={{ color: '#0f172a', fontWeight: 500 }}>Operasional Kantor</option>
-          <option value="Gaji & Tim" style={{ color: '#0f172a', fontWeight: 500 }}>Gaji & Tim</option>
-          <option value="Lain-lain" style={{ color: '#0f172a', fontWeight: 500 }}>Lain-lain</option>
-        </select>
+          {val || 'Lain-lain'}
+        </span>
       )
     },
     {
@@ -171,27 +166,16 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '140px',
-      render: (val, row, update) => (
-        <input
-          type="number"
-          value={val !== undefined && val !== null ? val : ''}
-          onChange={(e) => {
-            const num = parseFloat(e.target.value) || 0;
-            if (update) update(num);
-            else updateFinanceTransaction(row.id, { amount: num });
-          }}
-          placeholder="0"
+      render: (val, row) => (
+        <span
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
             fontWeight: 700,
-            color: '#0f172a',
-            fontSize: '0.82rem',
-            width: '100%',
-            outline: 'none',
-            padding: '2px 4px'
+            color: row.type === 'Pemasukan' ? '#16a34a' : '#dc2626',
+            fontSize: '0.82rem'
           }}
-        />
+        >
+          {`Rp ${(Number(val) || 0).toLocaleString('id-ID')}`}
+        </span>
       )
     },
     { 
@@ -211,22 +195,10 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '135px',
-      render: (val, row, update) => (
-        <input
-          type="date"
-          value={toInputDateFormat(val)}
-          onChange={(e) => update ? update(e.target.value) : updateFinanceTransaction(row.id, { date: e.target.value })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.8rem',
-            fontFamily: 'inherit',
-            color: '#0f172a',
-            outline: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
       )
     },
     {
@@ -237,32 +209,29 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '130px',
-      render: (val, row, update) => {
-        const statusTextColors = {
-          'Lunas': '#16a34a',
-          'Pending': '#d97706',
-          'Dibatalkan': '#dc2626'
+      render: (val) => {
+        const statusColors = {
+          'Lunas': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
+          'Pending': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Dibatalkan': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }
         };
-        const currentTextColor = statusTextColors[val] || '#64748b';
+        const current = statusColors[val] || { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
         return (
-          <select
-            value={val || 'Lunas'}
-            onChange={(e) => update ? update(e.target.value) : updateFinanceTransaction(row.id, { status: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="Lunas" style={{ color: '#16a34a', fontWeight: 600 }}>Lunas</option>
-            <option value="Pending" style={{ color: '#d97706', fontWeight: 600 }}>Pending</option>
-            <option value="Dibatalkan" style={{ color: '#dc2626', fontWeight: 600 }}>Dibatalkan</option>
-          </select>
+            {val || 'Lunas'}
+          </span>
         );
       }
     },

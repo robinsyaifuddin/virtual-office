@@ -95,26 +95,22 @@ export default function LaporanEvaluasi() {
       ), 
       minWidth: '160px',
       options: auditCategories,
-      render: (val, row, update) => (
-        <select
-          value={val || 'Audit Kualitas'}
-          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { category: e.target.value })}
+      render: (val) => (
+        <span
+          className="ws-notion-pill"
           style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
+            border: '1px solid #bfdbfe',
+            backgroundColor: '#eff6ff',
+            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          <option value="Audit Kualitas" style={{ color: '#0f172a', fontWeight: 500 }}>Audit Kualitas</option>
-          <option value="Review Kinerja" style={{ color: '#0f172a', fontWeight: 500 }}>Review Kinerja</option>
-          <option value="Evaluasi Sprint" style={{ color: '#0f172a', fontWeight: 500 }}>Evaluasi Sprint</option>
-          <option value="Kepuasan Klien" style={{ color: '#0f172a', fontWeight: 500 }}>Kepuasan Klien</option>
-        </select>
+          {val || 'Audit Kualitas'}
+        </span>
       )
     },
     { 
@@ -125,22 +121,10 @@ export default function LaporanEvaluasi() {
         </span>
       ), 
       minWidth: '135px',
-      render: (val, row, update) => (
-        <input
-          type="date"
-          value={toInputDateFormat(val) || '2026-10-14'}
-          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { date: e.target.value })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            fontSize: '0.8rem',
-            fontFamily: 'inherit',
-            color: '#0f172a',
-            outline: 'none',
-            padding: '2px 4px',
-            cursor: 'pointer'
-          }}
-        />
+      render: (val) => (
+        <span style={{ fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
+          {val || '-'}
+        </span>
       )
     },
     {
@@ -151,28 +135,26 @@ export default function LaporanEvaluasi() {
         </span>
       ),
       minWidth: '130px',
-      render: (val, row, update) => (
-        <select
-          value={val || 5}
-          onChange={(e) => update ? update(Number(e.target.value)) : updateReport(row.id, { rating: Number(e.target.value) })}
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#ca8a04',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '2px 0'
-          }}
-        >
-          <option value={5} style={{ color: '#ca8a04', fontWeight: 600 }}>Skor 5/5 (Mutu Terbaik)</option>
-          <option value={4} style={{ color: '#ca8a04', fontWeight: 600 }}>Skor 4/5 (Sangat Baik)</option>
-          <option value={3} style={{ color: '#ca8a04', fontWeight: 600 }}>Skor 3/5 (Cukup Baik)</option>
-          <option value={2} style={{ color: '#ca8a04', fontWeight: 600 }}>Skor 2/5 (Perlu Perbaikan)</option>
-          <option value={1} style={{ color: '#ca8a04', fontWeight: 600 }}>Skor 1/5 (Tidak Memenuhi SLA)</option>
-        </select>
-      )
+      render: (val) => {
+        const score = Number(val) || 5;
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              backgroundColor: '#fefce8',
+              border: '1px solid #fef08a',
+              color: '#ca8a04'
+            }}
+          >
+            ★ {score}/5
+          </span>
+        );
+      }
     },
     {
       key: 'status',
@@ -183,36 +165,31 @@ export default function LaporanEvaluasi() {
       ),
       minWidth: '140px',
       options: ['Draft', 'Review', 'Final', 'Disahkan', 'Arsip'],
-      render: (val, row, update) => {
+      render: (val) => {
         const statusColors = {
-          'Draft': '#d97706',
-          'Review': '#4f46e5',
-          'Final': '#0284c7',
-          'Disahkan': '#16a34a',
-          'Arsip': '#64748b'
+          'Draft': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
+          'Final': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
+          'Disahkan': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
+          'Arsip': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
         };
-        const currentTextColor = statusColors[val] || '#0284c7';
+        const current = statusColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
         return (
-          <select
-            value={val || 'Final'}
-            onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { status: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="Draft" style={{ color: '#d97706', fontWeight: 600 }}>Draft</option>
-            <option value="Review" style={{ color: '#4f46e5', fontWeight: 600 }}>Review</option>
-            <option value="Final" style={{ color: '#0284c7', fontWeight: 600 }}>Final</option>
-            <option value="Disahkan" style={{ color: '#16a34a', fontWeight: 600 }}>Disahkan</option>
-            <option value="Arsip" style={{ color: '#64748b', fontWeight: 600 }}>Arsip</option>
-          </select>
+            {val || 'Final'}
+          </span>
         );
       }
     },
@@ -224,22 +201,10 @@ export default function LaporanEvaluasi() {
         </span>
       ), 
       minWidth: '220px',
-      render: (val, row, update) => (
-        <input
-          type="text"
-          value={val || ''}
-          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { whatWentWell: e.target.value })}
-          placeholder="Pencapaian..."
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#334155',
-            fontSize: '0.8rem',
-            width: '100%',
-            outline: 'none',
-            padding: '2px 4px'
-          }}
-        />
+      render: (val) => (
+        <span style={{ color: '#334155', fontSize: '0.8rem' }}>
+          {val || '-'}
+        </span>
       )
     },
     { 
@@ -250,22 +215,10 @@ export default function LaporanEvaluasi() {
         </span>
       ), 
       minWidth: '200px',
-      render: (val, row, update) => (
-        <input
-          type="text"
-          value={val || ''}
-          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { bottlenecks: e.target.value })}
-          placeholder="Kendala..."
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#334155',
-            fontSize: '0.8rem',
-            width: '100%',
-            outline: 'none',
-            padding: '2px 4px'
-          }}
-        />
+      render: (val) => (
+        <span style={{ color: '#334155', fontSize: '0.8rem' }}>
+          {val || '-'}
+        </span>
       )
     },
     { 
@@ -276,23 +229,10 @@ export default function LaporanEvaluasi() {
         </span>
       ), 
       minWidth: '130px',
-      render: (val, row, update) => (
-        <input
-          type="text"
-          value={val || ''}
-          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { author: e.target.value })}
-          placeholder="Penyusun..."
-          style={{
-            border: 'none',
-            backgroundColor: 'transparent',
-            color: '#0f172a',
-            fontWeight: 600,
-            fontSize: '0.8rem',
-            width: '100%',
-            outline: 'none',
-            padding: '2px 4px'
-          }}
-        />
+      render: (val) => (
+        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.8rem' }}>
+          {val || '-'}
+        </span>
       )
     }
   ];

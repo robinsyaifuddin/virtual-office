@@ -175,7 +175,7 @@ export default function UniversalDetailModal({
                 const targetCat = data[categoryKey] || data.category || data.pillar || 'Umum';
                 const templatePayload = {
                   ...data,
-                  title: data.title || data.name || data.period || data.objective || 'Template Kustom'
+                  title: data.title || data.name || data.period || data.objective || ''
                 };
                 delete templatePayload.id; // Agar template di-generate ID baru saat di-apply
                 addCustomTemplate(title, targetCat, templatePayload);

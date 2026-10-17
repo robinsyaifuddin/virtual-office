@@ -126,29 +126,22 @@ export default function CrmKlien() {
       ),
       minWidth: '170px',
       options: categoryOptions,
-      render: (val, row, update) => (
-        <select
-          value={val || categoryOptions[0]}
-          onChange={(e) => update ? update(e.target.value) : updateCrmClient(row.id, { category: e.target.value })}
+      render: (val) => (
+        <span
           className="ws-notion-pill"
           style={{
             border: '1px solid #bfdbfe',
             backgroundColor: '#eff6ff',
             color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 700,
-            outline: 'none',
-            cursor: 'pointer',
-            padding: '3px 8px',
-            borderRadius: '6px'
+            fontWeight: 600,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            display: 'inline-block'
           }}
         >
-          {categoryOptions.map((cat) => (
-            <option key={cat} value={cat} style={{ color: '#0f172a', fontWeight: 500 }}>
-              {cat}
-            </option>
-          ))}
-        </select>
+          {val || categoryOptions[0]}
+        </span>
       )
     },
     {
@@ -159,38 +152,32 @@ export default function CrmKlien() {
         </span>
       ),
       minWidth: '160px',
-      render: (val, row, update) => {
+      render: (val) => {
         const stageColors = {
-          'Lead Masuk': '#64748b',
-          'Discovery Call': '#0284c7',
-          'Proposal Terkirim': '#d97706',
-          'Negosiasi': '#0ea5e9',
-          'Deal Won': '#16a34a',
-          'Deal Lost': '#dc2626'
+          'Lead Masuk': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' },
+          'Discovery Call': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
+          'Proposal Terkirim': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
+          'Negosiasi': { bg: '#f0f9ff', border: '#bae6fd', text: '#0284c7' },
+          'Deal Won': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
+          'Deal Lost': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }
         };
-        const currentTextColor = stageColors[val] || '#0284c7';
+        const current = stageColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
         return (
-          <select
-            value={val || 'Lead Masuk'}
-            onChange={(e) => update ? update(e.target.value) : updateCrmClient(row.id, { stage: e.target.value })}
+          <span
             style={{
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: currentTextColor,
-              fontSize: '0.8rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '2px 8px',
+              borderRadius: '6px',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              outline: 'none',
-              cursor: 'pointer',
-              padding: '2px 0'
+              backgroundColor: current.bg,
+              border: `1px solid ${current.border}`,
+              color: current.text
             }}
           >
-            <option value="Lead Masuk" style={{ color: '#64748b', fontWeight: 600 }}>Lead Masuk</option>
-            <option value="Discovery Call" style={{ color: '#0284c7', fontWeight: 600 }}>Discovery Call</option>
-            <option value="Proposal Terkirim" style={{ color: '#d97706', fontWeight: 600 }}>Proposal Terkirim</option>
-            <option value="Negosiasi" style={{ color: '#0ea5e9', fontWeight: 600 }}>Negosiasi</option>
-            <option value="Deal Won" style={{ color: '#16a34a', fontWeight: 600 }}>Deal Won</option>
-            <option value="Deal Lost" style={{ color: '#dc2626', fontWeight: 600 }}>Deal Lost</option>
-          </select>
+            {val || 'Lead Masuk'}
+          </span>
         );
       }
     },
