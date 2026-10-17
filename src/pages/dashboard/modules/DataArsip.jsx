@@ -232,6 +232,7 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '130px',
+      options: ['Draft', 'Review', 'Disetujui', 'Aktif', 'Arsip'],
       render: (val, row, update) => {
         const statusColors = {
           'Draft': '#d97706',

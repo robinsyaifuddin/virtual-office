@@ -175,6 +175,7 @@ export default function RapatCatatan() {
         </span>
       ),
       minWidth: '140px',
+      options: ['Terjadwal', 'Berlangsung', 'Selesai', 'Dibatalkan'],
       render: (val, row, update) => {
         const statusColors = {
           'Terjadwal': '#0284c7',

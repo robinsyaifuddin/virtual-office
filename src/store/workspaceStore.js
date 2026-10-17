@@ -133,44 +133,45 @@ export const useWorkspaceStore = create((set, get) => ({
 
       const formattedMeetings = (meetingsRaw || []).map(m => ({
         id: m.id,
-        title: m.title,
-        dateTime: m.date_time,
-        type: m.type,
-        status: m.status,
-        participants: m.participants || [],
-        link: m.link,
-        summaryNotes: m.summary_notes,
-        actionItems: m.action_items || [],
+        title: m.title || '',
+        dateTime: m.date_time || m.dateTime || '',
+        type: m.type || 'Internal Weekly Sync',
+        status: m.status || 'Terjadwal',
+        participants: Array.isArray(m.participants) ? m.participants : [],
+        link: m.link || '',
+        summaryNotes: m.summary_notes || m.summaryNotes || '',
+        actionItems: Array.isArray(m.action_items) ? m.action_items : (Array.isArray(m.actionItems) ? m.actionItems : []),
         createdAt: m.created_at ? m.created_at.replace('T', ' ').substring(0, 16) : ''
       }));
 
       const formattedReports = (reportsRaw || []).map(r => ({
         id: r.id,
-        title: r.title,
-        period: r.period,
-        category: r.category,
-        status: r.status,
-        date: r.date,
+        title: r.title || r.period || '',
+        period: r.period || '',
+        category: r.category || 'Audit Kualitas',
+        status: r.status || 'Draft',
+        date: r.date || '',
         rating: Number(r.rating || 5),
-        whatWentWell: r.what_went_well,
-        bottlenecks: r.bottlenecks,
-        actionPlan: r.action_plan,
-        author: r.author,
-        attachmentDoc: r.attachment_doc,
+        whatWentWell: r.what_went_well || r.whatWentWell || '',
+        bottlenecks: r.bottlenecks || '',
+        actionPlan: r.action_plan || r.actionPlan || '',
+        author: r.author || '',
+        attachmentDoc: r.attachment_doc || r.attachmentDoc || null,
         createdAt: r.created_at ? r.created_at.replace('T', ' ').substring(0, 16) : ''
       }));
 
       const formattedArchives = (archivesRaw || []).map(a => ({
         id: a.id,
-        title: a.title,
-        category: a.category,
-        fileFormat: a.file_format,
-        version: a.version,
-        status: a.status,
-        updatedAt: a.updated_at ? a.updated_at.split('T')[0] : '',
-        accessLevel: a.access_level,
-        fileSize: a.file_size,
-        downloadUrl: a.download_url
+        title: a.title || '',
+        category: a.category || 'Dokumen PDF / Legalitas',
+        fileFormat: a.file_format || a.type || 'PDF',
+        version: a.version || 'v1.0',
+        status: a.status || (a.status === 'Active' ? 'Aktif' : 'Draft'),
+        updatedAt: a.updated_at ? a.updated_at.split('T')[0] : (a.created_at ? a.created_at.split('T')[0] : ''),
+        accessLevel: a.access_level || 'Publik Semua Tim',
+        fileSize: a.file_size || a.size || '',
+        downloadUrl: a.download_url || a.link || null,
+        description: a.description || ''
       }));
 
       // Normalisasi custom templates dari Supabase (dengan fallback ke localStorage)
@@ -184,18 +185,19 @@ export const useWorkspaceStore = create((set, get) => ({
 
       if (templatesRaw && templatesRaw.length > 0) {
         templatesRaw.forEach((row) => {
-          const modKey = row.module_name || 'General';
+          const modKey = row.module_name || row.module_type || 'General';
           const catKey = row.category || 'General';
           if (!syncedTemplates[modKey]) syncedTemplates[modKey] = {};
           if (!syncedTemplates[modKey][catKey]) syncedTemplates[modKey][catKey] = [];
           
           const existingIdx = syncedTemplates[modKey][catKey].findIndex(t => t.id === row.id);
+          const tplStructure = row.structure || row.payload || {};
           const tplObj = {
             id: row.id,
-            title: row.title,
+            title: row.name || row.title || tplStructure.title || 'Template Kustom',
             isCustom: true,
             savedAt: row.created_at,
-            ...(row.payload || {})
+            ...tplStructure
           };
 
           if (existingIdx >= 0) {
@@ -682,22 +684,34 @@ export const useWorkspaceStore = create((set, get) => ({
   // 7. Rapat & Catatan (Supabase meetings table)
   meetings: [],
   addMeeting: async (m) => {
-    const id = m.id || `MTG-${Date.now().toString().slice(-4)}`;
-    const newM = { ...m, id };
+    const fallbackId = `MTG-${Date.now().toString().slice(-4)}`;
+    const newM = { ...m, id: m.id || fallbackId };
     set((state) => ({ meetings: [newM, ...state.meetings] }));
     try {
-      await supabase.from('meetings').insert([{
-        id: newM.id,
-        title: newM.title,
-        date_time: newM.dateTime || null,
+      const payload = {
+        title: newM.title || 'Rapat Baru',
+        date_time: newM.dateTime || new Date().toISOString().split('T')[0],
         type: newM.type || 'Internal Weekly Sync',
         status: newM.status || 'Terjadwal',
-        participants: newM.participants || [],
+        participants: Array.isArray(newM.participants) ? newM.participants : [],
         link: newM.link || null,
         summary_notes: newM.summaryNotes || '',
-        action_items: newM.actionItems || []
-      }]);
-      await recordAuditLog('INSERT', 'meetings', newM.id, newM);
+        action_items: Array.isArray(newM.actionItems) ? newM.actionItems : []
+      };
+      // Bila id bukan prefix MTG (misal UUID valid), sertakan id
+      if (newM.id && !newM.id.startsWith('MTG-')) {
+        payload.id = newM.id;
+      }
+      const { data: inserted, error: insErr } = await supabase.from('meetings').insert([payload]).select().single();
+      if (insErr) {
+        console.error('Gagal simpan rapat ke Supabase:', insErr.message);
+      } else if (inserted && inserted.id) {
+        // Sinkronkan ID UUID nyata dari database ke local store
+        set((state) => ({
+          meetings: state.meetings.map(item => item.id === newM.id ? { ...item, id: inserted.id } : item)
+        }));
+        await recordAuditLog('INSERT', 'meetings', inserted.id, newM);
+      }
     } catch (err) {
       console.error('Gagal simpan rapat ke Supabase:', err);
     }
@@ -716,7 +730,6 @@ export const useWorkspaceStore = create((set, get) => ({
       if (updated.link !== undefined) payload.link = updated.link || null;
       if (updated.summaryNotes !== undefined) payload.summary_notes = updated.summaryNotes;
       if (updated.actionItems !== undefined) payload.action_items = updated.actionItems;
-      payload.updated_at = new Date().toISOString();
       await supabase.from('meetings').update(payload).eq('id', id);
       await recordAuditLog('UPDATE', 'meetings', id, updated);
     } catch (err) {
@@ -738,25 +751,35 @@ export const useWorkspaceStore = create((set, get) => ({
   // 8. Laporan & Evaluasi (Supabase reports table)
   reports: [],
   addReport: async (rpt) => {
-    const id = rpt.id || `RPT-${Date.now().toString().slice(-4)}`;
-    const newRpt = { ...rpt, id };
+    const fallbackId = `RPT-${Date.now().toString().slice(-4)}`;
+    const newRpt = { ...rpt, id: rpt.id || fallbackId };
     set((state) => ({ reports: [newRpt, ...state.reports] }));
     try {
-      await supabase.from('reports').insert([{
-        id: newRpt.id,
-        title: newRpt.title || newRpt.period || '',
-        period: newRpt.period || '',
+      const payload = {
+        title: newRpt.title || newRpt.period || 'Laporan Evaluasi Baru',
+        period: newRpt.period || 'Mingguan',
         category: newRpt.category || 'Audit Kualitas',
         status: newRpt.status || 'Draft',
         date: newRpt.date || new Date().toISOString().split('T')[0],
-        rating: newRpt.rating || 5,
+        rating: Number(newRpt.rating || 5),
         what_went_well: newRpt.whatWentWell || '',
         bottlenecks: newRpt.bottlenecks || '',
         action_plan: newRpt.actionPlan || '',
-        author: newRpt.author || '',
+        author: newRpt.author || 'Executive Owner',
         attachment_doc: newRpt.attachmentDoc || null
-      }]);
-      await recordAuditLog('INSERT', 'reports', newRpt.id, newRpt);
+      };
+      if (newRpt.id && !newRpt.id.startsWith('RPT-')) {
+        payload.id = newRpt.id;
+      }
+      const { data: inserted, error: insErr } = await supabase.from('reports').insert([payload]).select().single();
+      if (insErr) {
+        console.error('Gagal simpan laporan ke Supabase:', insErr.message);
+      } else if (inserted && inserted.id) {
+        set((state) => ({
+          reports: state.reports.map(item => item.id === newRpt.id ? { ...item, id: inserted.id } : item)
+        }));
+        await recordAuditLog('INSERT', 'reports', inserted.id, newRpt);
+      }
     } catch (err) {
       console.error('Gagal simpan laporan ke Supabase:', err);
     }
@@ -778,7 +801,6 @@ export const useWorkspaceStore = create((set, get) => ({
       if (updated.actionPlan !== undefined) payload.action_plan = updated.actionPlan;
       if (updated.author !== undefined) payload.author = updated.author;
       if (updated.attachmentDoc !== undefined) payload.attachment_doc = updated.attachmentDoc;
-      payload.updated_at = new Date().toISOString();
       await supabase.from('reports').update(payload).eq('id', id);
       await recordAuditLog('UPDATE', 'reports', id, updated);
     } catch (err) {
@@ -800,22 +822,31 @@ export const useWorkspaceStore = create((set, get) => ({
   // 9. Data & Arsip (Supabase archives table)
   archives: [],
   addArchive: async (arc) => {
-    const id = arc.id || `ARC-${Date.now().toString().slice(-4)}`;
-    const newArc = { ...arc, id };
+    const fallbackId = `ARC-${Date.now().toString().slice(-4)}`;
+    const newArc = { ...arc, id: arc.id || fallbackId };
     set((state) => ({ archives: [newArc, ...state.archives] }));
     try {
-      await supabase.from('archives').insert([{
-        id: newArc.id,
-        title: newArc.title || '',
+      const payload = {
+        title: newArc.title || 'Dokumen Baru',
         category: newArc.category || 'Dokumen PDF / Legalitas',
-        file_format: newArc.fileFormat || 'PDF',
-        version: newArc.version || 'v1.0',
-        status: newArc.status || 'Draft',
-        access_level: newArc.accessLevel || 'Publik Semua Tim',
-        file_size: newArc.fileSize || '',
-        download_url: newArc.downloadUrl || null
-      }]);
-      await recordAuditLog('INSERT', 'archives', newArc.id, newArc);
+        type: newArc.fileFormat || newArc.type || 'PDF',
+        status: newArc.status || 'Active',
+        size: newArc.fileSize || newArc.size || '1.0 MB',
+        link: newArc.downloadUrl || newArc.link || null,
+        description: newArc.description || ''
+      };
+      if (newArc.id && !newArc.id.startsWith('ARC-')) {
+        payload.id = newArc.id;
+      }
+      const { data: inserted, error: insErr } = await supabase.from('archives').insert([payload]).select().single();
+      if (insErr) {
+        console.error('Gagal simpan arsip ke Supabase:', insErr.message);
+      } else if (inserted && inserted.id) {
+        set((state) => ({
+          archives: state.archives.map(item => item.id === newArc.id ? { ...item, id: inserted.id } : item)
+        }));
+        await recordAuditLog('INSERT', 'archives', inserted.id, newArc);
+      }
     } catch (err) {
       console.error('Gagal simpan arsip ke Supabase:', err);
     }
@@ -828,14 +859,11 @@ export const useWorkspaceStore = create((set, get) => ({
       const payload = {};
       if (updated.title !== undefined) payload.title = updated.title;
       if (updated.category !== undefined) payload.category = updated.category;
-      if (updated.fileFormat !== undefined) payload.file_format = updated.fileFormat;
-      if (updated.version !== undefined) payload.version = updated.version;
+      if (updated.fileFormat !== undefined || updated.type !== undefined) payload.type = updated.fileFormat || updated.type;
       if (updated.status !== undefined) payload.status = updated.status;
-      if (updated.accessLevel !== undefined) payload.access_level = updated.accessLevel;
-      if (updated.fileSize !== undefined) payload.file_size = updated.fileSize;
-      if (updated.downloadUrl !== undefined) payload.download_url = updated.downloadUrl;
-      if (updated.updatedAt !== undefined) payload.updated_at = updated.updatedAt ? new Date(updated.updatedAt).toISOString() : new Date().toISOString();
-      else payload.updated_at = new Date().toISOString();
+      if (updated.fileSize !== undefined || updated.size !== undefined) payload.size = updated.fileSize || updated.size;
+      if (updated.downloadUrl !== undefined || updated.link !== undefined) payload.link = updated.downloadUrl || updated.link;
+      if (updated.description !== undefined) payload.description = updated.description;
       await supabase.from('archives').update(payload).eq('id', id);
       await recordAuditLog('UPDATE', 'archives', id, updated);
     } catch (err) {
@@ -1005,16 +1033,35 @@ export const useWorkspaceStore = create((set, get) => ({
 
     // 2. Simpan permanen ke Supabase database (anti hilang saat clear cache)
     try {
-      await supabase.from('custom_templates').insert([{
-        id: newTemplate.id,
-        module_name: modKey,
+      const payload = {
+        name: newTemplate.title || 'Template Kustom',
+        module_type: modKey,
         category: catKey,
-        title: newTemplate.title || 'Template Kustom',
-        payload: templateData
-      }]);
-      await recordAuditLog('INSERT', 'custom_templates', newTemplate.id, { module: modKey, category: catKey });
+        structure: templateData
+      };
+      const { data: inserted, error: insErr } = await supabase.from('custom_templates').insert([payload]).select().single();
+      if (insErr) {
+        console.warn('Supabase custom_templates insert failed (fallback to local):', insErr.message);
+      } else if (inserted && inserted.id) {
+        // Sinkronkan id DB
+        set((state) => {
+          const cur = state.customTemplates || {};
+          const curMod = cur[modKey] || {};
+          const curList = curMod[catKey] || [];
+          return {
+            customTemplates: {
+              ...cur,
+              [modKey]: {
+                ...curMod,
+                [catKey]: curList.map(t => t.id === newTemplateId ? { ...t, id: inserted.id } : t)
+              }
+            }
+          };
+        });
+        await recordAuditLog('INSERT', 'custom_templates', inserted.id, { module: modKey, category: catKey });
+      }
     } catch (err) {
-      console.warn('Supabase custom_templates insert failed (fallback to local):', err);
+      console.warn('Supabase custom_templates insert error:', err);
     }
   },
 

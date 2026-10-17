@@ -603,9 +603,35 @@ export default function NotionTable({
                                 {tplTitle}
                               </span>
                               {tpl.isCustom ? (
-                                <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', backgroundColor: '#fff7ed', padding: '1px 5px', borderRadius: '4px' }}>
-                                  Kustom
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#ea580c', backgroundColor: '#fff7ed', padding: '1px 5px', borderRadius: '4px' }}>
+                                    Kustom
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (window.confirm(`Hapus template "${tplTitle}"?`)) {
+                                        deleteCustomTemplate(title, catName, tpl.id);
+                                      }
+                                    }}
+                                    title="Hapus template kustom ini"
+                                    style={{
+                                      border: 'none',
+                                      background: 'none',
+                                      color: '#94a3b8',
+                                      cursor: 'pointer',
+                                      padding: '2px 4px',
+                                      borderRadius: '4px',
+                                      display: 'inline-flex',
+                                      alignItems: 'center'
+                                    }}
+                                    onMouseEnter={(btnE) => btnE.currentTarget.style.color = '#dc2626'}
+                                    onMouseLeave={(btnE) => btnE.currentTarget.style.color = '#94a3b8'}
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
                               ) : (
                                 <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', backgroundColor: '#eff6ff', padding: '1px 5px', borderRadius: '4px' }}>
                                   Preset

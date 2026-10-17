@@ -182,6 +182,7 @@ export default function LaporanEvaluasi() {
         </span>
       ),
       minWidth: '140px',
+      options: ['Draft', 'Review', 'Final', 'Disahkan', 'Arsip'],
       render: (val, row, update) => {
         const statusColors = {
           'Draft': '#d97706',

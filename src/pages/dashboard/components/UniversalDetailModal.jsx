@@ -800,7 +800,7 @@ export default function UniversalDetailModal({
                       />
                     ) : (col.key === 'status') ? (
                       <select
-                        value={val || 'Backlog'}
+                        value={val || (col.options ? col.options[0] : 'Backlog')}
                         onChange={(e) => handleFieldChange(col.key, e.target.value)}
                         className="ws-notion-pill"
                         style={{
@@ -816,16 +816,34 @@ export default function UniversalDetailModal({
                           fontFamily: 'inherit'
                         }}
                       >
-                        <option value="Backlog">Backlog / Belum Mulai</option>
-                        <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
-                        <option value="Menunggu Review">Menunggu Review</option>
-                        <option value="Selesai">Selesai</option>
-                        <option value="Lunas">Lunas</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Online / Bertugas">Online / Bertugas</option>
-                        <option value="Standby">Standby</option>
-                        <option value="Istirahat">Istirahat</option>
-                        <option value="Cuti / Off">Cuti / Off</option>
+                        {Array.isArray(col.options) && col.options.length > 0 ? (
+                          col.options.map((opt) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="Backlog">Backlog / Belum Mulai</option>
+                            <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
+                            <option value="Menunggu Review">Menunggu Review</option>
+                            <option value="Selesai">Selesai</option>
+                            <option value="Terjadwal">Terjadwal</option>
+                            <option value="Berlangsung">Berlangsung</option>
+                            <option value="Dibatalkan">Dibatalkan</option>
+                            <option value="Draft">Draft</option>
+                            <option value="Review">Review</option>
+                            <option value="Final">Final</option>
+                            <option value="Disahkan">Disahkan</option>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Disetujui">Disetujui</option>
+                            <option value="Arsip">Arsip</option>
+                            <option value="Lunas">Lunas</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Online / Bertugas">Online / Bertugas</option>
+                            <option value="Standby">Standby</option>
+                            <option value="Istirahat">Istirahat</option>
+                            <option value="Cuti / Off">Cuti / Off</option>
+                          </>
+                        )}
                       </select>
                     ) : (col.key === 'stage') ? (
                       <select
