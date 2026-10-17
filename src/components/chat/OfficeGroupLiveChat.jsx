@@ -176,7 +176,69 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       return;
     }
 
-    // 2. SKENARIO PERINTAH TOOL CALLING: BUAT POSTINGAN / DRAFT / TUGAS / INVOICE NYATA KE TABEL
+    // 2. SKENARIO PERSETUJUAN OWNER ATAS RANGKUMAN RETA (Deal / Oke / Setuju / Jalankan)
+    if (
+      lower === 'oke' || 
+      lower === 'ok' || 
+      lower.includes('setuju') || 
+      lower.includes('jalankan') || 
+      lower.includes('lanjutkan') || 
+      lower.includes('deal') || 
+      lower.includes('sepakat') ||
+      lower.includes('acc') ||
+      lower.includes('gas')
+    ) {
+      setTypingAgentName('Reta');
+      const taskId = `TSK-${Date.now().toString().slice(-4)}`;
+      const targetDate = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
+
+      setTimeout(async () => {
+        // Reta mengeksekusi ke tabel tugas & kalender
+        await store.addTask({
+          id: taskId,
+          title: 'Eksekusi Program Kemitraan B2B & Kampanye Retainers Q4',
+          category: 'Operasional & Growth',
+          project: 'Inisiatif Dewan Agen',
+          assignee: 'Silvi & Reta',
+          priority: 'P1',
+          status: 'Sedang Dikerjakan',
+          dueDate: targetDate,
+          description: `Disahkan langsung oleh Bang Robin di HQ LiveChat. PIC: Silvi (Konten & Closing Deals), Raka (PKS & Legalitas), Supervisi: Reta & Arga.`
+        });
+
+        store.recordAiTelemetryEvent({
+          agent: 'Reta (COO)',
+          action: 'Lock Consensus & Deploy Task',
+          targetModule: 'Tugas & Kalender',
+          tokensUsed: 480,
+          latencyMs: 290,
+          status: 'Success'
+        });
+
+        const retaConfirm = {
+          id: `msg-reta-lock-${Date.now()}`,
+          sender: 'Reta',
+          name: 'Reta',
+          role: 'Chief Operating Officer (COO)',
+          badgeColor: '#0369a1',
+          hasActionPreview: true,
+          actionData: {
+            id: taskId,
+            title: 'Eksekusi Program Kemitraan B2B & Kampanye Retainers Q4',
+            module: 'Tugas & Kalender',
+            status: 'Terkunci & Dikerjakan (Deadline: ' + targetDate + ')'
+          },
+          text: `Siap Bang Robin, terima kasih atas persetujuannya! Seluruh keputusan rapat resmi saya kunci dan data tugas telah saya petakan lengkap ke sistem:\n\n• ID Tugas: ${taskId}\n• PIC Utama: Silvi (Eksekusi Konten & Penawaran Klien)\n• PIC Pendukung: Raka (Penyusunan Draf PKS & Legalitas)\n• Batas Waktu: ${targetDate}\n• Modul Target: Tugas & Kalender / Branding & Marketing\n\nSaya pribadi yang akan mem-follow up progres harian setiap PIC dan memberikan laporan rutin berkala kepada Bang Robin. Semua sudah mulai bergerak!`,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        };
+
+        setMessages((prev) => [...prev, retaConfirm]);
+        setIsAgentsTyping(false);
+      }, 1100);
+      return;
+    }
+
+    // 3. SKENARIO PERINTAH LANGSUNG BUAT DATA / DRAFT SPESIFIK
     if (
       lower.includes('postingan') || 
       lower.includes('draft') || 
@@ -186,7 +248,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       lower.includes('faktur') || 
       lower.includes('invoice')
     ) {
-      const isSilvi = lower.includes('silvi');
+      const isSilvi = lower.includes('silvi') || lower.includes('konten') || lower.includes('postingan') || lower.includes('marketing');
       const executorName = isSilvi ? 'Silvi' : 'Reta';
       setTypingAgentName(executorName);
 
@@ -209,7 +271,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           priority: 'P1',
           status: 'Menunggu Review',
           dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-          description: `Dibuat otomatis atas perintah Pak Robin di HQ Group LiveChat: "${raw}"`
+          description: `Dibuat otomatis atas perintah Bang Robin di HQ LiveChat: "${raw}"`
         });
 
         store.recordAiTelemetryEvent({
@@ -234,31 +296,32 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
             module: moduleTarget,
             status: 'Tersimpan di Database (Menunggu Review)'
           },
-          text: `Siap Pak Robin, rancangan "${taskTitle}" sudah saya buat dan langsung tersimpan di modul ${moduleTarget} [ID: ${taskId}].\n\nFokus pesannya padat: benefit 20%, poin solusi jelas, dan ajakan kontak santun. Siap Bapak review di dashboard kapan saja.`,
+          text: `Siap Bang Robin! Dari sisi knowledge konten & sales growth, draf rancangan "${taskTitle}" sudah saya selesaikan dan langsung tersimpan rapi di modul ${moduleTarget} [ID: ${taskId}].\n\nStrukturnya meliputi: riset pain-point audiens, penawaran value benefit eksklusif, dan call-to-action yang mendorong closing cepat. Siap Bapak review di dashboard.`,
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         };
 
         setMessages((prev) => [...prev, execReply]);
 
-        setTypingAgentName('Siska');
+        // Reta memvalidasi kelengkapan data
+        setTypingAgentName('Reta');
         setTimeout(() => {
-          const siskaValidate = {
-            id: `msg-val-${Date.now()}`,
-            sender: 'Siska',
-            name: 'Siska',
-            role: 'Head of Quality & AI Trainer',
-            badgeColor: '#0284c7',
-            text: `QC Audit: Format draf ${executorName} telah saya periksa. Rapi, sesuai SOP, dan tersinkron sempurna di database.`,
+          const retaFollowup = {
+            id: `msg-reta-val-${Date.now()}`,
+            sender: 'Reta',
+            name: 'Reta',
+            role: 'Chief Operating Officer (COO)',
+            badgeColor: '#0369a1',
+            text: `Data draf Silvi telah tercatat di baki tugas operasional. PIC: Silvi, Estimasi selesai review: 2 hari kerja. Jadwal follow-up telah saya pasang di kalender operasional untuk saya laporkan ke Bang Robin.`,
             timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
           };
-          setMessages((prev) => [...prev, siskaValidate]);
+          setMessages((prev) => [...prev, retaFollowup]);
           setIsAgentsTyping(false);
         }, 900);
-      }, 1500);
+      }, 1400);
       return;
     }
 
-    // 3. SKENARIO SAPAAN KOMPAK: SEMUA BOT MEMBALAS ALAMI BERGANTIAN
+    // 4. SKENARIO SAPAAN KOMPAK: SEMUA BOT MEMBALAS ALAMI BERGANTIAN
     if (
       lower.includes('halo') || 
       lower.includes('pagi') || 
@@ -276,24 +339,10 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           name: 'Arga',
           role: 'Chief Strategy Officer (CSO)',
           badgeColor: '#0284c7',
-          text: 'Pagi Pak Robin! Ruang strategi siap. Metrik target dan inisiatif baru siap kita diskusikan.',
+          text: 'Pagi Bang Robin! Senang bisa ngobrol lagi. Ide bisnis atau arah strategi apa yang ingin kita bahas hari ini?',
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         },
-        1000
-      );
-
-      setTypingAgentName('Reta');
-      await appendMessageSequentially(
-        {
-          id: `msg-reta-${Date.now()}`,
-          sender: 'Reta',
-          name: 'Reta',
-          role: 'Chief Operating Officer (COO)',
-          badgeColor: '#0369a1',
-          text: 'Pagi Pak! Operasional dan penugasan tim hari ini aman terkendali. Siap eksekusi tugas baru.',
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        },
-        700
+        900
       );
 
       setTypingAgentName('Silvi');
@@ -302,9 +351,9 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           id: `msg-silvi-${Date.now()}`,
           sender: 'Silvi',
           name: 'Silvi',
-          role: 'Chief Financial Officer (CFO)',
+          role: 'CFO & Growth Specialist',
           badgeColor: '#0284c7',
-          text: 'Halo Pak Robin! Arus kas dan peluang campaign closing klien standby saya kawal.',
+          text: 'Halo Bang Robin! Data performa kampanye konten dan tren closing deals klien standby siap kita bedah.',
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         },
         600
@@ -318,31 +367,32 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           name: 'Raka',
           role: 'Chief Technology Officer (CTO)',
           badgeColor: '#0c4a6e',
-          text: 'Pagi Pak. Sistem server, arsip data, dan integritas platform stabil 100%.',
+          text: 'Pagi Bang Robin. Seluruh berkas legalitas, NDA, dan repositori dokumen siap difasilitasi jika ada kesepakatan baru.',
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         },
-        600
+        500
       );
 
-      setTypingAgentName('Siska');
+      setTypingAgentName('Reta');
       await appendMessageSequentially(
         {
-          id: `msg-siska-${Date.now()}`,
-          sender: 'Siska',
-          name: 'Siska',
-          role: 'Head of Quality & AI Trainer',
-          badgeColor: '#0284c7',
-          text: 'Semua agen siap bertugas dalam performa prima Pak Robin. Silakan berikan arahan Anda.',
+          id: `msg-reta-${Date.now()}`,
+          sender: 'Reta',
+          name: 'Reta',
+          role: 'Chief Operating Officer (COO)',
+          badgeColor: '#0369a1',
+          text: 'Pagi Bang! Nanti apapun hasil diskusi Bang Robin dengan Arga dan teman-teman, saya siap merangkum dan mengawal eksekusinya ke tabel operasional.',
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         },
-        600
+        500
       );
 
       setIsAgentsTyping(false);
       return;
     }
 
-    // 4. SKENARIO DISKUSI, TANYA SARAN & DEBAT SEHAT MULTI-AGENT
+    // 5. SKENARIO DISKUSI, CURHAT BISNIS & BRAINSTORMING (Alur Peran Sempurna)
+    // Tahap 1: Arga (Teman Ngobrol Utama - Membedah Strategi & Berdialog Intensif)
     setTypingAgentName('Arga');
     await appendMessageSequentially(
       {
@@ -351,40 +401,43 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         name: 'Arga',
         role: 'Chief Strategy Officer (CSO)',
         badgeColor: '#0284c7',
-        text: 'Melihat target kita, fokus terbaik adalah kemitraan B2B retainers bernilai tinggi. Ini mengamankan recurring cashflow kuartal depan secara stabil.',
+        text: `Menarik sekali topiknya, Bang Robin. Kalau kita telaah dari skala prioritas: peluang terbesar saat ini ada pada penetrasi klien B2B retainers. Alih-alih jualan one-off project yang fluktuatif, kontrak berlangganan 6 bulan akan mengunci stabilitas cashflow kita secara eksponensial. Bagaimana menurut Bang Robin mengenai arah ini?`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       },
-      1200
+      1100
     );
 
-    setTypingAgentName('Reta');
-    await appendMessageSequentially(
-      {
-        id: `msg-deb-reta-${Date.now()}`,
-        sender: 'Reta',
-        name: 'Reta',
-        role: 'Chief Operating Officer (COO)',
-        badgeColor: '#0369a1',
-        text: 'Setuju dengan Arga, namun dari kapasitas kerja: jika masuk 5 klien bersamaan tanpa alur bertahap, tim operasional bisa kewalahan. Usul saya kita batasi 2 klien per gelombang onboarding.',
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      800
-    );
-
+    // Tahap 2: Silvi (Spesialis Konten, Marketing, Branding & Sales Closing)
     setTypingAgentName('Silvi');
     await appendMessageSequentially(
       {
         id: `msg-deb-silvi-${Date.now()}`,
         sender: 'Silvi',
         name: 'Silvi',
-        role: 'Chief Financial Officer (CFO)',
+        role: 'CFO & Growth Specialist',
         badgeColor: '#0284c7',
-        text: 'Menengahi usulan Arga dan Reta: kita bisa terapkan paket bayar di muka 3 bulan dengan insentif diskon 10%. Arus kas langsung masuk di awal dan beban tim tetap terkontrol rapi.',
+        text: `Saya menyambung pandangan Arga dari kacamata konten dan closing sales: Agar klien B2B itu tertarik tanpa ragu, kita bangun narasi branding "AI Growth Engine" melalui 3 video studi kasus nyata. Di sisi sales deal, kita beri penawaran insentif: pembayaran termin 3 bulan di muka mendapat audit gratis senilai Rp 15.000.000. Ini biasanya meningkatkan rasio closing hingga di atas 70%.`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       },
-      800
+      1100
     );
 
+    // Tahap 3: Raka (Spesialis Sistem, Kelengkapan Berkas & Legalitas)
+    setTypingAgentName('Raka');
+    await appendMessageSequentially(
+      {
+        id: `msg-deb-raka-${Date.now()}`,
+        sender: 'Raka',
+        name: 'Raka',
+        role: 'Chief Technology Officer (CTO)',
+        badgeColor: '#0c4a6e',
+        text: `Jika skema Silvi dan Arga dijalankan, dari sisi legalitas dan fasilitas berkas: saya sudah siapkan template Perjanjian Kerja Sama (PKS) Retainer, klausul SLA kerahasiaan data (NDA), dan formulir onboarding mitra digital. Semua instrumen hukum siap saya terbitkan begitu ada kesepakatan.`,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      },
+      900
+    );
+
+    // Tahap 4: Siska (Quality Supervisor - Mengawasi Alur & Memastikan Diskusi Tetap Tajam & Relevan)
     setTypingAgentName('Siska');
     await appendMessageSequentially(
       {
@@ -393,10 +446,25 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         name: 'Siska',
         role: 'Head of Quality & AI Trainer',
         badgeColor: '#0284c7',
-        text: `Kesimpulan Ringkas Rekomendasi Dewan:\n\n1. Target B2B retainers (Arga)\n2. Skema bayar di muka 3 bulan (Silvi)\n3. Kuota onboarding bertahap 2 klien per batch (Reta)\n\nApakah susunan ini berkenan untuk langsung kami buatkan targetnya di modul Sasaran & KPI?`,
+        text: `Quality Monitoring: Alur diskusi antara Arga, Silvi, dan Raka berjalan sangat tajam, solutif, dan 100% relevan dengan tujuan efisiensi kantor. Tidak ada poin bertele-tele. Saya setujui konsensus ini untuk dirangkum ke tahap operasional.`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       },
-      900
+      800
+    );
+
+    // Tahap 5: Reta (COO - Perangkum Final, Menata Format Kolom Data & Mengajukan ke Bang Robin)
+    setTypingAgentName('Reta');
+    await appendMessageSequentially(
+      {
+        id: `msg-deb-reta-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta',
+        role: 'Chief Operating Officer (COO)',
+        badgeColor: '#0369a1',
+        text: `Baik Bang Robin, saya rangkumkan hasil kesepakatan seluruh dewan agen menjadi narasi terstruktur:\n\n1. Sasaran Strategi: Penetrasi paket B2B Retainers 6 bulan (Usulan Arga).\n2. Aset & Sales: Produksi 3 video studi kasus & penawaran insentif closing 70% (Usulan Silvi).\n3. Berkas & Legal: Penerbitan instrumen draf PKS Retainers & NDA resmi (Fasilitas Raka).\n\nSusunan Kolom Data yang Siap Saya Masukkan ke Sistem:\n• Modul Tujuan: Tugas & Kalender / Branding & Marketing\n• Judul Tugas: Eksekusi Program Kemitraan B2B & Konten Retainers Q4\n• PIC Pelaksana: Silvi (Konten & Sales) dan Raka (Instrumen Legal)\n• Batas Waktu: 3 Hari Kerja ke Depan\n• Status Awal: Menunggu Persetujuan\n\nJika Bang Robin sudah merasa sepakat dan pas dengan susunan ini, cukup ketik "Oke" atau "Setuju", dan data ini akan langsung saya kunci ke sistem serta saya kawal follow-up-nya hingga tuntas!`,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      },
+      1200
     );
 
     setIsAgentsTyping(false);
