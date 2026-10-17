@@ -112,7 +112,7 @@ export default function BrandingMarketing() {
         return (
           <select
             value={ch}
-            onChange={(e) => update ? update(e.target.value) : updateMarketingCampaign(row.id, { channel: e.target.value })}
+            onChange={(e) => update ? update([e.target.value]) : updateMarketingCampaign(row.id, { channel: [e.target.value] })}
             style={{
               border: 'none',
               backgroundColor: 'transparent',

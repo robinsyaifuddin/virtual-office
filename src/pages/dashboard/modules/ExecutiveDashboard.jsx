@@ -130,59 +130,65 @@ export default function ExecutiveDashboard({ onNavigateModule }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {executiveSummary.criticalAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  backgroundColor: '#f0f9ff',
-                  border: '1px solid #bae6fd',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px'
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>
-                    {alert.title}
-                  </span>
-                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                    {alert.detail}
-                  </span>
-                </div>
-                <button
-                  onClick={() => {
-                    if (alert.title.includes('Proposal') || alert.title.includes('Enterprise')) {
-                      onNavigateModule && onNavigateModule('crmdanklien');
-                    } else if (alert.title.includes('Invoice') || alert.title.includes('Tagihan')) {
-                      onNavigateModule && onNavigateModule('keuangandanprofit');
-                    } else {
-                      onNavigateModule && onNavigateModule('tugasdankalender');
-                    }
-                  }}
-                  className="ws-btn-transition"
+            {(executiveSummary?.criticalAlerts && executiveSummary.criticalAlerts.length > 0) ? (
+              executiveSummary.criticalAlerts.map((alert) => (
+                <div
+                  key={alert.id}
                   style={{
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    backgroundColor: '#0284c7',
-                    color: '#ffffff',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    backgroundColor: '#f0f9ff',
+                    border: '1px solid #bae6fd',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px',
-                    flexShrink: 0
+                    justifyContent: 'space-between',
+                    gap: '10px'
                   }}
                 >
-                  <span>Buka Modul</span>
-                  <ArrowRight size={12} />
-                </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>
+                      {alert.title}
+                    </span>
+                    <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                      {alert.detail}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (alert.title.includes('Proposal') || alert.title.includes('Enterprise')) {
+                        onNavigateModule && onNavigateModule('crmdanklien');
+                      } else if (alert.title.includes('Invoice') || alert.title.includes('Tagihan')) {
+                        onNavigateModule && onNavigateModule('keuangandanprofit');
+                      } else {
+                        onNavigateModule && onNavigateModule('tugasdankalender');
+                      }
+                    }}
+                    className="ws-btn-transition"
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      flexShrink: 0
+                    }}
+                  >
+                    <span>Buka Modul</span>
+                    <ArrowRight size={12} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div style={{ padding: '16px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem', backgroundColor: '#f8fafc', borderRadius: '8px' }}>
+                ✅ Seluruh indikator operasional dalam keadaan aman dan optimal.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

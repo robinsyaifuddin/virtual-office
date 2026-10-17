@@ -222,7 +222,24 @@ export default function LaporanEvaluasi() {
           <Icon3DNotes size={14} /> Pencapaian Positif
         </span>
       ), 
-      minWidth: '220px' 
+      minWidth: '220px',
+      render: (val, row, update) => (
+        <input
+          type="text"
+          value={val || ''}
+          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { whatWentWell: e.target.value })}
+          placeholder="Pencapaian..."
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#334155',
+            fontSize: '0.8rem',
+            width: '100%',
+            outline: 'none',
+            padding: '2px 4px'
+          }}
+        />
+      )
     },
     { 
       key: 'bottlenecks', 
@@ -231,7 +248,24 @@ export default function LaporanEvaluasi() {
           <Icon3DNotes size={14} /> Kendala Utama
         </span>
       ), 
-      minWidth: '200px' 
+      minWidth: '200px',
+      render: (val, row, update) => (
+        <input
+          type="text"
+          value={val || ''}
+          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { bottlenecks: e.target.value })}
+          placeholder="Kendala..."
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#334155',
+            fontSize: '0.8rem',
+            width: '100%',
+            outline: 'none',
+            padding: '2px 4px'
+          }}
+        />
+      )
     },
     { 
       key: 'author', 
@@ -240,7 +274,25 @@ export default function LaporanEvaluasi() {
           <Icon3DUser size={14} /> Penyusun
         </span>
       ), 
-      minWidth: '130px' 
+      minWidth: '130px',
+      render: (val, row, update) => (
+        <input
+          type="text"
+          value={val || ''}
+          onChange={(e) => update ? update(e.target.value) : updateReport(row.id, { author: e.target.value })}
+          placeholder="Penyusun..."
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#0f172a',
+            fontWeight: 600,
+            fontSize: '0.8rem',
+            width: '100%',
+            outline: 'none',
+            padding: '2px 4px'
+          }}
+        />
+      )
     }
   ];
 

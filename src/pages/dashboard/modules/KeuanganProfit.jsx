@@ -170,8 +170,29 @@ export default function KeuanganProfit() {
           <Icon3DNotes size={14} /> Nominal
         </span>
       ),
-      minWidth: '130px',
-      render: (val) => `Rp ${(val || 0).toLocaleString('id-ID')}`
+      minWidth: '140px',
+      render: (val, row, update) => (
+        <input
+          type="number"
+          value={val !== undefined && val !== null ? val : ''}
+          onChange={(e) => {
+            const num = parseFloat(e.target.value) || 0;
+            if (update) update(num);
+            else updateFinanceTransaction(row.id, { amount: num });
+          }}
+          placeholder="0"
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontWeight: 700,
+            color: '#0f172a',
+            fontSize: '0.82rem',
+            width: '100%',
+            outline: 'none',
+            padding: '2px 4px'
+          }}
+        />
+      )
     },
     { 
       key: 'clientRef', 

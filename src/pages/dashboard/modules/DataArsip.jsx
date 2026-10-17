@@ -102,8 +102,23 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '220px',
-      render: (val) => (
-        <span style={{ fontWeight: 600, color: '#0f172a' }}>{val}</span>
+      render: (val, row, update) => (
+        <input
+          type="text"
+          value={val || ''}
+          onChange={(e) => update ? update(e.target.value) : updateArchive(row.id, { title: e.target.value })}
+          placeholder="Nama Dokumen..."
+          style={{
+            border: 'none',
+            backgroundColor: 'transparent',
+            fontWeight: 600,
+            color: '#0f172a',
+            fontSize: '0.82rem',
+            width: '100%',
+            outline: 'none',
+            padding: '2px 4px'
+          }}
+        />
       )
     },
     { 
