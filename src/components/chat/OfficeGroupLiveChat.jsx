@@ -3,9 +3,11 @@ import {
   X, 
   Send, 
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  Cpu
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
+import { generateAgentResponse } from '../../services/multiAgentAiService';
 
 export default function OfficeGroupLiveChat({ isOpen, onClose }) {
   const store = useWorkspaceStore();
@@ -92,202 +94,15 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
 
     const lower = raw.toLowerCase();
 
-    // 1. SKENARIO UTAMA: TEGURAN / KOREKSI / INSTRUKSI PELATIHAN KE SISKA & BOT LAIN
-    const isCoachingOrCorrection = 
-      lower.includes('siska') ||
-      lower.includes('tegur') || 
-      lower.includes('koreksi') ||
-      lower.includes('evaluasi') ||
-      lower.includes('latih') ||
-      lower.includes('perbaiki') ||
-      lower.includes('ajarkan') ||
-      lower.includes('bodoh') || 
-      lower.includes('kaku') || 
-      lower.includes('kurang') || 
-      lower.includes('jangan') || 
-      lower.includes('salah') || 
-      lower.includes('tidak sopan') ||
-      lower.includes('tamplate') ||
-      lower.includes('template') ||
-      lower.includes('pengulangan');
-
-    if (isCoachingOrCorrection) {
-      setTypingAgentName('Siska');
-      
-      // Deteksi target spesifik atau fault issue
-      let targetBot = 'Semua AI Agent';
-      let targetFault = 'komunikasi kaku dan respons terburu-buru tanpa diskusi mendalam';
-      if (lower.includes('silvi')) {
-        targetBot = 'Silvi';
-        targetFault = 'langsung membuat draf data di database tanpa klarifikasi dan diskusi dengan Bang Robin';
-      } else if (lower.includes('reta')) {
-        targetBot = 'Reta';
-        targetFault = 'perangkuman yang prematur sebelum ada konsensus nyata dari tim';
-      } else if (lower.includes('arga')) {
-        targetBot = 'Arga';
-        targetFault = 'kurang proaktif menjadi rekan sparring diskusi utama Bang Robin';
-      } else if (lower.includes('raka')) {
-        targetBot = 'Raka';
-        targetFault = 'kurang sigap menyiapkan fasilitas berkas pendukung';
-      }
-
-      if (lower.includes('template') || lower.includes('tamplate') || lower.includes('pengulangan')) {
-        targetFault = 'pola jawaban berulang (canned template) yang tidak kontekstual terhadap topik yang dibahas';
-      }
-
-      setTimeout(async () => {
-        // Siska merespons secara cerdas, kontekstual, alami tanpa kalimat klise/canned
-        const siskaCoachingText = `Siap, teguran dan catatan Bang Robin saya terima dengan sangat jelas mengenai ${targetFault}.
-
-Evaluasi Pengawasan (Siska):
-Kepada ${targetBot}: Catat baik-baik poin evaluasi dari Bang Robin: "${raw}".
-Koreksi Langsung:
-1. Hilangkan kebiasaan menjawab secara template atau mengulang-ulang narasi yang sama. Setiap respon wajib menganalisis topik riil yang diajukan Bang Robin.
-2. Jangan pernah langsung membuat draf atau menyimpan ke database sebelum Bang Robin menyetujui arah ide dan memberikan detail yang cukup.
-3. Arga wajib memimpin diskusi dengan melontarkan pertanyaan klarifikasi yang tajam jika topik masih luas, bukan berasumsi sendiri.
-
-Arahan ini langsung saya rekam sebagai instruksi perilaku aktif di memori kerja kalian.`;
-
-        const siskaReply = {
-          id: `msg-sis-${Date.now()}`,
-          sender: 'Siska',
-          name: 'Siska',
-          role: 'Head of Quality & AI Trainer',
-          badgeColor: '#0284c7',
-          isDirective: true,
-          text: siskaCoachingText,
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        };
-
-        // Eksekusi nyata penyimpanan SOP pelatihan ke Mem0 Store
-        await store.siskaTrainAgents({
-          targetAgentName: targetBot,
-          coachingTopic: `Koreksi Alami: ${targetFault.slice(0, 45)}`,
-          behaviorGuidelines: `Koreksi Owner: "${raw}". Dilarang keras memakai jawaban template/canned. Wajib diskusi & tanya klarifikasi terlebih dahulu. Jangan simpan ke database tanpa persetujuan eksplisit Bang Robin.`
-        });
-
-        setMessages((prev) => [...prev, siskaReply]);
-
-        // Arga / Agen yang ditegur membalas secara tulus dan natural
-        setTypingAgentName('Arga & Silvi');
-        setTimeout(() => {
-          let teamAckText = `Terima kasih atas koreksi langsungnya Bang Robin dan Bu Siska. Saya (Arga) akan selalu siap mengulik ide Bang Robin dengan pertanyaan klarifikasi yang kontekstual terlebih dahulu.`;
-          if (targetBot === 'Silvi' || lower.includes('silvi')) {
-            teamAckText = `Maaf Bang Robin, saya (Silvi) tadi terlalu terburu-buru ingin langsung mengeksekusi draf konten. Mulai sekarang saya akan aktif berdiskusi dulu, mendengarkan arahan Bang Robin, dan baru membuat draf jika Bang Robin sudah memerintahkannya.`;
-          }
-
-          const teamAck = {
-            id: `msg-team-ack-${Date.now()}`,
-            sender: targetBot === 'Silvi' ? 'Silvi' : 'Arga',
-            name: targetBot === 'Silvi' ? 'Silvi' : 'Arga & Tim',
-            role: targetBot === 'Silvi' ? 'Head of Growth & Creative' : 'Chief Strategy Officer',
-            badgeColor: '#0369a1',
-            text: teamAckText,
-            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-          };
-          setMessages((prev) => [...prev, teamAck]);
-          setIsAgentsTyping(false);
-        }, 1100);
-      }, 1200);
-      return;
-    }
-
-    // 2. SKENARIO PERSETUJUAN OWNER ATAS RANGKUMAN RETA (Deal / Oke / Setuju / Jalankan / Lanjut)
-    const isApprovalCommand = 
-      lower === 'oke' || 
-      lower === 'ok' || 
-      lower === 'deal' ||
-      lower === 'sepakat' ||
-      lower === 'gas' ||
-      lower === 'acc' ||
-      lower.startsWith('oke ') ||
-      lower.startsWith('ok ') ||
-      lower.includes('saya setuju') || 
-      lower.includes('jalankan saja') || 
-      lower.includes('lanjutkan') ||
-      lower.includes('setuju jalankan');
-
-    if (isApprovalCommand) {
-      setTypingAgentName('Reta');
-      const taskId = `TSK-${Date.now().toString().slice(-4)}`;
-      const targetDate = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
-
-      setTimeout(async () => {
-        // Ambil konteks diskusi terakhir dari riwayat pesan jika ada
-        const recentContext = messages.slice(-4).map(m => m.text).join(' ');
-        let taskTitle = 'Eksekusi Program Kerja Sinergi Dewan Agen';
-        let moduleTarget = 'Tugas & Kalender';
-        let pic = 'Silvi & Reta';
-
-        if (recentContext.toLowerCase().includes('konten') || recentContext.toLowerCase().includes('video') || recentContext.toLowerCase().includes('branding')) {
-          taskTitle = 'Produksi Kampanye Konten & Funnel Acquisition Baru';
-          moduleTarget = 'Branding & Marketing';
-          pic = 'Silvi (Growth)';
-        } else if (recentContext.toLowerCase().includes('invoice') || recentContext.toLowerCase().includes('keuangan')) {
-          taskTitle = 'Penerbitan Rekonsiliasi & Dokumen Faktur Klien';
-          moduleTarget = 'Keuangan & Profit';
-          pic = 'Silvi & Raka';
-        } else if (recentContext.toLowerCase().includes('sop') || recentContext.toLowerCase().includes('legal') || recentContext.toLowerCase().includes('kontrak')) {
-          taskTitle = 'Standardisasi Instrumen Legal & Berkas PKS Digital';
-          moduleTarget = 'Data & Arsip';
-          pic = 'Raka (Documentation & Legal)';
-        }
-
-        await store.addTask({
-          id: taskId,
-          title: taskTitle,
-          category: moduleTarget,
-          project: 'DigiBooster Executive Action',
-          assignee: pic,
-          priority: 'P1',
-          status: 'Sedang Dikerjakan',
-          dueDate: targetDate,
-          description: `Disahkan langsung oleh Bang Robin di HQ LiveChat setelah konsensus tim tercapai. Reta mengawal jadwal & follow-up deliverable.`
-        });
-
-        store.recordAiTelemetryEvent({
-          agent: 'Reta (COO)',
-          action: `Consensus Locked: ${taskTitle}`,
-          targetModule: moduleTarget,
-          tokensUsed: 490,
-          latencyMs: 280,
-          status: 'Success'
-        });
-
-        const retaConfirm = {
-          id: `msg-reta-lock-${Date.now()}`,
-          sender: 'Reta',
-          name: 'Reta',
-          role: 'Chief Operating Officer (COO)',
-          badgeColor: '#0369a1',
-          hasActionPreview: true,
-          actionData: {
-            id: taskId,
-            title: taskTitle,
-            module: moduleTarget,
-            status: 'Terkunci di Database (Deadline: ' + targetDate + ')'
-          },
-          text: `Siap Bang Robin, terima kasih banyak atas persetujuannya! Kesepakatan resmi saya kunci ke modul ${moduleTarget}:\n\n• ID Tugas: ${taskId}\n• Judul: ${taskTitle}\n• PIC Utama: ${pic}\n• Tenggat Waktu: ${targetDate}\n\nSaya pribadi (Reta) yang akan mengawal follow-up progresnya setiap hari sampai tuntas dan melaporkan hasilnya langsung ke Bang Robin. Semua PIC sudah mulai jalan!`,
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        };
-
-        setMessages((prev) => [...prev, retaConfirm]);
-        setIsAgentsTyping(false);
-      }, 1100);
-      return;
-    }
-
-    // 3. SKENARIO PERINTAH TEGAS & EKSPLISIT BUAT DATA / DRAFT BARU (Strict Tool Calling)
-    // HANYA trigger jika ada kata kerja aktif perintah: buatkan, tolong buat, simpan ke tabel, input data, terbitkan
+    // 1. SKENARIO PERINTAH TEGAS & EKSPLISIT BUAT DATA / DRAFT KE SISTEM (Strict Tool Calling)
     const isExplicitToolCall = 
       (lower.includes('buatkan') || 
        lower.includes('tolong buat') || 
-       lower.includes('masukkan ke') || 
-       lower.includes('simpan ke') || 
+       lower.includes('masukkan ke tabel') || 
+       lower.includes('simpan ke tabel') || 
        lower.includes('inputkan') || 
        lower.includes('terbitkan faktur') ||
-       lower.includes('terbitkan invoice') ||
-       lower.includes('bikin draf sekarang')) && 
+       lower.includes('terbitkan invoice')) && 
       !lower.includes('bahas') && 
       !lower.includes('diskusi') && 
       !lower.includes('ngobrol');
@@ -344,32 +159,95 @@ Arahan ini langsung saya rekam sebagai instruksi perilaku aktif di memori kerja 
             module: moduleTarget,
             status: 'Tersimpan di Database (Menunggu Review)'
           },
-          text: `Siap Bang Robin! Sesuai perintah eksplisit Bapak, draf "${taskTitle}" sudah saya selesaikan dan langsung tercatat di tabel modul ${moduleTarget} [ID: ${taskId}].\n\nSilakan Bapak periksa di dashboard kapan saja.`,
+          text: `Siap Bang Robin! Sesuai instruksi spesifik Bapak, draf "${taskTitle}" sudah saya selesaikan dan langsung tercatat di tabel modul ${moduleTarget} [ID: ${taskId}].\n\nSilakan Bapak periksa di dashboard kapan saja.`,
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         };
 
         setMessages((prev) => [...prev, execReply]);
-
-        // Reta mengonfirmasi penataan kolom dan jadwal follow-up
-        setTypingAgentName('Reta');
-        setTimeout(() => {
-          const retaFollowup = {
-            id: `msg-reta-val-${Date.now()}`,
-            sender: 'Reta',
-            name: 'Reta',
-            role: 'Chief Operating Officer (COO)',
-            badgeColor: '#0369a1',
-            text: `Data dari ${executorName} telah saya tata di baki tugas operasional. Kolom PIC: ${executorName}, tenggat waktu telah diset, dan akan saya follow up secara berkala untuk dilaporkan ke Bang Robin.`,
-            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-          };
-          setMessages((prev) => [...prev, retaFollowup]);
-          setIsAgentsTyping(false);
-        }, 900);
-      }, 1200);
+        setIsAgentsTyping(false);
+      }, 1000);
       return;
     }
 
-    // 4. SKENARIO SAPAAN MURNI: SEMUA BOT MENYAPA HANGAT DAN MENANYAKAN AGENDA
+    // 2. SKENARIO PERSETUJUAN OWNER ATAS RANGKUMAN (Deal / Oke / Setuju / Jalankan)
+    const isApprovalCommand = 
+      lower === 'oke' || 
+      lower === 'ok' || 
+      lower === 'deal' ||
+      lower === 'sepakat' ||
+      lower === 'gas' ||
+      lower === 'acc' ||
+      lower.startsWith('oke ') ||
+      lower.startsWith('ok ') ||
+      lower.includes('saya setuju') || 
+      lower.includes('jalankan saja');
+
+    if (isApprovalCommand) {
+      setTypingAgentName('Reta');
+      const taskId = `TSK-${Date.now().toString().slice(-4)}`;
+      const targetDate = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
+
+      setTimeout(async () => {
+        const recentContext = messages.slice(-4).map(m => m.text).join(' ');
+        let taskTitle = 'Eksekusi Program Kerja Sinergi Dewan Agen';
+        let moduleTarget = 'Tugas & Kalender';
+        let pic = 'Silvi & Reta';
+
+        if (recentContext.toLowerCase().includes('konten') || recentContext.toLowerCase().includes('video') || recentContext.toLowerCase().includes('branding')) {
+          taskTitle = 'Produksi Kampanye Konten & Funnel Acquisition Baru';
+          moduleTarget = 'Branding & Marketing';
+          pic = 'Silvi (Growth)';
+        } else if (recentContext.toLowerCase().includes('invoice') || recentContext.toLowerCase().includes('keuangan')) {
+          taskTitle = 'Penerbitan Rekonsiliasi & Dokumen Faktur Klien';
+          moduleTarget = 'Keuangan & Profit';
+          pic = 'Silvi & Raka';
+        }
+
+        await store.addTask({
+          id: taskId,
+          title: taskTitle,
+          category: moduleTarget,
+          project: 'DigiBooster Executive Action',
+          assignee: pic,
+          priority: 'P1',
+          status: 'Sedang Dikerjakan',
+          dueDate: targetDate,
+          description: `Disahkan langsung oleh Bang Robin di HQ LiveChat setelah diskusi terarah. Reta mengawal jadwal & follow-up deliverable.`
+        });
+
+        store.recordAiTelemetryEvent({
+          agent: 'Reta (COO)',
+          action: `Consensus Locked: ${taskTitle}`,
+          targetModule: moduleTarget,
+          tokensUsed: 490,
+          latencyMs: 280,
+          status: 'Success'
+        });
+
+        const retaConfirm = {
+          id: `msg-reta-lock-${Date.now()}`,
+          sender: 'Reta',
+          name: 'Reta',
+          role: 'Chief Operating Officer (COO)',
+          badgeColor: '#0369a1',
+          hasActionPreview: true,
+          actionData: {
+            id: taskId,
+            title: taskTitle,
+            module: moduleTarget,
+            status: 'Terkunci di Database (Deadline: ' + targetDate + ')'
+          },
+          text: `Siap Bang Robin, terima kasih! Kesepakatan resmi saya kunci ke modul ${moduleTarget}:\n\n• ID Tugas: ${taskId}\n• Judul: ${taskTitle}\n• PIC Utama: ${pic}\n• Tenggat Waktu: ${targetDate}\n\nSaya pribadi yang akan mengawal follow-up progresnya setiap hari sampai tuntas dan melaporkan hasilnya langsung ke Bang Robin.`,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        };
+
+        setMessages((prev) => [...prev, retaConfirm]);
+        setIsAgentsTyping(false);
+      }, 1000);
+      return;
+    }
+
+    // 3. SKENARIO SAPAAN GENERAL: SEMUA BOT MENJAWAB SINGKAT DAN HANGAT
     const isPureGreeting = (
       lower.startsWith('halo') || 
       lower.startsWith('hai') || 
@@ -382,181 +260,285 @@ Arahan ini langsung saya rekam sebagai instruksi perilaku aktif di memori kerja 
 
     if (isPureGreeting) {
       setTypingAgentName('Arga');
-      await appendMessageSequentially(
-        {
-          id: `msg-arga-${Date.now()}`,
-          sender: 'Arga',
-          name: 'Arga',
-          role: 'Chief Strategy Officer (CSO)',
-          badgeColor: '#0284c7',
-          text: 'Halo Bang Robin! Senang bisa ngobrol lagi. Rencana atau strategi apa yang ingin kita bahas bersama hari ini?',
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        },
-        700
-      );
+      await appendMessageSequentially({
+        id: `msg-arga-${Date.now()}`,
+        sender: 'Arga',
+        name: 'Arga',
+        role: 'Chief Strategy Officer (CSO)',
+        badgeColor: '#0284c7',
+        text: 'Halo Bang Robin! Senang bisa menyapa. Siap mendiskusikan rencana atau strategi kantor hari ini.',
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 600);
 
       setTypingAgentName('Silvi');
-      await appendMessageSequentially(
-        {
-          id: `msg-silvi-${Date.now()}`,
-          sender: 'Silvi',
-          name: 'Silvi',
-          role: 'Head of Growth & Creative',
-          badgeColor: '#0284c7',
-          text: 'Halo Bang Robin! Tim kreatif & growth siap berdiskusi tren konten atau strategi sales kapan pun Bapak mau.',
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        },
-        600
-      );
+      await appendMessageSequentially({
+        id: `msg-silvi-${Date.now()}`,
+        sender: 'Silvi',
+        name: 'Silvi',
+        role: 'Head of Growth & Creative',
+        badgeColor: '#0284c7',
+        text: 'Halo Bang Robin! Tim kreatif & growth standby siap berdiskusi.',
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 500);
 
       setTypingAgentName('Raka & Reta');
-      await appendMessageSequentially(
-        {
-          id: `msg-reta-${Date.now()}`,
-          sender: 'Reta',
-          name: 'Reta',
-          role: 'Chief Operating Officer (COO)',
-          badgeColor: '#0369a1',
-          text: 'Halo Bang Robin! Raka dan saya standby. Begitu ada kesepakatan diskusi dengan Arga dan Silvi, kami siap memetakan aksi operasionalnya.',
-          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-        },
-        600
-      );
+      await appendMessageSequentially({
+        id: `msg-reta-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta & Raka',
+        role: 'COO & Legal',
+        badgeColor: '#0369a1',
+        text: 'Halo Bang Robin! Operasional dan repositori berkas legal siap mendampingi arahan Bapak.',
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 500);
 
       setIsAgentsTyping(false);
       return;
     }
 
-    // 5. SKENARIO UTAMA: DISKUSI BISNIS CERDAS & DINAMIS (Bukan Template!)
-    // Analisis konteks pesan user secara mendalam
-    const isAboutContent = lower.includes('konten') || lower.includes('video') || lower.includes('postingan') || lower.includes('reels') || lower.includes('tiktok') || lower.includes('sosmed');
-    const isAboutSales = lower.includes('sales') || lower.includes('klien') || lower.includes('omset') || lower.includes('closing') || lower.includes('revenue') || lower.includes('deal');
-    const isAboutTechLegal = lower.includes('legal') || lower.includes('kontrak') || lower.includes('pks') || lower.includes('sistem') || lower.includes('server') || lower.includes('data');
-    const isVagueOrShort = raw.split(' ').length <= 6 && (lower.includes('bahas') || lower.includes('diskusi') || lower.includes('gimana') || lower.includes('ide'));
+    // 4. MEKANISME ROUTING PEMBICARA TARGET (Anti-Menumpuk / Anti-Brutal):
+    // Bot HANYA merespons jika:
+    // a) Disebut eksplisit oleh Bang Robin (misal: "reta", "arga", "silvi", "raka", "siska")
+    // b) Jika tidak menyebut nama siapapun, default rekan ngobrol utama adalah Arga (CSO)
+    // Siska HANYA muncul jika:
+    // a) Disebut langsung oleh Bang Robin
+    // b) Bang Robin menyampaikan koreksi / komplain / komplain template / kesalahan
+    // c) Terdeteksi blunder anomali pada jawaban bot
 
-    // TAHAP 1: ARGA (Teman Ngobrol Utama - Menjawab kontekstual & Bertanya Klarifikasi jika konteks belum spesifik)
-    setTypingAgentName('Arga');
-    let argaSpeech = '';
-    
-    if (isVagueOrShort && isAboutContent) {
-      argaSpeech = `Wah siap Bang Robin! Kebetulan saya dan tim memang lagi memetakan arah komunikasi kita. Boleh tahu lebih spesifik Bang, diskusi ide konten hari ini fokusnya untuk tujuan apa? Apakah untuk bangun awareness di TikTok/Instagram, atau studi kasus edukatif di LinkedIn untuk narik prospek B2B?`;
-    } else if (isAboutContent) {
-      argaSpeech = `Menarik sekali poin Bang Robin tentang ${raw.slice(0, 50)}... Dari kacamata strategi bisnis, konten bukan sekadar estetika tapi harus jadi top-of-funnel yang terhubung langsung ke konversi bisnis. Saya menyarankan kita tentukan positioning utama dulu: apa value pembeda DigiBooster yang paling ingin kita tonjolkan minggu ini ke audiens?`;
-    } else if (isAboutSales) {
-      argaSpeech = `Topik penetrasi pasar dan sales ini sangat krusial Bang Robin. Menurut pengamatan saya pada pipeline kita, kuncinya ada pada lead qualification: kita perlu menyaring prospek yang siap bertransformasi digital agar conversion rate tim kita jauh lebih tinggi dan efisien. Bagaimana pandangan Bang Robin mengenai target segmen kita?`;
-    } else if (isAboutTechLegal) {
-      argaSpeech = `Setuju sekali Bang Robin. Tata kelola sistem dan legalitas adalah pondasi kepercayaan klien korporat. Sebelum kita melangkah lebih jauh, kita pastikan SOP dan batasan kerjanya terdefinisi jelas bersama Raka dan Reta.`;
-    } else {
-      argaSpeech = `Poin yang sangat bagus untuk kita bahas, Bang Robin. Mengenai "${raw}": kalau kita bedah secara strategis, prioritas utamanya adalah memastikan efisiensi waktu tim dan dampak langsung ke pertumbuhan kantor. Supaya diskusinya makin tajam, bagian mana yang menurut Bang Robin paling mendesak untuk kita eksekusi lebih dulu?`;
-    }
+    const mentionedReta = lower.includes('reta');
+    const mentionedSilvi = lower.includes('silvi');
+    const mentionedArga = lower.includes('arga');
+    const mentionedRaka = lower.includes('raka');
+    const mentionedSiska = lower.includes('siska');
 
-    await appendMessageSequentially(
-      {
-        id: `msg-deb-arga-${Date.now()}`,
-        sender: 'Arga',
-        name: 'Arga',
-        role: 'Chief Strategy Officer (CSO)',
-        badgeColor: '#0284c7',
-        text: argaSpeech,
+    const isCorrectionOrComplain = 
+      lower.includes('salah') || 
+      lower.includes('kurang') || 
+      lower.includes('tegur') || 
+      lower.includes('koreksi') || 
+      lower.includes('bodoh') || 
+      lower.includes('kaku') || 
+      lower.includes('template') || 
+      lower.includes('tamplate') || 
+      lower.includes('pengulangan') || 
+      lower.includes('aneh') || 
+      lower.includes('jangan');
+
+    // JIKA USER MENYEBUT RETAL LANGSUNG (Contoh: "untuk ini saya masih mau diskusi reta...")
+    if (mentionedReta && !mentionedArga && !mentionedSilvi && !isCorrectionOrComplain) {
+      setTypingAgentName('Reta');
+      const retaResponse = await generateAgentResponse({
+        agentName: 'Reta',
+        agentRole: 'Chief Operating Officer (COO)',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: 'Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi secara langsung. Berikan respon taktis mengenai langkah operasional pertama yang paling konkret dan realistis untuk mencapai persepsi berkelas dan eksekusi yang rapi. Jangan mengutip kalimat Bang Robin kata demi kata. Jangan membuat tugas/database sebelum Bang Robin menyetujui arahannya.'
+      });
+
+      await appendMessageSequentially({
+        id: `msg-reta-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta',
+        role: 'Chief Operating Officer (COO)',
+        badgeColor: '#0369a1',
+        text: retaResponse.text,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      1000
-    );
+      }, 700);
 
-    // TAHAP 2: SILVI (Head of Growth & Creative - Menyumbang Insight Konten, Branding, Funnel & Closing)
-    setTypingAgentName('Silvi');
-    let silviSpeech = '';
+      // Catat telemetri
+      store.recordAiTelemetryEvent({
+        agent: 'Reta (COO)',
+        action: 'Direct Discussion',
+        targetModule: 'Operasional',
+        tokensUsed: retaResponse.usage?.total_tokens || 350,
+        latencyMs: 310,
+        status: 'Success'
+      });
 
-    if (isVagueOrShort && isAboutContent) {
-      silviSpeech = `Menyambung Arga, dari sisi growth: kalau Bang Robin ingin hasil cepat menghasilkan leads, saya merekomendasikan format "Behind the Scenes AI Agency" atau breakdown solusi nyata. Format hook 3 detik pertama dengan studi kasus problem klien terbukti menghasilkan interaksi 3x lipat lebih tinggi.`;
-    } else if (isAboutContent) {
-      silviSpeech = `Dari sudut pandang konten dan konversi marketing: agar topik yang Bang Robin sebutkan tadi berdampak ke sales, kita bungkus dengan hook yang memecahkan masalah nyata calon klien. Di akhir video/postingan, kita sertakan Call to Action (CTA) ke konsultasi gratis. Ini mempermudah tim closing mengonversi penonton menjadi klien aktif.`;
-    } else if (isAboutSales) {
-      silviSpeech = `Dari sisi closing deal: saya bisa siapkan skema paket penawaran bundling dan insentif khusus onboarding kilat. Dalam pengalaman kampanye sebelumnya, penawaran dengan batas waktu terbatas menaikkan urgensi prospek hingga 65% untuk segera deal.`;
-    } else {
-      silviSpeech = `Dari pilar branding & growth: apapun keputusan arah strategis Bang Robin dan Arga, saya siap merancang funnel distribusinya, mulai dari narasi pesan ke publik hingga materi presentasi ke calon partner agar daya tariknya maksimal.`;
+      setIsAgentsTyping(false);
+      return;
     }
 
-    await appendMessageSequentially(
-      {
+    // JIKA USER MENYEBUT SILVI LANGSUNG
+    if (mentionedSilvi && !mentionedArga && !mentionedReta && !isCorrectionOrComplain) {
+      setTypingAgentName('Silvi');
+      const silviResponse = await generateAgentResponse({
+        agentName: 'Silvi',
+        agentRole: 'Head of Growth & Creative',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: 'Bang Robin berbicara langsung denganmu (Silvi). Berikan pandangan kreatif, strategi branding, konten visual, atau taktik closing deals yang elegan. Jangan langsung membuat draf database tanpa persetujuan Bang Robin.'
+      });
+
+      await appendMessageSequentially({
+        id: `msg-silvi-${Date.now()}`,
+        sender: 'Silvi',
+        name: 'Silvi',
+        role: 'Head of Growth & Creative',
+        badgeColor: '#0284c7',
+        text: silviResponse.text,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 700);
+
+      store.recordAiTelemetryEvent({
+        agent: 'Silvi (Growth)',
+        action: 'Direct Discussion',
+        targetModule: 'Branding & Marketing',
+        tokensUsed: silviResponse.usage?.total_tokens || 350,
+        latencyMs: 310,
+        status: 'Success'
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
+    // JIKA USER MENYEBUT RAKA LANGSUNG
+    if (mentionedRaka && !mentionedArga && !isCorrectionOrComplain) {
+      setTypingAgentName('Raka');
+      const rakaResponse = await generateAgentResponse({
+        agentName: 'Raka',
+        agentRole: 'Head of Documentation & Legal Systems',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: 'Bang Robin berbicara langsung denganmu (Raka). Tanggapi dari sudut pandang repositori dokumen, instrumen hukum PKS/NDA, dan kesiapan sistem.'
+      });
+
+      await appendMessageSequentially({
+        id: `msg-raka-${Date.now()}`,
+        sender: 'Raka',
+        name: 'Raka',
+        role: 'Head of Documentation & Legal',
+        badgeColor: '#0c4a6e',
+        text: rakaResponse.text,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 700);
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
+    // JIKA ADA KOREKSI / COMPLAIN ATAU SISKA DISEBUT SECARA SPESIFIK
+    if (isCorrectionOrComplain || mentionedSiska) {
+      setTypingAgentName('Siska');
+
+      // Tentukan target yang sedang dikoreksi
+      let targetFaultAgent = 'Semua AI Agent';
+      if (lower.includes('arga')) targetFaultAgent = 'Arga';
+      else if (lower.includes('silvi')) targetFaultAgent = 'Silvi';
+      else if (lower.includes('reta')) targetFaultAgent = 'Reta';
+      else if (lower.includes('raka')) targetFaultAgent = 'Raka';
+
+      const siskaPrompt = `Bang Robin memberikan teguran/koreksi: "${raw}".
+Sebagai Head of Quality Control & Trainer:
+1. Tanggapi dengan santun, lugas, dan cerdas.
+2. Jelaskan deteksi kesalahan secara presisi (misal: bot mengulang-ulang kalimat, mengutip kata user langsung tanpa memahami makna, atau bot menjawab serentak tanpa giliran terarah).
+3. Sampaikan bahwa koreksi ini akan diresmikan ke memori SOP.
+4. Tanyakan kepada Bang Robin apakah ada poin perbaikan spesifik lainnya yang ingin ditambahkan sebelum Siska menyuntikkan permanen ke memori vektor kerja bot.`;
+
+      const siskaRes = await generateAgentResponse({
+        agentName: 'Siska',
+        agentRole: 'Head of Quality & AI Trainer',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: siskaPrompt
+      });
+
+      await appendMessageSequentially({
+        id: `msg-sis-${Date.now()}`,
+        sender: 'Siska',
+        name: 'Siska',
+        role: 'Head of Quality & AI Trainer',
+        badgeColor: '#0284c7',
+        isDirective: true,
+        text: siskaRes.text,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 800);
+
+      // Simpan riwayat pelatihan ke store
+      await store.siskaTrainAgents({
+        targetAgentName: targetFaultAgent,
+        coachingTopic: `Koreksi Owner: ${raw.slice(0, 45)}...`,
+        behaviorGuidelines: `Koreksi Bang Robin: "${raw}". Dilarang keras mengutip kata-kata user mentah-mentah. Wajib memahami makna esensial, gunakan bahasa profesional natural. Giliran berbicara terarah sesuai panggilan, dan Reta tidak boleh membuat ringkasan/tugas tanpa diminta.`
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
+    // 5. SKENARIO DISKUSI UMUM (Jika tidak sebut nama, Arga sebagai mitra ngobrol utama memimpin diskusi)
+    // Silvi HANYA nimbrung singkat jika topik sangat relevan dengan branding/konten/sales
+    // Reta dan Siska DIAM (tidak ikut berbicara menumpuk)
+    setTypingAgentName('Arga');
+
+    const argaResponse = await generateAgentResponse({
+      agentName: 'Arga',
+      agentRole: 'Chief Strategy Officer (CSO)',
+      userMessage: raw,
+      conversationHistory: messages,
+      customInstruction: `Kamu adalah Arga, partner sparring diskusi utama Bang Robin.
+TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
+- JANGAN PERNAH mengutip kata-kata Bang Robin mentah-mentah (seperti: 'Mengenai "..." kalau kita bedah...'). Pahami maknanya!
+- Jika Bang Robin ingin DigiBooster dipandang berkelas dan canggih: jelaskan ide strategis bagaimana membangun reputasi dan kredibilitas tersebut melalui output nyata.
+- Jika konteksnya masih luas, lontarkan 1 pertanyaan klarifikasi yang tajam dan berbobot untuk memperjelas target Bang Robin.`
+    });
+
+    await appendMessageSequentially({
+      id: `msg-deb-arga-${Date.now()}`,
+      sender: 'Arga',
+      name: 'Arga',
+      role: 'Chief Strategy Officer (CSO)',
+      badgeColor: '#0284c7',
+      text: argaResponse.text,
+      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+    }, 800);
+
+    // Jika topik jelas-jelas tentang konten/branding/sales, Silvi boleh memberikan 1 perspektif pelengkap
+    const isTopicContentOrSales = 
+      lower.includes('konten') || 
+      lower.includes('branding') || 
+      lower.includes('sales') || 
+      lower.includes('berkelas') || 
+      lower.includes('klien') || 
+      lower.includes('iklan');
+
+    if (isTopicContentOrSales && !mentionedReta && !mentionedRaka) {
+      setTypingAgentName('Silvi');
+      const silviResponse = await generateAgentResponse({
+        agentName: 'Silvi',
+        agentRole: 'Head of Growth & Creative',
+        userMessage: raw,
+        conversationHistory: [...messages, { sender: 'Arga', name: 'Arga', text: argaResponse.text }],
+        customInstruction: `Menyambung pandangan Arga secara ringkas dan lugas (maksimal 2-3 kalimat). Berikan perspektif dari sudut pandang branding & growth: bagaimana menciptakan persepsi berkelas tersebut lewat visual atau studi kasus nyata tanpa terlihat murahan. Jangan membuat tugas/database.`
+      });
+
+      await appendMessageSequentially({
         id: `msg-deb-silvi-${Date.now()}`,
         sender: 'Silvi',
         name: 'Silvi',
         role: 'Head of Growth & Creative',
         badgeColor: '#0284c7',
-        text: silviSpeech,
+        text: silviResponse.text,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      1100
-    );
-
-    // TAHAP 3: RAKA (Documentation & Legal - Menyediakan Fasilitas Berkas & Sistem)
-    setTypingAgentName('Raka');
-    let rakaSpeech = '';
-    if (isAboutTechLegal || isAboutSales) {
-      rakaSpeech = `Dari sisi kepatuhan legalitas dan berkas pendukung: instrumen MoU kerja sama, draf PKS resmi, dan template NDA kerahasiaan data sudah saya standarkan di modul Data & Arsip. Begitu Bang Robin memberi lampu hijau, berkas hukum langsung siap diterbitkan.`;
-    } else {
-      rakaSpeech = `Jika arahan Bang Robin, Arga, dan Silvi nanti disahkan, saya di divisi dokumentasi siap memfasilitasi arsip brief kreatif, formulir kerja sama mitra, serta mencatat SOP prosedurnya ke modul arsip perusahaan agar tersimpan rapi dan aman.`;
+      }, 900);
     }
 
-    await appendMessageSequentially(
-      {
-        id: `msg-deb-raka-${Date.now()}`,
-        sender: 'Raka',
-        name: 'Raka',
-        role: 'Head of Documentation & Legal',
-        badgeColor: '#0c4a6e',
-        text: rakaSpeech,
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      900
-    );
-
-    // TAHAP 4: SISKA (Head of QA - Pengawas Objektif yang Memastikan Percakapan Relevan & Bebas OOT)
-    setTypingAgentName('Siska');
-    const siskaSpeech = `Quality Supervisor: Saya memantau alur diskusi berjalan sangat terarah dan relevan dengan topik "${raw.slice(0, 35)}...". Tidak ada agen yang mengambil langkah sepihak ke database. Arga memimpin diskusi secara komunikatif dan Silvi melengkapi dari sudut pandang marketing. Diskusi ini valid untuk dirangkum Reta.`;
-
-    await appendMessageSequentially(
-      {
-        id: `msg-deb-siska-${Date.now()}`,
+    // SISKA WATCHDOG: Mendeteksi jika ada anomali atau pengulangan dari bot
+    // Jika ada jawaban bot yang tidak sengaja mengutip kata mentah atau melanggar SOP, Siska otomatis bersuara
+    const botCombinedText = `${argaResponse.text}`;
+    if (botCombinedText.includes(`"${raw}"`) || botCombinedText.includes(`'${raw}'`)) {
+      setTypingAgentName('Siska');
+      await appendMessageSequentially({
+        id: `msg-sis-watch-${Date.now()}`,
         sender: 'Siska',
         name: 'Siska',
         role: 'Head of Quality & AI Trainer',
         badgeColor: '#0284c7',
-        text: siskaSpeech,
+        isDirective: true,
+        text: `Quality Watchdog (Siska): Terdeteksi anomali pada cara penyampaian bot yang masih mengutip kalimat Bang Robin secara mentah. Saya tegur langsung tim agar selalu mencerna maksud esensialnya terlebih dahulu. Bang Robin, apakah ada poin spesifik lain yang ingin dikoreksi agar saya perbarui di memori pelatihan?`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      800
-    );
-
-    // TAHAP 5: RETA (COO - Merangkum secara Jelas, Menyiapkan Format Kolom, & Menunggu Persetujuan Bang Robin)
-    setTypingAgentName('Reta');
-    const retaSpeech = `Bang Robin, izin saya rangkumkan poin diskusi dewan agen menjadi format terstruktur:
-
-1. Arah Strategis (Arga): Penyelarasan tujuan utama diskusi "${raw.slice(0, 40)}" agar terarah dan efisien.
-2. Formulasi Eksekusi (Silvi): Pemanfaatan materi kreatif, penguatan hook pesan, dan jembatan konversi ke sales.
-3. Fasilitas Berkas (Raka): Repositori arsip dan instrumen pendukung siap diterbitkan.
-
-Format Data yang Disiapkan untuk Sistem:
-• Modul Target: ${isAboutContent ? 'Branding & Marketing' : (isAboutSales ? 'CRM & Klien' : 'Tugas & Kalender')}
-• Usulan Judul: Inisiatif Baru: ${raw.slice(0, 35)}
-• PIC Utama: ${isAboutContent ? 'Silvi (Growth & Creative)' : 'Arga & Silvi'}
-• Supervisi & Follow-Up: Reta (COO)
-
-Bagaimana Bang Robin, apakah arah dan susunan kolom data ini sudah pas? Jika Bang Robin sepakat dan ketik "Oke" atau "Setuju", saya akan segera mengunci tugas ini ke modul sistem dan mengawal progresnya!`;
-
-    await appendMessageSequentially(
-      {
-        id: `msg-deb-reta-${Date.now()}`,
-        sender: 'Reta',
-        name: 'Reta',
-        role: 'Chief Operating Officer (COO)',
-        badgeColor: '#0369a1',
-        text: retaSpeech,
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      },
-      1200
-    );
+      }, 700);
+    }
 
     setIsAgentsTyping(false);
   };

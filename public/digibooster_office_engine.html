@@ -550,6 +550,38 @@ dialog#agentDlg::backdrop {
 </script>
 </head>
 <body>
+<!-- ========================= BOOT VEIL: Dark loading screen ========================= -->
+<div id="boot-veil" style="
+  position:fixed;inset:0;z-index:99999;
+  background:#091322;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  transition:opacity 0.45s cubic-bezier(0.4,0,0.2,1);
+  pointer-events:all;
+">
+  <img src="/logo.webp" alt="DigiBooster" style="
+    width:68px;height:68px;border-radius:14px;margin-bottom:18px;
+    filter:drop-shadow(0 0 20px rgba(0,210,255,0.7));
+    animation:veil-pulse 1.6s ease-in-out infinite;
+  ">
+  <div style="color:#00d2ff;font:800 13.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:0.06em;margin-bottom:14px">
+    Memuat Virtual Office 3D...
+  </div>
+  <div style="width:220px;height:4px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden">
+    <div id="boot-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#00d2ff,#0ea5e9);border-radius:4px;transition:width 0.25s ease"></div>
+  </div>
+  <div id="boot-label" style="color:rgba(148,163,184,0.85);font:700 11px 'Plus Jakarta Sans',sans-serif;margin-top:10px;letter-spacing:0.03em">
+    Menyiapkan kantor 3D...
+  </div>
+</div>
+<style>
+@keyframes veil-pulse {
+  0%,100%{transform:scale(1);filter:drop-shadow(0 0 18px rgba(0,210,255,0.6));}
+  50%{transform:scale(1.06);filter:drop-shadow(0 0 28px rgba(0,210,255,1));}
+}
+</style>
+<!-- ========================= / BOOT VEIL ========================= -->
+
 <div id="stage"></div>
 <div id="labels"></div>
 
@@ -684,6 +716,32 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 
+/* ================= 0. BOOT VEIL & FAST STARTUP ================= */
+function setBootProgress(pct, label) {
+  const fill = document.getElementById('boot-fill');
+  const lbl = document.getElementById('boot-label');
+  if (fill) fill.style.width = pct + '%';
+  if (lbl && label) lbl.textContent = label;
+}
+
+function revealScene() {
+  const veil = document.getElementById('boot-veil');
+  if (!veil) return;
+  setBootProgress(100, 'Kantor 3D Siap!');
+  setTimeout(() => {
+    veil.style.opacity = '0';
+    veil.style.pointerEvents = 'none';
+    setTimeout(() => { if (veil && veil.parentNode) veil.remove(); }, 500);
+  }, 80);
+  try { window.parent.postMessage({ type: 'SCENE_READY' }, '*'); } catch(_) {}
+}
+
+// Fallback auto-dismiss maksimal 900ms agar user TIDAK PERNAH terblokir loading
+setTimeout(() => {
+  revealScene();
+}, 900);
+
+
 /* ================= 1. SETUP SCENE, CAMERA & RENDERER ================= */
 const stage = document.getElementById("stage");
 const scene = new THREE.Scene();
@@ -707,6 +765,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;
+renderer.shadowMap.needsUpdate = true;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
 
@@ -715,10 +775,10 @@ labelRenderer.setSize(window.innerWidth, window.innerHeight);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.16; // Sensitif, responsif instan, dan halus tanpa lambat/lag
-controls.panSpeed = 1.85;      // Geser denah cepat & enak digerakkan
-controls.rotateSpeed = 1.35;   // Putar sudut kamera lincah
-controls.zoomSpeed = 1.6;      // Zoom responsif
+controls.dampingFactor = 0.12; // Sensitif, responsif instan, dan halus tanpa lambat/lag
+controls.panSpeed = 2.2;      // Geser denah cepat & enak digerakkan
+controls.rotateSpeed = 1.6;   // Putar sudut kamera lincah
+controls.zoomSpeed = 1.85;      // Zoom responsif
 controls.target.copy(DEFAULT_TARGET);
 controls.minZoom = 0.35;
 controls.maxZoom = 4.0;
