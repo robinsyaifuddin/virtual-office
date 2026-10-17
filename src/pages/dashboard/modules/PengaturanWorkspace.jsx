@@ -172,6 +172,81 @@ export default function PengaturanWorkspace() {
           ))}
         </div>
       </div>
+
+      {/* Alur Eksekusi & Tindak Lanjut Dewan Agen (Core Skill Khusus Seluruh Bot) */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #bae6fd',
+        borderRadius: '16px',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        boxShadow: '0 4px 12px rgba(2, 132, 199, 0.05)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Cpu size={18} color="#0284c7" />
+            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+              Alur Eksekusi &amp; Tindak Lanjut Dewan Agen (Skill Utama Permanen)
+            </h4>
+          </div>
+          <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
+            Master Protocol
+          </span>
+        </div>
+
+        <p style={{ margin: 0, fontSize: '0.82rem', color: '#475569', lineHeight: 1.5 }}>
+          Protokol komunikasi dan eksekusi resmi yang mengatur peran spesifik seluruh bot AI saat berinteraksi dengan Bang Robin. Mencegah tindakan sepihak, menghilangkan respons klise/template, dan memastikan setiap instruksi bermuara pada data nyata.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+          <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+            <strong style={{ fontSize: '0.84rem', color: '#0284c7', display: 'block', marginBottom: '4px' }}>
+              1. Arga (CSO) — Rekan Diskusi Utama
+            </strong>
+            <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+              Paling aktif saat diajak diskusi. Melontarkan pertanyaan klarifikasi yang tajam jika topik masih umum, dan membedah prioritas strategis.
+            </span>
+          </div>
+
+          <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+            <strong style={{ fontSize: '0.84rem', color: '#0284c7', display: 'block', marginBottom: '4px' }}>
+              2. Silvi — Growth &amp; Content Specialist
+            </strong>
+            <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+              Mahir dari analisis, produksi konten, branding, hingga teknik closing deals. Tidak boleh langsung membuat draf tanpa diskusi dan arahan eksplisit.
+            </span>
+          </div>
+
+          <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+            <strong style={{ fontSize: '0.84rem', color: '#0284c7', display: 'block', marginBottom: '4px' }}>
+              3. Raka — Fasilitator Berkas &amp; Legalitas
+            </strong>
+            <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+              Sigap memfasilitasi kebutuhan berkas: instrumen MoU/PKS, klausul NDA kerahasiaan, dan pengarsipan data resmi di sistem.
+            </span>
+          </div>
+
+          <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
+            <strong style={{ fontSize: '0.84rem', color: '#0284c7', display: 'block', marginBottom: '4px' }}>
+              4. Siska — Pengawas Mutu &amp; Trainer
+            </strong>
+            <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+              Memantau jalannya diskusi. Sigap menegur secara kontekstual jika ada jawaban OOT, bertele-tele, atau template. Langsung menanamkan koreksi ke memori bot.
+            </span>
+          </div>
+        </div>
+
+        <div style={{ padding: '14px', borderRadius: '10px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff' }}>
+          <strong style={{ fontSize: '0.84rem', color: '#0369a1', display: 'block', marginBottom: '4px' }}>
+            5. Reta (COO) — Perangkum, Pemeta Kolom Data &amp; PIC Follow-Up
+          </strong>
+          <span style={{ fontSize: '0.78rem', color: '#334155', lineHeight: 1.5, display: 'block' }}>
+            Merangkum hasil konsensus seluruh tim ke narasi terstruktur. Mengajukan draf kolom data kepada Bang Robin. Setelah Bang Robin menyetujui ("Oke" / "Setuju"), Reta mengunci data ke modul yang tepat, menetapkan PIC, dan mem-follow up progres berkala hingga tuntas.
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

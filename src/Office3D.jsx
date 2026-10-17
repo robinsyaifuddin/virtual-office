@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, X, MessageSquare, Users } from 'lucide-react';
 import './styles/virtualOffice.css';
 import OfficeGroupLiveChat from './components/chat/OfficeGroupLiveChat';
@@ -7,6 +7,18 @@ export default function Office3D() {
   const [toastMessage, setToastMessage] = useState(null);
   const [activeRoom, setActiveRoom] = useState(null);
   const [isGroupChatOpen, setIsGroupChatOpen] = useState(false);
+  const iframeRef = useRef(null);
+
+  // Kirim sinyal pause ke mesin 3D ketika modal LiveChat aktif agar CPU/GPU 100% dialokasikan untuk mengetik
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      if (isGroupChatOpen) {
+        iframeRef.current.contentWindow.postMessage({ type: 'PAUSE_3D_OFFICE' }, '*');
+      } else {
+        iframeRef.current.contentWindow.postMessage({ type: 'RESUME_3D_OFFICE' }, '*');
+      }
+    }
+  }, [isGroupChatOpen]);
 
   // Titik Interaktif Ruangan
   const roomHotspots = [
@@ -32,6 +44,7 @@ export default function Office3D() {
     <div className="virtual-office-root" style={{ background: '#091322', overflow: 'hidden' }}>
       {/* 3D Voxel Engine Interaktif 100% Menggunakan Aset 3D */}
       <iframe
+        ref={iframeRef}
         src="/digibooster_office_engine.html"
         title="DigiBooster 3D Virtual Office"
         style={{

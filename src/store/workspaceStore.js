@@ -1379,6 +1379,17 @@ export const useWorkspaceStore = create((set, get) => ({
       addedAt: '17 Okt 2026',
       status: 'Active (Tersimpan di Mem0 Vector)',
       effectivenessScore: '98%'
+    },
+    {
+      id: 'RULE-04',
+      agentId: 'global_agents',
+      agentName: 'Semua AI Agent',
+      ruleTitle: 'Protokol Sinergi Konsensus & Alur Eksekusi Dewan Agen',
+      category: 'Master Protocol',
+      instruction: 'Arga wajib memimpin diskusi kontekstual dan melontarkan pertanyaan klarifikasi. Silvi fokus pada ide konten & closing growth tanpa langsung membuat draf ke database. Raka memfasilitasi berkas & instrumen legal. Siska memantau mutu percakapan dan menegur secara kontekstual tanpa template klise. Reta merangkum konsensus terstruktur dan baru mengunci tugas/kolom data ke modul setelah Bang Robin menyetujui ("Oke" / "Setuju").',
+      addedAt: '18 Okt 2026',
+      status: 'Active (Tersimpan di Mem0 Vector)',
+      effectivenessScore: '100%'
     }
   ],
 
