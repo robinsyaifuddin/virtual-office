@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, MessageSquare, Users } from 'lucide-react';
 import './styles/virtualOffice.css';
+import OfficeGroupLiveChat from './components/chat/OfficeGroupLiveChat';
 
 export default function Office3D() {
   const [toastMessage, setToastMessage] = useState(null);
   const [activeRoom, setActiveRoom] = useState(null);
+  const [isGroupChatOpen, setIsGroupChatOpen] = useState(false);
 
   // Titik Interaktif Ruangan
   const roomHotspots = [
@@ -120,6 +122,54 @@ export default function Office3D() {
           </div>
         </div>
       )}
+
+      {/* Floating HQ LiveChat Button (Trigger Modal Chat Grup Multi-Agent) */}
+      <button
+        onClick={() => setIsGroupChatOpen(true)}
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 40,
+          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+          border: '2px solid rgba(255, 255, 255, 0.4)',
+          borderRadius: '50px',
+          padding: '12px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          color: '#ffffff',
+          fontWeight: 800,
+          fontSize: '13px',
+          cursor: 'pointer',
+          boxShadow: '0 8px 30px rgba(2, 132, 199, 0.45)',
+          backdropFilter: 'blur(10px)',
+          transition: 'all 0.2s ease',
+          animation: 'pulse 3s infinite'
+        }}
+        title="Buka HQ Group LiveChat DigiBooster (Chat Semua Agen)"
+      >
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <MessageSquare size={18} color="#ffffff" />
+          <span style={{
+            position: 'absolute',
+            top: '-6px',
+            right: '-6px',
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#22c55e',
+            boxShadow: '0 0 6px #22c55e'
+          }} />
+        </div>
+        <span>LiveChat Dewan Agen (5)</span>
+      </button>
+
+      {/* Modal Full LiveChat Group Multi-Agent */}
+      <OfficeGroupLiveChat
+        isOpen={isGroupChatOpen}
+        onClose={() => setIsGroupChatOpen(false)}
+      />
 
       {/* Toast Notification */}
       {toastMessage && (
