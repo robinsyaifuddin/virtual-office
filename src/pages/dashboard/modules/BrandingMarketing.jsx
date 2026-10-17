@@ -111,16 +111,10 @@ export default function BrandingMarketing() {
         const ch = Array.isArray(val) ? val[0] : (val || 'Instagram');
         return (
           <span
-            className="ws-notion-pill"
             style={{
-              border: '1px solid #bfdbfe',
-              backgroundColor: '#eff6ff',
-              color: '#0284c7',
               fontSize: '0.8rem',
-              fontWeight: 600,
-              padding: '2px 8px',
-              borderRadius: '6px',
-              display: 'inline-block'
+              fontWeight: 500,
+              color: '#334155'
             }}
           >
             {ch}
@@ -140,13 +134,8 @@ export default function BrandingMarketing() {
       render: (val) => (
         <span
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '0.78rem',
-            fontWeight: 600,
-            backgroundColor: '#f1f5f9',
+            fontSize: '0.8rem',
+            fontWeight: 500,
             color: '#334155'
           }}
         >
@@ -164,25 +153,19 @@ export default function BrandingMarketing() {
       minWidth: '150px',
       render: (val) => {
         const stageColors = {
-          'Ide': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' },
-          'Design/Video': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'Review': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Siap Tayang': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
-          'Selesai Tayang': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
+          'Ide': '#64748b',
+          'Design/Video': '#0284c7',
+          'Review': '#d97706',
+          'Siap Tayang': '#4f46e5',
+          'Selesai Tayang': '#16a34a'
         };
-        const current = stageColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = stageColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Ide'}

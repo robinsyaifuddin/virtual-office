@@ -213,14 +213,8 @@ export default function StaffAgent() {
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: isAI ? '#eff6ff' : '#f8fafc',
-              border: `1px solid ${isAI ? '#bfdbfe' : '#e2e8f0'}`,
+              fontSize: '0.8rem',
+              fontWeight: 600,
               color: isAI ? '#0284c7' : '#0f172a'
             }}
           >
@@ -248,16 +242,10 @@ export default function StaffAgent() {
       minWidth: '150px',
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || 'Manajemen'}
@@ -275,19 +263,12 @@ export default function StaffAgent() {
       render: (val) => (
         <span
           style={{
-            border: '1px solid #cbd5e1',
-            backgroundColor: '#f8fafc',
-            color: '#0f172a',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            padding: '3px 10px',
-            borderRadius: '6px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px'
+            color: '#334155',
+            fontSize: '0.8rem',
+            fontWeight: 500
           }}
         >
-          🏢 {val || 'Kantor Utama'}
+          {val || 'Kantor Utama'}
         </span>
       )
     },
@@ -303,26 +284,20 @@ export default function StaffAgent() {
         const isOnline = val?.includes('Online');
         const isRest = val?.includes('Istirahat');
         const isStandby = val?.includes('Standby');
-        const statusColors = isOnline
-          ? { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
+        const statusColor = isOnline
+          ? '#16a34a'
           : isRest
-          ? { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' }
+          ? '#d97706'
           : isStandby
-          ? { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' }
-          : { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
+          ? '#0284c7'
+          : '#64748b';
 
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: statusColors.bg,
-              border: `1px solid ${statusColors.border}`,
-              color: statusColors.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: statusColor
             }}
           >
             {val || 'Online / Bertugas'}

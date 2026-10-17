@@ -120,16 +120,10 @@ export default function SasaranKpi() {
       options: categoryOptions,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || categoryOptions[0]}
@@ -147,13 +141,8 @@ export default function SasaranKpi() {
       render: (val) => (
         <span
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '0.78rem',
-            fontWeight: 600,
-            backgroundColor: '#f1f5f9',
+            fontSize: '0.8rem',
+            fontWeight: 500,
             color: '#334155'
           }}
         >
@@ -172,14 +161,8 @@ export default function SasaranKpi() {
       render: (val) => (
         <span
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            backgroundColor: '#eff6ff',
-            border: '1px solid #bfdbfe',
+            fontSize: '0.8rem',
+            fontWeight: 600,
             color: '#0284c7'
           }}
         >
@@ -239,25 +222,19 @@ export default function SasaranKpi() {
         const displayStatus = val || autoStatus;
 
         const statusColors = {
-          'Belum Mulai': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
-          'On Track': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'At Risk': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Tercapai': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
+          'Belum Mulai': '#dc2626',
+          'On Track': '#0284c7',
+          'At Risk': '#d97706',
+          'Tercapai': '#16a34a'
         };
-        const current = statusColors[displayStatus] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = statusColors[displayStatus] || '#0284c7';
 
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {displayStatus}

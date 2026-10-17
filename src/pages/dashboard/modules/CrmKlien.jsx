@@ -128,16 +128,10 @@ export default function CrmKlien() {
       options: categoryOptions,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || categoryOptions[0]}
@@ -154,26 +148,20 @@ export default function CrmKlien() {
       minWidth: '160px',
       render: (val) => {
         const stageColors = {
-          'Lead Masuk': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' },
-          'Discovery Call': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'Proposal Terkirim': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Negosiasi': { bg: '#f0f9ff', border: '#bae6fd', text: '#0284c7' },
-          'Deal Won': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Deal Lost': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }
+          'Lead Masuk': '#64748b',
+          'Discovery Call': '#0284c7',
+          'Proposal Terkirim': '#d97706',
+          'Negosiasi': '#0ea5e9',
+          'Deal Won': '#16a34a',
+          'Deal Lost': '#dc2626'
         };
-        const current = stageColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = stageColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Lead Masuk'}
@@ -208,13 +196,8 @@ export default function CrmKlien() {
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              backgroundColor: '#f1f5f9',
+              fontSize: '0.8rem',
+              fontWeight: 500,
               color: '#334155'
             }}
           >

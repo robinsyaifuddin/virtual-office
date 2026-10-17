@@ -115,15 +115,9 @@ export default function KeuanganProfit() {
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: isIncome ? '#f0fdf4' : '#fef2f2',
-              color: isIncome ? '#16a34a' : '#dc2626',
-              border: `1px solid ${isIncome ? '#bbf7d0' : '#fecaca'}`
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: isIncome ? '#16a34a' : '#dc2626'
             }}
           >
             {isIncome ? '▲ Pemasukan' : '▼ Pengeluaran'}
@@ -142,16 +136,10 @@ export default function KeuanganProfit() {
       options: financeCategories,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || 'Lain-lain'}
@@ -211,23 +199,17 @@ export default function KeuanganProfit() {
       minWidth: '130px',
       render: (val) => {
         const statusColors = {
-          'Lunas': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Pending': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Dibatalkan': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }
+          'Lunas': '#16a34a',
+          'Pending': '#d97706',
+          'Dibatalkan': '#dc2626'
         };
-        const current = statusColors[val] || { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
+        const currentTextColor = statusColors[val] || '#64748b';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Lunas'}

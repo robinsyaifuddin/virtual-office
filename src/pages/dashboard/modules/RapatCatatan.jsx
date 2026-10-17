@@ -111,16 +111,10 @@ export default function RapatCatatan() {
       options: meetingTypes,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || 'Internal Weekly Sync'}
@@ -161,24 +155,18 @@ export default function RapatCatatan() {
       options: ['Terjadwal', 'Berlangsung', 'Selesai', 'Dibatalkan'],
       render: (val) => {
         const statusColors = {
-          'Terjadwal': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'Berlangsung': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Selesai': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Dibatalkan': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' }
+          'Terjadwal': '#0284c7',
+          'Berlangsung': '#d97706',
+          'Selesai': '#16a34a',
+          'Dibatalkan': '#dc2626'
         };
-        const current = statusColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = statusColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Terjadwal'}

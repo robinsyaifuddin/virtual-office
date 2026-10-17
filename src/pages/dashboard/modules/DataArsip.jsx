@@ -119,16 +119,10 @@ export default function DataArsip() {
       options: fileCategoryOptions,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || fileCategoryOptions[0]}
@@ -146,15 +140,9 @@ export default function DataArsip() {
       render: (val) => (
         <span
           style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            backgroundColor: '#f1f5f9',
-            color: '#475569',
-            border: '1px solid #e2e8f0'
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            color: '#475569'
           }}
         >
           {val || 'PDF'}
@@ -178,23 +166,22 @@ export default function DataArsip() {
         </span>
       ),
       minWidth: '150px',
-      render: (val) => (
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            padding: '2px 8px',
-            borderRadius: '6px',
-            fontSize: '0.78rem',
-            fontWeight: 600,
-            backgroundColor: val?.includes('Rahasia') ? '#fef2f2' : (val?.includes('Manager') ? '#fffbeb' : '#f0fdf4'),
-            color: val?.includes('Rahasia') ? '#dc2626' : (val?.includes('Manager') ? '#d97706' : '#16a34a'),
-            border: `1px solid ${val?.includes('Rahasia') ? '#fecaca' : (val?.includes('Manager') ? '#fef3c7' : '#bbf7d0')}`
-          }}
-        >
-          {val || 'Publik Semua Tim'}
-        </span>
-      )
+      render: (val) => {
+        const isSecret = val?.includes('Rahasia');
+        const isManager = val?.includes('Manager');
+        const color = isSecret ? '#dc2626' : (isManager ? '#d97706' : '#16a34a');
+        return (
+          <span
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: color
+            }}
+          >
+            {val || 'Publik Semua Tim'}
+          </span>
+        );
+      }
     },
     {
       key: 'status',
@@ -207,26 +194,20 @@ export default function DataArsip() {
       options: ['Draft', 'Review', 'Disetujui', 'Aktif', 'Arsip'],
       render: (val) => {
         const statusColors = {
-          'Draft': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
-          'Disetujui': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'Aktif': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Publik': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Arsip': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
+          'Draft': '#d97706',
+          'Review': '#4f46e5',
+          'Disetujui': '#0284c7',
+          'Aktif': '#16a34a',
+          'Publik': '#16a34a',
+          'Arsip': '#64748b'
         };
-        const current = statusColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = statusColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Disetujui'}

@@ -97,16 +97,10 @@ export default function LaporanEvaluasi() {
       options: auditCategories,
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || 'Audit Kualitas'}
@@ -140,14 +134,8 @@ export default function LaporanEvaluasi() {
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: '#fefce8',
-              border: '1px solid #fef08a',
+              fontSize: '0.8rem',
+              fontWeight: 600,
               color: '#ca8a04'
             }}
           >
@@ -167,25 +155,19 @@ export default function LaporanEvaluasi() {
       options: ['Draft', 'Review', 'Final', 'Disahkan', 'Arsip'],
       render: (val) => {
         const statusColors = {
-          'Draft': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
-          'Final': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'Disahkan': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' },
-          'Arsip': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
+          'Draft': '#d97706',
+          'Review': '#4f46e5',
+          'Final': '#0284c7',
+          'Disahkan': '#16a34a',
+          'Arsip': '#64748b'
         };
-        const current = statusColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = statusColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Final'}

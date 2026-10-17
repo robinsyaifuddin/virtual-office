@@ -227,25 +227,19 @@ export default function TugasKalender() {
       minWidth: '160px',
       render: (val) => {
         const textColors = {
-          'Backlog': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
-          'Sedang Dikerjakan': { bg: '#fffbeb', border: '#fef3c7', text: '#d97706' },
-          'Menunggu Review': { bg: '#eef2ff', border: '#c7d2fe', text: '#4f46e5' },
-          'Selesai': { bg: '#f0fdf4', border: '#bbf7d0', text: '#16a34a' }
+          'Backlog': '#dc2626',
+          'Sedang Dikerjakan': '#d97706',
+          'Menunggu Review': '#4f46e5',
+          'Selesai': '#16a34a'
         };
-        const current = textColors[val] || { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' };
+        const currentTextColor = textColors[val] || '#64748b';
 
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'Backlog'}
@@ -263,16 +257,10 @@ export default function TugasKalender() {
       minWidth: '180px',
       render: (val) => (
         <span
-          className="ws-notion-pill"
           style={{
-            border: '1px solid #bfdbfe',
-            backgroundColor: '#eff6ff',
-            color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600,
-            padding: '2px 8px',
-            borderRadius: '6px',
-            display: 'inline-block'
+            fontWeight: 500,
+            color: '#334155'
           }}
         >
           {val || 'General'}
@@ -289,24 +277,18 @@ export default function TugasKalender() {
       minWidth: '110px',
       render: (val) => {
         const prioColors = {
-          'P1': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
-          'Urgent': { bg: '#fef2f2', border: '#fecaca', text: '#dc2626' },
-          'P2': { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' },
-          'P3': { bg: '#f8fafc', border: '#e2e8f0', text: '#64748b' }
+          'P1': '#dc2626',
+          'Urgent': '#dc2626',
+          'P2': '#0284c7',
+          'P3': '#64748b'
         };
-        const current = prioColors[val] || { bg: '#eff6ff', border: '#bfdbfe', text: '#0284c7' };
+        const currentTextColor = prioColors[val] || '#0284c7';
         return (
           <span
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '2px 8px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              backgroundColor: current.bg,
-              border: `1px solid ${current.border}`,
-              color: current.text
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: currentTextColor
             }}
           >
             {val || 'P2'}
