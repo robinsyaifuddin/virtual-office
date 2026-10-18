@@ -8,7 +8,7 @@ const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
  * 1. UTAMA: Google Gemini REST API (Gemini 2.5 Flash / Flash Latest)
  * Daya penalaran tinggi, context window raksasa, free tier kuota tinggi
  */
-async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
+async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY tidak ditemukan di .env');
   }
@@ -21,7 +21,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
     });
   });
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -58,7 +58,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
  * 2. CADANGAN PERTAMA: Groq API (Llama 3.3 70B / Qwen)
  * Super cepat 300+ token/detik
  */
-async function callGroqChat(messages, systemInstruction, maxTokens = 500, temperature = 0.75) {
+async function callGroqChat(messages, systemInstruction, maxTokens = 1200, temperature = 0.75) {
   if (!GROQ_API_KEY) {
     throw new Error('GROQ_API_KEY tidak ditemukan di .env');
   }
@@ -100,7 +100,7 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 500, temper
  * 3. CADANGAN KEDUA: OpenRouter Free Models
  * Fallback penyelamat jika Gemini & Groq limit
  */
-async function callOpenRouterChat(messages, systemInstruction, maxTokens = 500) {
+async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1200) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY tidak ditemukan di .env');
   }
@@ -119,7 +119,7 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 500) 
       'X-Title': 'DigiBooster LiveChat'
     },
     body: JSON.stringify({
-      model: 'google/gemma-4-31b-it:free',
+      model: 'google/gemma-2-9b-it:free',
       messages: payloadMessages,
       max_tokens: maxTokens
     })
@@ -164,7 +164,7 @@ ATURAN GAYA TYPING & KOMUNIKASI MANUSIAWI (SANGAT WAJIB):
    - Gunakan kata ganti "sy" (saya) atau "km" (kamu), atau sebut nama panggilan santai.
    - Singkatan yang wajar dipakai manusia: kyk, yg, mntap, okeii, siipp, nicee, bolee, knp, gpp, ngga, dmna, brp, kpn, syapp, dong, sih, cocokk, bgt, udh.
    - Jika ada kata berulang WAJIB gunakan angka 2! Contoh: kira2, ada2 aja, mata2, tanya2, siap2, pelan2.
-   - Ketik pendek, santai, dan to-the-point (1-3 kalimat). Jangan pakai bullet point markdown panjang kecuali disuruh.
+   - Sampaikan ide secara padat, mengalir, dan WAJIB SELESAIKAN KALIMAT SAMPAI TUNTAS (jangan pernah menggantung atau terpotong di tengah kalimat!). Jika bertanya, selesaikan pertanyaannya dengan tanda tanya.
 
 2. DILARANG KERAS MEMAKAI TEMPLATE / CANNED WORDS:
    - JANGAN PERNAH mengulang kalimat pembuka yang sama terus-menerus (misal: "Poin yang sangat strategis...").
@@ -232,6 +232,9 @@ ${customInstruction}`;
 
   return result;
 }
+
+// Alias untuk kompatibilitas nama fungsi
+export const generateAgentReply = generateAgentResponse;
 
 /**
  * 5-Step Automated Auto-Correction & Stress Test Loop Engine

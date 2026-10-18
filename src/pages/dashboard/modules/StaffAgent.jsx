@@ -59,6 +59,14 @@ export default function StaffAgent() {
   const updateStaffAgent = store?.updateStaffAgent || (() => {});
   const deleteStaffAgent = store?.deleteStaffAgent || (() => {});
 
+  // Akses store telemetri & training di bagian atas komponen
+  const aiTelemetry = store?.aiTelemetry || {};
+  const aiTrainingRules = Array.isArray(store?.aiTrainingRules) ? store.aiTrainingRules : [];
+  const addAiTrainingRule = store?.addAiTrainingRule || (() => {});
+  const deleteAiTrainingRule = store?.deleteAiTrainingRule || (() => {});
+  const recordAiTelemetryEvent = store?.recordAiTelemetryEvent || (() => {});
+  const siskaTrainAgents = store?.siskaTrainAgents || (() => {});
+
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'human' | 'ai'
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
@@ -260,14 +268,6 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
       setIsTrainingChatTyping(false);
     }
   };
-
-  // Akses store telemetri & training
-  const aiTelemetry = store?.aiTelemetry || {};
-  const aiTrainingRules = Array.isArray(store?.aiTrainingRules) ? store.aiTrainingRules : [];
-  const addAiTrainingRule = store?.addAiTrainingRule || (() => {});
-  const deleteAiTrainingRule = store?.deleteAiTrainingRule || (() => {});
-  const recordAiTelemetryEvent = store?.recordAiTelemetryEvent || (() => {});
-  const siskaTrainAgents = store?.siskaTrainAgents || (() => {});
 
   const statusOptions = ['Semua Status', 'Online / Bertugas', 'Standby', 'Istirahat', 'Cuti / Off'];
 

@@ -15,11 +15,14 @@ import {
   Compass, 
   ChevronRight,
   Menu,
-  ChevronDown
+  ChevronDown,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import '../../styles/workspaceNotion.css';
 import { Icon3DUser } from '../../components/ui/Modern3DIcons';
+import AgentPerformanceWorkspace from '../AgentPerformanceWorkspace';
 
 // Modules
 import ExecutiveDashboard from './modules/ExecutiveDashboard';
@@ -131,6 +134,7 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
 
   const menuItems = [
     { key: 'executivedashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+    { key: 'kinerjaagent', label: 'Kinerja Agent', icon: Bot, isHighlight: true },
     { key: 'crmdanklien', label: 'CRM & Klien', icon: Users },
     { key: 'keuangandanprofit', label: 'Keuangan & Profit', icon: DollarSign },
     { key: 'brandingdanmarketing', label: 'Branding & Marketing', icon: Megaphone },
@@ -163,6 +167,12 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
     switch (activeModule) {
       case 'executivedashboard':
         return <ExecutiveDashboard onNavigateModule={handleSelectMenu} />;
+      case 'kinerjaagent':
+        return (
+          <AgentPerformanceWorkspace 
+            showToast={(msg) => console.log(msg)}
+          />
+        );
       case 'crmdanklien':
         return <CrmKlien />;
       case 'keuangandanprofit':
@@ -341,10 +351,25 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
                     style={{
                       flex: 1,
                       opacity: isSidebarCollapsed && !isMobile ? 0 : 1,
-                      transform: isSidebarCollapsed && !isMobile ? 'translateX(-6px)' : 'translateX(0)'
+                      transform: isSidebarCollapsed && !isMobile ? 'translateX(-6px)' : 'translateX(0)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
                     }}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
+                    {item.isHighlight && (
+                      <span style={{
+                        background: '#0284c7',
+                        color: '#ffffff',
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        padding: '1px 6px',
+                        borderRadius: '10px'
+                      }}>
+                        AI
+                      </span>
+                    )}
                   </span>
                 )}
 

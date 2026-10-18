@@ -31,10 +31,13 @@ import {
   Check,
   ChevronRight,
   Download,
-  AlertCircle
+  AlertCircle,
+  Bot,
+  Cpu
 } from 'lucide-react';
 import { INITIAL_ARCHIVES, INITIAL_SUBMISSIONS } from '../data/managementData';
 import { AGENTS } from '../data/agents';
+import AgentPerformanceWorkspace from './AgentPerformanceWorkspace';
 import '../styles/floworaTheme.css';
 
 export default function ManagementDashboard({ onLogout }) {
@@ -117,6 +120,19 @@ export default function ManagementDashboard({ onLogout }) {
           >
             <Home size={18} />
             Home
+          </button>
+          <button 
+            className={`fl-nav-btn ${activeTab === 'agent-performance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('agent-performance')}
+            style={{
+              background: activeTab === 'agent-performance' ? '#e0f2fe' : undefined,
+              color: activeTab === 'agent-performance' ? '#0284c7' : undefined,
+              fontWeight: activeTab === 'agent-performance' ? 800 : undefined
+            }}
+          >
+            <Bot size={18} color={activeTab === 'agent-performance' ? '#0284c7' : '#64748b'} />
+            Kinerja Agent
+            <span className="fl-nav-badge" style={{ background: '#0284c7', color: '#ffffff' }}>AI</span>
           </button>
           <button 
             className={`fl-nav-btn ${activeTab === 'tasks' ? 'active' : ''}`}
@@ -1271,6 +1287,17 @@ export default function ManagementDashboard({ onLogout }) {
               </table>
             </div>
           </main>
+        )}
+
+        {/* ==============================================================
+            TAB 8: KINERJA AGENT AI STUDIO (RAKA, SILVI, RETA, ARGA)
+            ============================================================== */}
+        {activeTab === 'agent-performance' && (
+          <AgentPerformanceWorkspace 
+            showToast={showToast}
+            onAddSubmission={(newSub) => setSubmissions(prev => [newSub, ...prev])}
+            onAddArchive={(newDoc) => setArchives(prev => [newDoc, ...prev])}
+          />
         )}
       </div>
 
