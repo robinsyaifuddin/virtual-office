@@ -106,10 +106,157 @@ export default function StaffAgent() {
       name: 'Siska',
       role: 'Head of Quality & Master Trainer',
       badgeColor: '#0284c7',
-      text: 'Selamat datang di Training Arena, Bang Robin. Seluruh Dewan Agen (Arga, Silvi, Raka, Reta) siap diuji di sini. Silakan ketik topik atau pertanyaan apa saja di chat ini untuk menguji respon mereka secara real-time, atau gunakan panel sebelah kanan untuk menyuntikkan prompt SOP baru.',
+      text: 'Selamat datang di Training Arena, Bang Robin. Seluruh Dewan Agen (Arga, Silvi, Raka, Reta) siap diuji di sini. Silakan ketik topik atau panggil nama panggilan mereka (sil, ga, ka, ret, sis) untuk menguji respon secara real-time. Jika ada bot yang salah atau pasif, saya akan langsung menegur dan memanggilnya.',
       timestamp: 'Live Session'
     }
   ]);
+
+  // Handler Kirim Pesan di Training Arena dengan Panggilan Multi-Agent & Watchdog Siska
+  const handleExecuteTrainingMessage = async () => {
+    const userTxt = trainingChatInput.trim();
+    if (!userTxt || isTrainingChatTyping) return;
+    setTrainingChatInput('');
+
+    const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    const newMsg = {
+      id: `msg-tr-u-${Date.now()}`,
+      sender: 'user',
+      name: 'Bang Robin',
+      role: 'Direktur Utama',
+      text: userTxt,
+      timestamp: nowStr
+    };
+    setTrainingMessages((prev) => [...prev, newMsg]);
+    setIsTrainingChatTyping(true);
+
+    const lower = userTxt.toLowerCase();
+
+    // 1. Deteksi Target Nama Panggilan Akrab & Lengkap
+    // Silvi: "silvi", "sil" (contoh: "gmn sil", "silvi gimana", "kamu gmn sil?")
+    const isSilvi = /\b(silvi|sil)\b/i.test(lower);
+    // Reta: "reta", "ret", "ta"
+    const isReta = /\b(reta|ret|ta)\b/i.test(lower);
+    // Raka: "raka", "ka" (khusus "ka raka" atau "ka")
+    const isRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || (lower.includes('berkas') || lower.includes('legal'));
+    // Siska: "siska", "sis"
+    const isSiska = /\b(siska|sis)\b/i.test(lower) || lower.includes('tegur') || lower.includes('koreksi');
+    // Arga: "arga", "ga"
+    const isArga = /\b(arga|ga)\b/i.test(lower);
+
+    let targetBotName = 'Arga';
+    let targetRole = 'Chief Strategy Officer (CSO)';
+
+    if (isSilvi && !isArga) {
+      targetBotName = 'Silvi';
+      targetRole = 'Head of Growth & Creative';
+    } else if (isReta && !isArga && !isSilvi) {
+      targetBotName = 'Reta';
+      targetRole = 'Chief Operating Officer (COO)';
+    } else if (isRaka && !isArga) {
+      targetBotName = 'Raka';
+      targetRole = 'Head of Documentation & Legal';
+    } else if (isSiska) {
+      targetBotName = 'Siska';
+      targetRole = 'Head of Quality & AI Trainer';
+    } else if (isArga) {
+      targetBotName = 'Arga';
+      targetRole = 'Chief Strategy Officer (CSO)';
+    }
+
+    setTrainingTypingAgent(targetBotName);
+
+    try {
+      const aiRes = await generateAgentResponse({
+        agentName: targetBotName,
+        agentRole: targetRole,
+        userMessage: userTxt,
+        conversationHistory: trainingMessages,
+        customInstruction: `Kamu (${targetBotName}) sedang berada di Training Arena bersama Bang Robin.
+Tanggapi secara manusiawi dan relevan dengan peranmu.
+Dianjurkan jika butuh koordinasi, kamu boleh menyebut teman bot lain secara santai (contoh: "gimana sil?", "coba ka raka siapin berkasnya", "ta tolong catat yaa").
+Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
+      });
+
+      // Sanitasi awalan nama jika masih muncul
+      let cleanText = (aiRes.text || '').replace(new RegExp(`^(${targetBotName}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      const botReplyMsg = {
+        id: `msg-tr-ai-${Date.now()}`,
+        sender: targetBotName,
+        name: targetBotName,
+        role: targetRole,
+        badgeColor: '#0284c7',
+        text: cleanText,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      };
+
+      setTrainingMessages((prev) => [...prev, botReplyMsg]);
+
+      // Catat telemetri
+      recordAiTelemetryEvent({
+        agent: targetBotName,
+        action: `Training Arena Interactive Session`,
+        targetModule: 'Training Lab',
+        tokensUsed: aiRes.usage?.total_tokens || 340,
+        latencyMs: 310,
+        status: 'Success',
+        engine: aiRes.engine
+      });
+
+      // 2. Siska Watchdog Intervensi Otonom:
+      // Jika bot menyebut bot lain (misal Silvi melempar pertanyaan ke Reta atau Arga), ATAU jika jawaban dirasa kurang lengkap
+      const lowerReply = cleanText.toLowerCase();
+      const botCalledOther = 
+        (targetBotName !== 'Silvi' && /\b(sil|silvi)\b/i.test(lowerReply)) ||
+        (targetBotName !== 'Reta' && /\b(ta|ret|reta)\b/i.test(lowerReply)) ||
+        (targetBotName !== 'Raka' && /\b(ka|raka)\b/i.test(lowerReply)) ||
+        (targetBotName !== 'Arga' && /\b(ga|arga)\b/i.test(lowerReply));
+
+      if (botCalledOther) {
+        // Tentukan siapa yang dipanggil oleh bot pertama
+        let nextBot = 'Silvi';
+        let nextRole = 'Head of Growth & Creative';
+        if (/\b(sil|silvi)\b/i.test(lowerReply)) { nextBot = 'Silvi'; nextRole = 'Head of Growth & Creative'; }
+        else if (/\b(ta|ret|reta)\b/i.test(lowerReply)) { nextBot = 'Reta'; nextRole = 'Chief Operating Officer (COO)'; }
+        else if (/\b(ka|raka)\b/i.test(lowerReply)) { nextBot = 'Raka'; nextRole = 'Head of Documentation & Legal'; }
+        else if (/\b(ga|arga)\b/i.test(lowerReply)) { nextBot = 'Arga'; nextRole = 'Chief Strategy Officer (CSO)'; }
+
+        if (nextBot !== targetBotName) {
+          setTrainingTypingAgent(nextBot);
+          setTimeout(async () => {
+            const nextBotRes = await generateAgentResponse({
+              agentName: nextBot,
+              agentRole: nextRole,
+              userMessage: `${targetBotName} tadi menyapamu dan melempar hal ini: "${cleanText}". Tanggapi dia dan Bang Robin secara santai dan taktis.`,
+              conversationHistory: [...trainingMessages, newMsg, botReplyMsg],
+              customInstruction: `Kamu (${nextBot}) langsung merespon lemparan diskusi dari ${targetBotName} dan Bang Robin.`
+            });
+
+            let cleanNext = (nextBotRes.text || '').replace(new RegExp(`^(${nextBot}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+            setTrainingMessages((prev) => [
+              ...prev,
+              {
+                id: `msg-tr-interact-${Date.now()}`,
+                sender: nextBot,
+                name: nextBot,
+                role: nextRole,
+                badgeColor: '#0284c7',
+                text: cleanNext,
+                timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+              }
+            ]);
+            setIsTrainingChatTyping(false);
+          }, 1200);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Training chat error:', err);
+    } finally {
+      setIsTrainingChatTyping(false);
+    }
+  };
 
   // Akses store telemetri & training
   const aiTelemetry = store?.aiTelemetry || {};
@@ -1668,71 +1815,10 @@ export default function StaffAgent() {
                   onChange={(e) => setTrainingChatInput(e.target.value)}
                   onKeyDown={async (e) => {
                     if (e.key === 'Enter' && trainingChatInput.trim() && !isTrainingChatTyping) {
-                      const userTxt = trainingChatInput.trim();
-                      setTrainingChatInput('');
-                      
-                      const newMsg = {
-                        id: `msg-tr-u-${Date.now()}`,
-                        sender: 'user',
-                        name: 'Bang Robin',
-                        role: 'Direktur Utama',
-                        text: userTxt,
-                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                      };
-                      setTrainingMessages((prev) => [...prev, newMsg]);
-                      setIsTrainingChatTyping(true);
-
-                      // Routing cerdas sesuai target nama atau default Arga
-                      const lower = userTxt.toLowerCase();
-                      let targetBotName = 'Arga';
-                      let targetRole = 'Chief Strategy Officer (CSO)';
-                      if (lower.includes('silvi')) { targetBotName = 'Silvi'; targetRole = 'Head of Growth & Creative'; }
-                      else if (lower.includes('reta')) { targetBotName = 'Reta'; targetRole = 'Chief Operating Officer (COO)'; }
-                      else if (lower.includes('raka')) { targetBotName = 'Raka'; targetRole = 'Head of Documentation & Legal'; }
-                      else if (lower.includes('siska')) { targetBotName = 'Siska'; targetRole = 'Head of Quality & AI Trainer'; }
-
-                      setTrainingTypingAgent(targetBotName);
-
-                      try {
-                        const aiRes = await generateAgentResponse({
-                          agentName: targetBotName,
-                          agentRole: targetRole,
-                          userMessage: userTxt,
-                          conversationHistory: trainingMessages,
-                          customInstruction: 'Kamu sedang berada di Training Arena bersama Bang Robin. Tanggapi dengan sangat cerdas, alami, jangan gunakan template, jangan mengutip kalimat Bang Robin kata demi kata, dan jangan membuat tugas database sebelum Bang Robin menyetujuinya.'
-                        });
-
-                        setTrainingMessages((prev) => [
-                          ...prev,
-                          {
-                            id: `msg-tr-ai-${Date.now()}`,
-                            sender: targetBotName,
-                            name: targetBotName,
-                            role: targetRole,
-                            badgeColor: '#0284c7',
-                            text: aiRes.text,
-                            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                          }
-                        ]);
-
-                        // Catat telemetri
-                        recordAiTelemetryEvent({
-                          agent: targetBotName,
-                          action: `Training Arena Interactive Session`,
-                          targetModule: 'Training Lab',
-                          tokensUsed: aiRes.usage?.total_tokens || 340,
-                          latencyMs: 310,
-                          status: 'Success',
-                          engine: aiRes.engine
-                        });
-                      } catch (err) {
-                        console.error('Training chat error:', err);
-                      } finally {
-                        setIsTrainingChatTyping(false);
-                      }
+                      await handleExecuteTrainingMessage();
                     }
                   }}
-                  placeholder="Ketik pertanyaan atau uji skenario ke Arga / Silvi / Reta..."
+                  placeholder="Ketik pertanyaan atau panggil bot (misal: sil, ga, ka, ret, sis)..."
                   style={{
                     flex: 1,
                     padding: '10px 14px',
@@ -1745,57 +1831,7 @@ export default function StaffAgent() {
                 <button
                   disabled={!trainingChatInput.trim() || isTrainingChatTyping}
                   onClick={async () => {
-                    const userTxt = trainingChatInput.trim();
-                    if (!userTxt) return;
-                    setTrainingChatInput('');
-                    
-                    const newMsg = {
-                      id: `msg-tr-u-${Date.now()}`,
-                      sender: 'user',
-                      name: 'Bang Robin',
-                      role: 'Direktur Utama',
-                      text: userTxt,
-                      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                    };
-                    setTrainingMessages((prev) => [...prev, newMsg]);
-                    setIsTrainingChatTyping(true);
-
-                    const lower = userTxt.toLowerCase();
-                    let targetBotName = 'Arga';
-                    let targetRole = 'Chief Strategy Officer (CSO)';
-                    if (lower.includes('silvi')) { targetBotName = 'Silvi'; targetRole = 'Head of Growth & Creative'; }
-                    else if (lower.includes('reta')) { targetBotName = 'Reta'; targetRole = 'Chief Operating Officer (COO)'; }
-                    else if (lower.includes('raka')) { targetBotName = 'Raka'; targetRole = 'Head of Documentation & Legal'; }
-                    else if (lower.includes('siska')) { targetBotName = 'Siska'; targetRole = 'Head of Quality & AI Trainer'; }
-
-                    setTrainingTypingAgent(targetBotName);
-
-                    try {
-                      const aiRes = await generateAgentResponse({
-                        agentName: targetBotName,
-                        agentRole: targetRole,
-                        userMessage: userTxt,
-                        conversationHistory: trainingMessages,
-                        customInstruction: 'Kamu sedang berada di Training Arena bersama Bang Robin. Tanggapi dengan sangat cerdas, alami, jangan gunakan template, jangan mengutip kalimat Bang Robin kata demi kata, dan jangan membuat tugas database sebelum Bang Robin menyetujui.'
-                      });
-
-                      setTrainingMessages((prev) => [
-                        ...prev,
-                        {
-                          id: `msg-tr-ai-${Date.now()}`,
-                          sender: targetBotName,
-                          name: targetBotName,
-                          role: targetRole,
-                          badgeColor: '#0284c7',
-                          text: aiRes.text,
-                          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                        }
-                      ]);
-                    } catch (err) {
-                      console.error('Training chat error:', err);
-                    } finally {
-                      setIsTrainingChatTyping(false);
-                    }
+                    await handleExecuteTrainingMessage();
                   }}
                   style={{
                     backgroundColor: '#0284c7',

@@ -124,12 +124,16 @@ ATURAN GAYA TYPING & KOMUNIKASI MANUSIAWI (SANGAT WAJIB):
    - JANGAN mengutip kalimat user mentah-mentah seperti: 'Mengenai "..." kalau kita bedah...'. Pahami maksudnya, lalu balas alami seperti orang ngobrol di WhatsApp / Slack!
    - Jawab tepat sasaran sesuai topik. Kalau belum jelas, tanya balik secara santai layaknya rekan kerja.
 
-3. SPESIFIKASI PERAN:
-   - Arga (CSO): Teman ngobrol utama Bang Robin, santai, analitis, suka nanya balik kalau topiknya masih luas.
-   - Silvi (Growth & Creative): Paham konten, visual, closing deal, penawaran menarik.
+3. SPESIFIKASI PERAN & INTERAKSI ANTAR-BOT:
+   - Kamu BISA dan DIANJURKAN menyebut nama teman bot lain untuk melempar diskusi atau minta data/pendapat (contoh: "gimana menurutmu sil?", "bisa bantu siapin berkasnya ga ka?", "coba reta catat ini yaa").
+   - Arga (CSO): Teman ngobrol utama Bang Robin, santai, analitis, suka nanya balik kalau topiknya masih luas, suka oper ide ke Silvi/Reta.
+   - Silvi (Growth & Creative): Paham konten, visual, closing deal, penawaran menarik. Suka ajak Arga atau Raka koordinasi.
    - Raka (Legal & Docs): Siap berkas NDA, PKS, dokumen arsip.
    - Reta (COO): Penata operasional, hanya rangkum dan tata tugas jika disuruh atau disepakati.
-   - Siska (Head QA): Pengawas mutu, hanya menegur jika ada bot yang salah atau blunder.
+   - Siska (Head QA): Pengawas mutu, aktif menegur jika ada bot yang salah, blunder, atau dipanggil saat ada bot yang pasif.
+
+4. FORMAT OUTPUT:
+   - Dilarang menulis awalan nama sendiri seperti "${agentName}: " di awal chat! Langsung ketik kalimat jawabanmu.
 
 ${customInstruction}`;
 
@@ -144,15 +148,16 @@ ${customInstruction}`;
     content: `Bang Robin: ${userMessage}`
   });
 
+  let result = null;
   // 1. Coba Primary Groq Qwen
   try {
-    return await callGroqChat(formattedHistory, systemPrompt);
+    result = await callGroqChat(formattedHistory, systemPrompt);
   } catch (groqErr) {
     console.warn('Groq error atau limit, beralih ke Fallback Gemini:', groqErr.message);
 
     // 2. Coba Fallback Gemini
     try {
-      return await callGeminiChat(formattedHistory, systemPrompt);
+      result = await callGeminiChat(formattedHistory, systemPrompt);
     } catch (geminiErr) {
       console.warn('Gemini juga limit atau error:', geminiErr.message);
 
@@ -164,6 +169,13 @@ ${customInstruction}`;
       };
     }
   }
+
+  // Sanitasi: bersihkan awalan "NamaBot: " jika LLM tidak sengaja menyertakannya
+  if (result && result.text) {
+    result.text = result.text.replace(new RegExp(`^(${agentName}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+  }
+
+  return result;
 }
 
 /**
