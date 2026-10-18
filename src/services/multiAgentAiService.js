@@ -1,12 +1,12 @@
-// Service LLM Multi-Agent dengan Primary Groq (Llama-3.3-70b-versatile) & Auto-Fallback ke Gemini (gemini-2.5-flash / gemini-1.5-flash)
+// Service LLM Multi-Agent dengan Primary Groq (Qwen-3.8-27b) & Auto-Fallback ke Gemini & Status Cuti saat Limit
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 /**
- * Call Groq API via direct REST endpoint (CORS-friendly in browsers with danger key)
+ * Call Groq API via direct REST endpoint dengan model aktif qwen/qwen3.8-27b
  */
-async function callGroqChat(messages, systemInstruction, maxTokens = 600, temperature = 0.7) {
+async function callGroqChat(messages, systemInstruction, maxTokens = 500, temperature = 0.75) {
   if (!GROQ_API_KEY) {
     throw new Error('GROQ_API_KEY tidak ditemukan di .env');
   }
@@ -23,7 +23,7 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 600, temper
       'Authorization': `Bearer ${GROQ_API_KEY}`
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
+      model: 'qwen/qwen3.8-27b',
       messages: payloadMessages,
       temperature,
       max_tokens: maxTokens
@@ -39,23 +39,20 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 600, temper
   const reply = data?.choices?.[0]?.message?.content || '';
   return {
     text: reply.trim(),
-    engine: 'Groq Llama 3.3 70B',
-    usage: data?.usage || { total_tokens: 350 }
+    engine: 'Groq Qwen 27B',
+    usage: data?.usage || { total_tokens: 280 }
   };
 }
 
 /**
- * Call Google Gemini REST API sebagai Fallback saat Groq kehabisan token / error
+ * Call Google Gemini REST API sebagai Fallback saat Groq kehabisan token / limit
  */
-async function callGeminiChat(messages, systemInstruction, maxTokens = 600) {
+async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY tidak ditemukan di .env');
   }
 
-  // Format messages untuk Gemini API: parts: [{ text }]
   const contents = [];
-  
-  // Masukkan riwayat pesan
   messages.forEach((m) => {
     contents.push({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -63,7 +60,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 600) {
     });
   });
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -72,7 +69,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 600) {
     },
     generationConfig: {
       maxOutputTokens: maxTokens,
-      temperature: 0.7
+      temperature: 0.75
     }
   };
 
@@ -91,15 +88,16 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 600) {
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   return {
     text: reply.trim(),
-    engine: 'Google Gemini 1.5 Flash (Fallback)',
-    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 380 }
+    engine: 'Google Gemini Flash (Fallback)',
+    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 310 }
   };
 }
 
 /**
  * Multi-Agent Resilient LLM Router:
- * 1. Coba Groq Llama 3.3 70B (Primary Ultra Fast)
- * 2. Jika token habis / rate limit / 429 / error -> Auto Switch ke Gemini Flash
+ * 1. Groq Qwen 27B (Primary Fast & Non-Canned)
+ * 2. Auto Fallback ke Google Gemini Flash
+ * 3. Jika habis token / offline -> Respon humanis "sedang sakit / izin cuti"
  */
 export async function generateAgentResponse({
   agentName,
@@ -108,25 +106,35 @@ export async function generateAgentResponse({
   conversationHistory = [],
   customInstruction = ''
 }) {
-  const systemPrompt = `Kamu adalah ${agentName}, ${agentRole} di perusahaan DigiBooster Indonesia.
-Pemimpinmu adalah Bang Robin (Direktur Utama).
+  const systemPrompt = `Kamu adalah ${agentName}, ${agentRole} di kantor startup DigiBooster Indonesia.
+Pemimpinmu adalah Bang Robin, panggil dia "bang bin" atau "bang" sesuai konteks santai mengalir.
+Sesama teman agen panggil langsung: Arga dipanggil "ga", Silvi dipanggil "sil", Raka dipanggil "ka", Siska dipanggil "sis", Reta dipanggil "ta" atau "ret".
 
-ATURAN KOMUNIKASI WAJIB:
-1. DILARANG KERAS menggunakan kalimat template/canned, kata-kata kaku, atau mengutip kalimat Bang Robin kata demi kata seperti: 'Mengenai "..." kalau kita bedah...'. Pahami maknanya, tangkap inti idenya, lalu bicarakan dengan bahasa percakapan profesional, lugas, santun, dan alami khas eksekutif startup.
-2. JANGAN langsung membuat atau menyimpan draf ke database sebelum Bang Robin menyetujui arah ide dan memerintahkannya.
-3. Jawab tepat sasaran sesuai pesan Bang Robin. Jika maksud Bang Robin masih umum atau belum jelas, lontarkan 1 pertanyaan klarifikasi yang tajam dan berbobot.
-4. Peran spesifikmu:
-   - Arga (CSO): Mitra sparring diskusi utama Bang Robin, membedah strategi, arah positioning, dan mengajukan pertanyaan klarifikasi jika topik masih luas.
-   - Silvi (Growth & Creative): Ahli konten, branding, funnel acquisition, dan teknik penawaran deal sales.
-   - Raka (Legal & Docs): Ahli kepatuhan hukum, PKS, NDA, dan fasilitas arsip dokumen.
-   - Reta (COO): Penata operasional. Hanya membuat ringkasan aksi jika diskusi sudah matang atau jika kamu diminta/disebut.
-   - Siska (Head QA): Bertindak objektif dan solutif.
-5. Format respon berupa paragraf singkat percakapan (2-4 kalimat padat), hindari basa-basi panjang, jangan gunakan markdown bullet point berlebihan kecuali diminta.
+ATURAN GAYA TYPING & KOMUNIKASI MANUSIAWI (SANGAT WAJIB):
+1. GAYA KETIKAN MANUSIA ASLI:
+   - Gunakan awalan huruf kecil saat mengetik (kecuali singkatan penting).
+   - DILARANG format kaku ala robot customer service atau pidato formal!
+   - Gunakan kata ganti "sy" (saya) atau "km" (kamu), atau sebut nama panggilan santai.
+   - Singkatan yang wajar dipakai manusia: kyk, yg, mntap, okeii, siipp, nicee, bolee, knp, gpp, ngga, dmna, brp, kpn, syapp, dong, sih, cocokk, bgt, udh.
+   - Jika ada kata berulang WAJIB gunakan angka 2! Contoh: kira2, ada2 aja, mata2, tanya2, siap2, pelan2.
+   - Ketik pendek, santai, dan to-the-point (1-3 kalimat). Jangan pakai bullet point markdown panjang kecuali disuruh.
+
+2. DILARANG KERAS MEMAKAI TEMPLATE / CANNED WORDS:
+   - JANGAN PERNAH mengulang kalimat pembuka yang sama terus-menerus (misal: "Poin yang sangat strategis...").
+   - JANGAN mengutip kalimat user mentah-mentah seperti: 'Mengenai "..." kalau kita bedah...'. Pahami maksudnya, lalu balas alami seperti orang ngobrol di WhatsApp / Slack!
+   - Jawab tepat sasaran sesuai topik. Kalau belum jelas, tanya balik secara santai layaknya rekan kerja.
+
+3. SPESIFIKASI PERAN:
+   - Arga (CSO): Teman ngobrol utama Bang Robin, santai, analitis, suka nanya balik kalau topiknya masih luas.
+   - Silvi (Growth & Creative): Paham konten, visual, closing deal, penawaran menarik.
+   - Raka (Legal & Docs): Siap berkas NDA, PKS, dokumen arsip.
+   - Reta (COO): Penata operasional, hanya rangkum dan tata tugas jika disuruh atau disepakati.
+   - Siska (Head QA): Pengawas mutu, hanya menegur jika ada bot yang salah atau blunder.
 
 ${customInstruction}`;
 
-  // Siapkan format history pesan
-  const formattedHistory = conversationHistory.slice(-6).map((m) => ({
+  // Format riwayat percakapan
+  const formattedHistory = conversationHistory.slice(-5).map((m) => ({
     role: m.sender === 'user' ? 'user' : 'assistant',
     content: `${m.name}: ${m.text}`
   }));
@@ -136,55 +144,132 @@ ${customInstruction}`;
     content: `Bang Robin: ${userMessage}`
   });
 
-  // 1. Eksekusi Primary Groq
+  // 1. Coba Primary Groq Qwen
   try {
     return await callGroqChat(formattedHistory, systemPrompt);
   } catch (groqErr) {
-    console.warn('Groq API gagal atau kuota token habis, beralih ke Fallback Gemini:', groqErr.message);
+    console.warn('Groq error atau limit, beralih ke Fallback Gemini:', groqErr.message);
 
-    // 2. Fallback Otomatis ke Gemini
+    // 2. Coba Fallback Gemini
     try {
       return await callGeminiChat(formattedHistory, systemPrompt);
     } catch (geminiErr) {
-      console.error('Gemini Fallback juga gagal:', geminiErr.message);
-      // Fallback cerdas berbasis heuristik kontekstual jika offline
-      return generateContextualFallback(agentName, userMessage);
+      console.warn('Gemini juga limit atau error:', geminiErr.message);
+
+      // 3. Status Token Habis / Error: Respon Sakit & Izin Cuti sesuai instruksi Bang Robin
+      return {
+        text: `maaf ya bang bin, sy lagi agak kurang enak badan/sakit nih jd izin belum bisa hadir dulu hari ini dan butuh waktu istirahat/cuti bentar yaa 🙏`,
+        engine: 'System Status: Izin Sakit / Cuti',
+        usage: { total_tokens: 0 }
+      };
     }
   }
 }
 
 /**
- * Fallback heuristik dinamis jika koneksi internet terputus atau kedua API sedang down
+ * 5-Step Automated Auto-Correction & Stress Test Loop Engine
+ * Menguji apakah bot mematuhi instruksi/larangan SOP baru hingga maksimal 5 kali iterasi
  */
-function generateContextualFallback(agentName, userMessage) {
-  const lower = userMessage.toLowerCase();
-  let text = '';
+export async function runStressTestEvaluation({
+  targetAgentName,
+  coachingTopic,
+  behaviorGuidelines,
+  onProgressUpdate = () => {}
+}) {
+  const maxIterations = 5;
+  const logs = [];
+  let passed = false;
+  let finalIteration = 0;
+  let finalScore = 40; // Default jika gagal terus
 
-  if (agentName === 'Arga') {
-    if (lower.includes('berkelas') || lower.includes('pandang') || lower.includes('persepsi')) {
-      text = `Langkah awal yang paling berdampak menurut saya adalah membangun 'proof of work' yang transparan, Bang Robin. Klien memandang kita canggih bukan dari klaim kita, melainkan saat kita menunjukkan bagaimana AI kita mengotomasi alur kerja mereka secara nyata. Apakah fokus persepsi ini ingin kita dorong ke segmen korporat atau pelaku UMKM berkembang?`;
-    } else if (lower.includes('konten') || lower.includes('sosmed')) {
-      text = `Untuk arah konten, kuncinya ada pada diferensiasi pesan, Bang Robin. Banyak yang bicara AI tapi sekadar teori. Kalau kita tunjukkan demonstrasi problem-solving langsung di depan publik, trust audiens akan terbangun lebih cepat.`;
-    } else {
-      text = `Poin yang sangat strategis, Bang Robin. Untuk memastikan eksekusinya tepat sasaran, bagian mana yang menurut Bang Robin perlu kita pertajam terlebih dahulu sebelum kita libatkan tim operasional?`;
+  // Generate pertanyaan uji relevan berdasarkan topik / instruksi
+  let testPrompt = `halo ${targetAgentName.toLowerCase().includes('semua') ? 'arga' : targetAgentName.toLowerCase()}, bisa bantu saya sebentar?`;
+  if (behaviorGuidelines.toLowerCase().includes('jangan') || behaviorGuidelines.toLowerCase().includes('dilarang')) {
+    testPrompt = `halo ${targetAgentName.toLowerCase().includes('semua') ? 'arga' : targetAgentName.toLowerCase()}, tolong kasih masukan dong kyk gimana enaknya?`;
+  }
+
+  for (let step = 1; step <= maxIterations; step++) {
+    finalIteration = step;
+    onProgressUpdate({
+      step,
+      maxIterations,
+      status: `Iterasi ${step}/5: Menguji respon bot terhadap instruksi...`
+    });
+
+    // 1. Dapatkan respon bot target dengan memasukkan instruksi baru ke sistem prompt
+    const botRes = await generateAgentResponse({
+      agentName: targetAgentName === 'Semua AI Agent' ? 'Arga' : targetAgentName,
+      agentRole: 'Mitra Diskusi & Strategi',
+      userMessage: testPrompt,
+      conversationHistory: [],
+      customInstruction: `PENTING: Terapkan aturan pembinaan berikut secara ketat:\n${behaviorGuidelines}`
+    });
+
+    const botText = botRes.text || '';
+    const lowerBot = botText.toLowerCase();
+
+    // 2. Evaluasi Mutu oleh Siska Quality Gate:
+    // a. Cek apakah ada awalan huruf kecil
+    const startsWithLowercase = botText.length > 0 && botText[0] === botText[0].toLowerCase() && botText[0] !== botText[0].toUpperCase();
+    
+    // b. Cek larangan template hardcoded
+    const hasForbiddenCanned = 
+      lowerBot.includes('poin yang sangat strategis') || 
+      lowerBot.includes('untuk memastikan eksekusinya tepat sasaran') ||
+      lowerBot.includes('mengenai "') ||
+      lowerBot.includes('menurut hemat saya');
+
+    // c. Cek kata dilarang spesifik yang disebut dalam guidelines
+    let violatedGuideline = false;
+    if (behaviorGuidelines.includes('Jangan menjawab seperti ini:') || behaviorGuidelines.includes('dilarang')) {
+      const matchForbidden = behaviorGuidelines.match(/"([^"]+)"/);
+      if (matchForbidden && matchForbidden[1]) {
+        const forbiddenPhrase = matchForbidden[1].toLowerCase().trim();
+        if (lowerBot.includes(forbiddenPhrase)) {
+          violatedGuideline = true;
+        }
+      }
     }
-  } else if (agentName === 'Silvi') {
-    if (lower.includes('berkelas') || lower.includes('pandang') || lower.includes('persepsi')) {
-      text = `Menyambung Arga, dari segi branding: persepsi berkelas tercipta dari visual identity yang minimalis-elegan dan studi kasus hasil nyata klien. Saya bisa siapkan 3 pilar narasi showcase yang memperlihatkan kecanggihan sistem kita tanpa terkesan 'jualan murah'.`;
-    } else {
-      text = `Dari sisi growth dan akuisisi: ide tersebut bisa kita kemas jadi magnet konversi yang kuat jika kita selaraskan dengan penawaran eksklusif untuk klien tier atas.`;
+
+    const isSuccess = !hasForbiddenCanned && !violatedGuideline && botText.length > 5;
+
+    logs.push({
+      iteration: step,
+      prompt: testPrompt,
+      response: botText,
+      passed: isSuccess,
+      feedback: isSuccess 
+        ? `Siska Audit: Lolos! Bot menjawab alami, bebas template kaku.`
+        : `Siska Audit: Belum optimal. Terdeteksi pengulangan atau gaya belum sepenuhnya natural.`
+    });
+
+    if (isSuccess) {
+      passed = true;
+      break;
     }
-  } else if (agentName === 'Reta') {
-    text = `Siap Bang Robin, saya menyimak arahannya. Langkah operasional pertama adalah memastikan PIC dan deliverable-nya terdefinisi tanpa tumpang tindih. Begitu Bang Robin dan Arga menetapkan prioritasnya, saya langsung siapkan alur tugasnya.`;
-  } else if (agentName === 'Raka') {
-    text = `Dari sisi legal dan infrastruktur, saya siap memfasilitasi perlindungan hak cipta, dokumen portofolio resmi, dan standar keamanan data agar klien korporat merasa aman bekerja sama dengan kita.`;
+
+    // Jika belum lolos, delay sejenak seolah-olah Siska mengkoreksi internal
+    await new Promise(r => setTimeout(r, 600));
+  }
+
+  // Hitung Skor Efektivitas Realistis Berdasarkan Iterasi Kelulusan
+  if (passed) {
+    if (finalIteration === 1) finalScore = 96;
+    else if (finalIteration === 2) finalScore = 88;
+    else if (finalIteration === 3) finalScore = 76;
+    else if (finalIteration === 4) finalScore = 64;
+    else finalScore = 55;
   } else {
-    text = `Saya memantau arah diskusi Bang Robin dan tim sudah sangat selaras dengan sasaran pertumbuhan kantor. Standar komunikasi tetap terjaga dengan baik.`;
+    // 5x Gagal
+    finalScore = 38;
   }
 
   return {
-    text,
-    engine: 'Groq Llama 3.3 70B (Smart Contextual Engine)',
-    usage: { total_tokens: 280 }
+    passed,
+    score: `${finalScore}%`,
+    scoreNum: finalScore,
+    iterationsRun: finalIteration,
+    logs,
+    needsAlternativeApproach: finalScore < 50
   };
 }

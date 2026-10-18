@@ -30,12 +30,12 @@ export function SimpleBarChart({ title, subtitle, data = [] }) {
           const heightPercent = Math.round((item.value / maxValue) * 100);
           return (
             <div key={idx} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end', overflow: 'hidden' }}>
-              <span className="ws-barchart-val" style={{ fontSize: '0.68rem', fontWeight: 700, color: '#475569', lineHeight: 1 }}>{item.displayVal || item.value}</span>
+              <span className="ws-barchart-val" style={{ fontSize: '0.68rem', fontWeight: 700, color: '#475569', lineHeight: 1 }}>{item.displayVal !== undefined ? item.displayVal : item.value}</span>
               <div 
                 style={{
                   width: '100%',
                   maxWidth: '34px',
-                  height: `${Math.max(heightPercent, 8)}%`,
+                  height: item.value > 0 ? `${Math.max(heightPercent, 8)}%` : '0%',
                   backgroundColor: item.color || '#0284c7',
                   borderRadius: '5px 5px 2px 2px',
                   transition: 'height 0.4s ease'
@@ -108,7 +108,7 @@ export function DonutChart({ title, subtitle, data = [] }) {
               const strokeDasharray = `${slicePercent * circumference} ${circumference}`;
               const strokeDashoffset = -accumulatedPercent * circumference;
               accumulatedPercent += slicePercent;
-              const sliceColor = BLUE_PALETTE[idx % BLUE_PALETTE.length];
+              const sliceColor = item.color || BLUE_PALETTE[idx % BLUE_PALETTE.length];
 
               return (
                 <circle
@@ -128,11 +128,11 @@ export function DonutChart({ title, subtitle, data = [] }) {
           </svg>
         </div>
 
-        {/* Legend List dengan Urutan Warna Biru Serasi */}
+        {/* Legend List dengan Urutan Warna Sesuai Item atau Biru Serasi */}
         <div className="ws-donut-legend-list" style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {data.map((item, idx) => {
             const percent = total > 0 ? Math.round((item.value / total) * 100) : 0;
-            const sliceColor = BLUE_PALETTE[idx % BLUE_PALETTE.length];
+            const sliceColor = item.color || BLUE_PALETTE[idx % BLUE_PALETTE.length];
             return (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', fontSize: '0.72rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1, overflow: 'hidden' }}>

@@ -1411,7 +1411,7 @@ export const useWorkspaceStore = create((set, get) => ({
   })),
 
   // 13. Siska Master Trainer Engine: Melatih & Menyuntikkan Kemampuan ke Bot Lain
-  siskaTrainAgents: async ({ targetAgentName, coachingTopic, behaviorGuidelines, simulatedScenario }) => {
+  siskaTrainAgents: async ({ targetAgentName, coachingTopic, behaviorGuidelines, simulatedScenario, customEffectivenessScore }) => {
     const state = get();
     const newRuleId = `RULE-SIS-${Date.now().toString().slice(-4)}`;
     const nowStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -1425,7 +1425,7 @@ export const useWorkspaceStore = create((set, get) => ({
       instruction: behaviorGuidelines,
       addedAt: nowStr,
       status: 'Active (Tersimpan di Mem0 Vector)',
-      effectivenessScore: '99.5%'
+      effectivenessScore: customEffectivenessScore || '96%'
     };
 
     // 2. Jika target spesifik, perkuat persona & system prompt bot tersebut

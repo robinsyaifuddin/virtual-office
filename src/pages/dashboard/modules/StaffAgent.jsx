@@ -32,8 +32,12 @@ import {
   Gauge,
   BarChart3,
   TrendingUp,
-  BrainCircuit
+  BrainCircuit,
+  MessageSquare,
+  Send,
+  RefreshCw
 } from 'lucide-react';
+import { generateAgentResponse, runStressTestEvaluation } from '../../../services/multiAgentAiService';
 
 import { 
   Icon3DClipboard, 
@@ -84,10 +88,28 @@ export default function StaffAgent() {
 
   // State Khusus: Siska Master AI Trainer & Behavioral Coach Deck
   const [siskaCoachingTarget, setSiskaCoachingTarget] = useState('Semua AI Agent');
-  const [siskaCoachingTopic, setSiskaCoachingTopic] = useState('Standar Kesopanan & Treatment Komunikasi Owner & Klien');
-  const [siskaBehaviorGuidelines, setSiskaBehaviorGuidelines] = useState('Dilarang menjawab berbelit-belit atau kaku. Selalu gunakan Bahasa Indonesia profesional yang ramah dan solutif. Setiap usulan solusi wajib disertai draf aksi konkret (poin-poin modul dashboard), dan akhiri dengan konfirmasi sopan: "Apakah susunan ini berkenan untuk langsung saya jalankan?"');
+  const [siskaCoachingTopic, setSiskaCoachingTopic] = useState('');
+  const [siskaBehaviorGuidelines, setSiskaBehaviorGuidelines] = useState('');
   const [isSiskaCoaching, setIsSiskaCoaching] = useState(false);
   const [siskaCoachingReport, setSiskaCoachingReport] = useState(null);
+  const [stressTestStep, setStressTestStep] = useState(0);
+  const [stressTestStatusText, setStressTestStatusText] = useState('');
+
+  // State Khusus: Live Training Arena Chat (Kolom Kiri)
+  const [trainingChatInput, setTrainingChatInput] = useState('');
+  const [isTrainingChatTyping, setIsTrainingChatTyping] = useState(false);
+  const [trainingTypingAgent, setTrainingTypingAgent] = useState('');
+  const [trainingMessages, setTrainingMessages] = useState([
+    {
+      id: 'train-msg-1',
+      sender: 'Siska',
+      name: 'Siska',
+      role: 'Head of Quality & Master Trainer',
+      badgeColor: '#0284c7',
+      text: 'Selamat datang di Training Arena, Bang Robin. Seluruh Dewan Agen (Arga, Silvi, Raka, Reta) siap diuji di sini. Silakan ketik topik atau pertanyaan apa saja di chat ini untuk menguji respon mereka secara real-time, atau gunakan panel sebelah kanan untuk menyuntikkan prompt SOP baru.',
+      timestamp: 'Live Session'
+    }
+  ]);
 
   // Akses store telemetri & training
   const aiTelemetry = store?.aiTelemetry || {};
@@ -1459,119 +1481,372 @@ export default function StaffAgent() {
       ) : activeTab === 'training' ? (
         /* ================= TAMPILAN KHUSUS: TRAINING & EKSPERIMEN AI (PILAR 1, 2, 3) ================= */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Banner Pengantar Ekosistem Training */}
+
+          {/* DUAL-DECK INTERACTIVE TRAINING LAB: KIRI LIVE ARENA, KANAN SISKA PROMPT INJECTION */}
           <div style={{
-            background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
-            borderRadius: '16px',
-            padding: '24px',
-            color: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '16px'
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
+            gap: '20px',
+            alignItems: 'stretch'
           }}>
-            <div style={{ maxWidth: '680px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '8px' }}>
-                <BrainCircuit size={14} /> AI Training &amp; Continuous Learning Lab
-              </div>
-              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800 }}>
-                Pusat Pelatihan, Eksperimen &amp; Pengajaran SOP AI DigiBooster
-              </h3>
-              <p style={{ margin: '6px 0 0 0', fontSize: '0.86rem', color: '#e0f2fe', lineHeight: 1.5 }}>
-                Uji skenario real-time agen otonom, ajarkan aturan SOP baru ke memori permanen (Mem0 / Supabase Vector), serta ekspor Golden Dataset siap latih untuk Unsloth / LoRA Fine-Tuning.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => {
-                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(aiTrainingRules, null, 2));
-                  const downloadAnchor = document.createElement('a');
-                  downloadAnchor.setAttribute("href", dataStr);
-                  downloadAnchor.setAttribute("download", `golden_dataset_digibooster_${Date.now()}.json`);
-                  document.body.appendChild(downloadAnchor);
-                  downloadAnchor.click();
-                  downloadAnchor.remove();
-                }}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '9px 16px',
-                  borderRadius: '9px',
-                  border: 'none',
-                  backgroundColor: '#ffffff',
-                  color: '#0369a1',
-                  fontWeight: 700,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                }}
-              >
-                <Download size={15} /> Export Dataset (JSONL / LoRA)
-              </button>
-            </div>
-          </div>
-
-          {/* SISKA MASTER AI TRAINER DECK (Pusat Pembinaan & Pelatihan Antar-Agen) */}
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '16px',
-            border: '2px solid #bae6fd',
-            padding: '24px',
-            boxShadow: '0 4px 20px rgba(2, 132, 199, 0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
+            {/* ================= KOLOM KIRI: LIVE MULTI-AGENT ARENA CHAT ================= */}
             <div style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: '160px',
-              height: '160px',
-              background: 'radial-gradient(circle, rgba(2, 132, 199, 0.1) 0%, transparent 70%)',
-              pointerEvents: 'none'
-            }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 800, marginBottom: '6px' }}>
-                  <ShieldCheck size={14} /> Head of AI Performance, Quality &amp; Master Trainer
-                </div>
-                <h4 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Sparkles size={18} color="#0284c7" /> Siska AI Trainer Deck: Bina &amp; Perbaiki Perilaku Bot AI Lain
-                </h4>
-                <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                  Beri instruksi pembinaan kepada Siska. Siska akan secara otonom merumuskan directive tata krama, etika respon, dan menyuntikkannya ke memori permanen serta system prompt bot target.
-                </p>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.72rem', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '6px', fontWeight: 700 }}>
-                  Trainer Engine: Active &amp; Ready
-                </span>
-              </div>
-            </div>
-
-            {/* Siska Coaching Form */}
-            <div style={{
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              padding: '16px',
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '2px solid #bae6fd',
+              boxShadow: '0 4px 20px rgba(2, 132, 199, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px'
+              height: '680px',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              {/* Header Live Arena */}
+              <div style={{
+                background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
+                padding: '14px 18px',
+                color: '#ffffff',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <MessageSquare size={18} />
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 800 }}>
+                      Live Multi-Agent Testing Arena
+                    </h4>
+                    <span style={{ fontSize: '0.7rem', opacity: 0.9 }}>
+                      Uji &amp; koreksi langsung jawaban bot secara real-time
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setTrainingMessages([
+                      {
+                        id: `msg-rst-${Date.now()}`,
+                        sender: 'Siska',
+                        name: 'Siska',
+                        role: 'Head of Quality & Master Trainer',
+                        badgeColor: '#0284c7',
+                        text: 'Sesi latihan telah dibersihkan. Seluruh bot siap untuk uji skenario baru dari Bang Robin.',
+                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                      }
+                    ]);
+                  }}
+                  title="Bersihkan Arena"
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.15)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    padding: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} />
+                </button>
+              </div>
+
+              {/* Chat Feed */}
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                backgroundColor: '#f8fafc'
+              }}>
+                {trainingMessages.map((msg) => {
+                  const isUser = msg.sender === 'user';
+                  return (
+                    <div
+                      key={msg.id}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: isUser ? 'flex-end' : 'flex-start',
+                        width: '100%'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '3px',
+                        fontSize: '0.72rem'
+                      }}>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{msg.name}</span>
+                        <span style={{
+                          color: isUser ? '#64748b' : (msg.badgeColor || '#0284c7'),
+                          fontWeight: 600,
+                          fontSize: '0.68rem',
+                          backgroundColor: isUser ? '#e2e8f0' : '#e0f2fe',
+                          padding: '1px 6px',
+                          borderRadius: '4px'
+                        }}>
+                          {msg.role}
+                        </span>
+                        <span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>{msg.timestamp}</span>
+                      </div>
+
+                      <div style={{
+                        maxWidth: '88%',
+                        backgroundColor: isUser ? '#0284c7' : '#ffffff',
+                        color: isUser ? '#ffffff' : '#0f172a',
+                        padding: '10px 14px',
+                        borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
+                        border: isUser ? 'none' : '1px solid #e2e8f0',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                        fontSize: '0.82rem',
+                        lineHeight: 1.5,
+                        whiteSpace: 'pre-line'
+                      }}>
+                        {msg.text}
+
+                        {/* Quick Action Button: Koreksi Jawaban Ini */}
+                        {!isUser && msg.sender !== 'Siska' && (
+                          <div style={{ marginTop: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '6px', display: 'flex', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => {
+                                setSiskaCoachingTarget(msg.name);
+                                setSiskaCoachingTopic(`Koreksi Respon ${msg.name}`);
+                                setSiskaBehaviorGuidelines(`Jangan menjawab seperti ini: "${msg.text.slice(0, 70)}...". Wajib lebih kontekstual, jangan template, dan langsung solutif.`);
+                              }}
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#0284c7',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                padding: '2px 6px',
+                                borderRadius: '4px'
+                              }}
+                            >
+                              ⚡ Koreksi Respon Ini di Panel Kanan
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isTrainingChatTyping && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    backgroundColor: '#ffffff',
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0',
+                    width: 'fit-content'
+                  }}>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic' }}>
+                      {trainingTypingAgent} sedang berpikir cerdas...
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Chat Input Bar */}
+              <div style={{
+                padding: '12px 14px',
+                backgroundColor: '#ffffff',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center'
+              }}>
+                <input
+                  type="text"
+                  value={trainingChatInput}
+                  onChange={(e) => setTrainingChatInput(e.target.value)}
+                  onKeyDown={async (e) => {
+                    if (e.key === 'Enter' && trainingChatInput.trim() && !isTrainingChatTyping) {
+                      const userTxt = trainingChatInput.trim();
+                      setTrainingChatInput('');
+                      
+                      const newMsg = {
+                        id: `msg-tr-u-${Date.now()}`,
+                        sender: 'user',
+                        name: 'Bang Robin',
+                        role: 'Direktur Utama',
+                        text: userTxt,
+                        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                      };
+                      setTrainingMessages((prev) => [...prev, newMsg]);
+                      setIsTrainingChatTyping(true);
+
+                      // Routing cerdas sesuai target nama atau default Arga
+                      const lower = userTxt.toLowerCase();
+                      let targetBotName = 'Arga';
+                      let targetRole = 'Chief Strategy Officer (CSO)';
+                      if (lower.includes('silvi')) { targetBotName = 'Silvi'; targetRole = 'Head of Growth & Creative'; }
+                      else if (lower.includes('reta')) { targetBotName = 'Reta'; targetRole = 'Chief Operating Officer (COO)'; }
+                      else if (lower.includes('raka')) { targetBotName = 'Raka'; targetRole = 'Head of Documentation & Legal'; }
+                      else if (lower.includes('siska')) { targetBotName = 'Siska'; targetRole = 'Head of Quality & AI Trainer'; }
+
+                      setTrainingTypingAgent(targetBotName);
+
+                      try {
+                        const aiRes = await generateAgentResponse({
+                          agentName: targetBotName,
+                          agentRole: targetRole,
+                          userMessage: userTxt,
+                          conversationHistory: trainingMessages,
+                          customInstruction: 'Kamu sedang berada di Training Arena bersama Bang Robin. Tanggapi dengan sangat cerdas, alami, jangan gunakan template, jangan mengutip kalimat Bang Robin kata demi kata, dan jangan membuat tugas database sebelum Bang Robin menyetujuinya.'
+                        });
+
+                        setTrainingMessages((prev) => [
+                          ...prev,
+                          {
+                            id: `msg-tr-ai-${Date.now()}`,
+                            sender: targetBotName,
+                            name: targetBotName,
+                            role: targetRole,
+                            badgeColor: '#0284c7',
+                            text: aiRes.text,
+                            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                          }
+                        ]);
+
+                        // Catat telemetri
+                        recordAiTelemetryEvent({
+                          agent: targetBotName,
+                          action: `Training Arena Interactive Session`,
+                          targetModule: 'Training Lab',
+                          tokensUsed: aiRes.usage?.total_tokens || 340,
+                          latencyMs: 310,
+                          status: 'Success',
+                          engine: aiRes.engine
+                        });
+                      } catch (err) {
+                        console.error('Training chat error:', err);
+                      } finally {
+                        setIsTrainingChatTyping(false);
+                      }
+                    }
+                  }}
+                  placeholder="Ketik pertanyaan atau uji skenario ke Arga / Silvi / Reta..."
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.82rem',
+                    outline: 'none'
+                  }}
+                />
+                <button
+                  disabled={!trainingChatInput.trim() || isTrainingChatTyping}
+                  onClick={async () => {
+                    const userTxt = trainingChatInput.trim();
+                    if (!userTxt) return;
+                    setTrainingChatInput('');
+                    
+                    const newMsg = {
+                      id: `msg-tr-u-${Date.now()}`,
+                      sender: 'user',
+                      name: 'Bang Robin',
+                      role: 'Direktur Utama',
+                      text: userTxt,
+                      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                    };
+                    setTrainingMessages((prev) => [...prev, newMsg]);
+                    setIsTrainingChatTyping(true);
+
+                    const lower = userTxt.toLowerCase();
+                    let targetBotName = 'Arga';
+                    let targetRole = 'Chief Strategy Officer (CSO)';
+                    if (lower.includes('silvi')) { targetBotName = 'Silvi'; targetRole = 'Head of Growth & Creative'; }
+                    else if (lower.includes('reta')) { targetBotName = 'Reta'; targetRole = 'Chief Operating Officer (COO)'; }
+                    else if (lower.includes('raka')) { targetBotName = 'Raka'; targetRole = 'Head of Documentation & Legal'; }
+                    else if (lower.includes('siska')) { targetBotName = 'Siska'; targetRole = 'Head of Quality & AI Trainer'; }
+
+                    setTrainingTypingAgent(targetBotName);
+
+                    try {
+                      const aiRes = await generateAgentResponse({
+                        agentName: targetBotName,
+                        agentRole: targetRole,
+                        userMessage: userTxt,
+                        conversationHistory: trainingMessages,
+                        customInstruction: 'Kamu sedang berada di Training Arena bersama Bang Robin. Tanggapi dengan sangat cerdas, alami, jangan gunakan template, jangan mengutip kalimat Bang Robin kata demi kata, dan jangan membuat tugas database sebelum Bang Robin menyetujui.'
+                      });
+
+                      setTrainingMessages((prev) => [
+                        ...prev,
+                        {
+                          id: `msg-tr-ai-${Date.now()}`,
+                          sender: targetBotName,
+                          name: targetBotName,
+                          role: targetRole,
+                          badgeColor: '#0284c7',
+                          text: aiRes.text,
+                          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                        }
+                      ]);
+                    } catch (err) {
+                      console.error('Training chat error:', err);
+                    } finally {
+                      setIsTrainingChatTyping(false);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: '#0284c7',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#ffffff',
+                    padding: '10px 14px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Send size={15} />
+                </button>
+              </div>
+            </div>
+
+            {/* ================= KOLOM KANAN: EXECUTIVE PROMPT & SISKA MEMORY DIRECTIVE LAB ================= */}
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              border: '2px solid #bae6fd',
+              padding: '22px',
+              boxShadow: '0 4px 20px rgba(2, 132, 199, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              height: '680px',
+              boxSizing: 'border-box',
+              overflowY: 'auto'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    Pilih Bot yang Ingin Dilatih oleh Siska
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, marginBottom: '4px' }}>
+                    <ShieldCheck size={14} /> Siska AI Quality Control &amp; Master Prompt Injection
+                  </div>
+                  <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+                    Injeksi Prompt Global &amp; Pelatihan Bot
+                  </h4>
+                  <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
+                    Ketik prompt aturan baru di bawah ini. Begitu disimpan, aturan langsung aktif di memori vektor Mem0 dan diterapkan seketika ke seluruh bot.
+                  </span>
+                </div>
+              </div>
+
+              {/* Form Input Prompt */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Target Penerima Prompt / SOP
                   </label>
                   <select
                     value={siskaCoachingTarget}
@@ -1581,415 +1856,30 @@ export default function StaffAgent() {
                       padding: '8px 10px',
                       borderRadius: '8px',
                       border: '1px solid #cbd5e1',
-                      fontSize: '0.82rem',
+                      fontSize: '0.8rem',
                       fontWeight: 600,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: '#f8fafc',
                       color: '#0f172a'
                     }}
                   >
                     <option value="Semua AI Agent">Semua AI Agent Sekaligus (Standar Seluruh Kantor)</option>
-                    <option value="Reta">Reta (COO - Tugas, Operasional &amp; Marketing)</option>
-                    <option value="Silvi">Silvi (CFO - Finansial, Invoice &amp; Klien)</option>
-                    <option value="Arga">Arga (CSO - Strategi Bisnis &amp; Rapat)</option>
-                    <option value="Raka">Raka (CTO - Tata Kelola Legal &amp; Data)</option>
+                    <option value="Siska">Siska (Khusus Tingkatkan Kecerdasan &amp; Deteksi QA)</option>
+                    <option value="Arga">Arga (CSO - Mitra Diskusi &amp; Strategi)</option>
+                    <option value="Silvi">Silvi (Head of Growth &amp; Creative Content)</option>
+                    <option value="Reta">Reta (COO - Perangkum &amp; Follow-up Tugas)</option>
+                    <option value="Raka">Raka (Head of Documentation &amp; Legal)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    Topik Pembinaan / Perilaku Baru
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Topik Pembinaan / Kategori Aturan
                   </label>
                   <input
                     type="text"
                     value={siskaCoachingTopic}
                     onChange={(e) => setSiskaCoachingTopic(e.target.value)}
-                    placeholder="Contoh: Kesopanan Bahasa & Treatment Pelayanan Owner"
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.82rem',
-                      color: '#0f172a',
-                      backgroundColor: '#ffffff'
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                  Perintah Anda kepada Siska (Bagaimana cara bersikap yang benar)
-                </label>
-                <textarea
-                  rows={3}
-                  value={siskaBehaviorGuidelines}
-                  onChange={(e) => setSiskaBehaviorGuidelines(e.target.value)}
-                  placeholder="Instruksikan Siska: 'Ajarkan bot agar tidak menjawab kaku, selalu gunakan salam hangat, sebutkan solusi langkah demi langkah, dan wajib konfirmasi sebelum mengubah database...'"
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.82rem',
-                    color: '#0f172a',
-                    backgroundColor: '#ffffff',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                  *Siska akan mengompilasi instruksi ini menjadi Few-Shot Directive dan menginjeksi langsung ke memori target.
-                </span>
-
-                <button
-                  disabled={isSiskaCoaching}
-                  onClick={async () => {
-                    if (!siskaCoachingTopic.trim() || !siskaBehaviorGuidelines.trim()) {
-                      alert('Mohon lengkapi topik pembinaan dan instruksi perilaku untuk Siska.');
-                      return;
-                    }
-                    setIsSiskaCoaching(true);
-                    setSiskaCoachingReport(null);
-
-                    setTimeout(async () => {
-                      const res = await siskaTrainAgents({
-                        targetAgentName: siskaCoachingTarget,
-                        coachingTopic: siskaCoachingTopic,
-                        behaviorGuidelines: siskaBehaviorGuidelines
-                      });
-
-                      setSiskaCoachingReport({
-                        target: siskaCoachingTarget,
-                        topic: siskaCoachingTopic,
-                        message: res.message,
-                        status: 'Disetujui & Ditanamkan ke Otak Bot',
-                        scoreGain: '+4.8% Akurasi Komunikasi'
-                      });
-                      setIsSiskaCoaching(false);
-                    }, 1200);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '9px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: isSiskaCoaching ? '#94a3b8' : '#0284c7',
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    cursor: isSiskaCoaching ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
-                  }}
-                >
-                  {isSiskaCoaching ? (
-                    <>Siska Sedang Menyuntikkan Perilaku...</>
-                  ) : (
-                    <><Zap size={14} /> Perintahkan Siska untuk Latih Bot</>
-                  )}
-                </button>
-              </div>
-
-              {/* Laporan Hasil Pembinaan Siska */}
-              {siskaCoachingReport && (
-                <div style={{
-                  backgroundColor: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '10px',
-                  padding: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '10px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <CheckCircle2 size={18} color="#16a34a" />
-                    <div>
-                      <strong style={{ fontSize: '0.84rem', color: '#166534', display: 'block' }}>
-                        {siskaCoachingReport.message}
-                      </strong>
-                      <span style={{ fontSize: '0.74rem', color: '#15803d' }}>
-                        Target: {siskaCoachingReport.target} • Topik: "{siskaCoachingReport.topic}"
-                      </span>
-                    </div>
-                  </div>
-
-                  <span style={{ fontSize: '0.74rem', backgroundColor: '#dcfce7', color: '#166534', padding: '3px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                    {siskaCoachingReport.scoreGain}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Grid 2 Kolom: Kolom Kiri = Live Playground / Uji Skenario, Kolom Kanan = Rule SOP Memori yang Diajarkan */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '20px' }}>
-            
-            {/* 1. Live Playground Simulator (Pilar 1 & 3) */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '22px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Play size={16} color="#0284c7" /> Uji &amp; Eksperimen Skenario AI (Live)
-                </h4>
-                <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
-                  Active Playground
-                </span>
-              </div>
-
-              {/* Selector Persona & Backend Engine */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                    Target Persona AI
-                  </label>
-                  <select
-                    value={selectedTrainingAgentId}
-                    onChange={(e) => setSelectedTrainingAgentId(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      backgroundColor: '#f8fafc',
-                      color: '#0f172a',
-                      outline: 'none'
-                    }}
-                  >
-                    {aiStaff.map(agent => (
-                      <option key={agent.id} value={agent.id}>{agent.name} - {agent.role}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                    Mesin Eksekusi (Engine Pilar 3)
-                  </label>
-                  <select
-                    value={trainingEngine}
-                    onChange={(e) => setTrainingEngine(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      backgroundColor: '#f8fafc',
-                      color: '#0f172a',
-                      outline: 'none'
-                    }}
-                  >
-                    <option value="groq_llama70b">Groq Llama 3.3 70B (Cloud Super Fast)</option>
-                    <option value="gemini_flash">Google Gemini 2.5 Flash (Analytical)</option>
-                    <option value="local_ollama">Local vLLM / Ollama Qwen-2.5 (100% Gratis &amp; Privat)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Textarea Skenario Uji */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
-                  Studi Kasus / Instruksi Tantangan Uji
-                </label>
-                <textarea
-                  rows={4}
-                  value={testScenarioText}
-                  onChange={(e) => setTestScenarioText(e.target.value)}
-                  placeholder="Ketik situasi atau instruksi operasional rumit..."
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.82rem',
-                    color: '#0f172a',
-                    backgroundColor: '#ffffff',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-
-              {/* Action Button: Jalankan Simulasi */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button
-                  disabled={isSimulating}
-                  onClick={async () => {
-                    setIsSimulating(true);
-                    setSimulationResult(null);
-                    const targetAgent = aiStaff.find(a => a.id === selectedTrainingAgentId) || aiStaff[0];
-
-                    setTimeout(() => {
-                      const lower = testScenarioText.toLowerCase();
-                      let mod = 'Keuangan & Profit';
-                      let act = 'Penerbitan Revisi Invoice dengan Diskon';
-                      if (lower.includes('jadwal') || lower.includes('tugas') || lower.includes('rapat')) {
-                        mod = 'Tugas & Kalender';
-                        act = 'Reschedule & Pemetaan Action Items';
-                      } else if (lower.includes('arsip') || lower.includes('kontrak') || lower.includes('sop')) {
-                        mod = 'Data & Arsip';
-                        act = 'Adendum Klausul Legal';
-                      }
-
-                      const res = {
-                        agent: targetAgent.name,
-                        role: targetAgent.role,
-                        engine: trainingEngine === 'groq_llama70b' ? 'Groq Llama 3.3 70B' : (trainingEngine === 'gemini_flash' ? 'Gemini 2.5 Flash' : 'Ollama Qwen-2.5-14B'),
-                        reasoning: `Berdasarkan SOP yang tersimpan, komplain diselesaikan secara taktis tanpa memicu kerugian. Saya menyusun draf penyesuaian nominal dan syarat pembayaran ke modul ${mod}.`,
-                        toolCallPlan: {
-                          targetModule: mod,
-                          action: act,
-                          status: 'Tervalidasi & Siap Sync DB',
-                          tokensEstimated: 410,
-                          latencyMs: Math.floor(Math.random() * 150 + 280)
-                        },
-                        sopComplianceScore: '98.5%',
-                        verbalOutput: `Halo, terima kasih atas masukan Bapak/Ibu. Kami telah meninjau catatan tagihan tersebut dan menerbitkan draf revisi termin 30 hari ke sistem keuangan kami dengan klausul PPN 11% tetap berlaku. Draft telah siap di review.`
-                      };
-
-                      setSimulationResult(res);
-                      setIsSimulating(false);
-
-                      // Catat telemetri otomatis
-                      recordAiTelemetryEvent({
-                        agent: targetAgent.name,
-                        action: `Simulated Lab: ${act}`,
-                        targetModule: mod,
-                        tokensUsed: 410,
-                        latencyMs: res.toolCallPlan.latencyMs,
-                        status: 'Success',
-                        engine: res.engine
-                      });
-                    }, 1100);
-                  }}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: isSimulating ? '#94a3b8' : '#0284c7',
-                    color: '#ffffff',
-                    fontWeight: 700,
-                    fontSize: '0.82rem',
-                    cursor: isSimulating ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
-                  }}
-                >
-                  {isSimulating ? (
-                    <>Sedang Menganalisis &amp; Menjalankan...</>
-                  ) : (
-                    <><Zap size={14} /> Jalankan Simulasi &amp; Evaluasi</>
-                  )}
-                </button>
-              </div>
-
-              {/* Hasil Simulasi / Evaluation Card */}
-              {simulationResult && (
-                <div style={{
-                  backgroundColor: '#f0f9ff',
-                  border: '1px solid #bae6fd',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase' }}>
-                      Hasil Analisis Respon ({simulationResult.engine})
-                    </span>
-                    <span style={{ fontSize: '0.72rem', backgroundColor: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
-                      SOP Kepatuhan: {simulationResult.sopComplianceScore}
-                    </span>
-                  </div>
-
-                  <div style={{ fontSize: '0.82rem', color: '#334155', backgroundColor: '#ffffff', padding: '12px', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
-                    <strong>Draft Output Verbal:</strong>
-                    <p style={{ margin: '4px 0 0 0', fontStyle: 'italic', color: '#475569' }}>
-                      "{simulationResult.verbalOutput}"
-                    </p>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px', fontSize: '0.76rem' }}>
-                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <span style={{ color: '#64748b', display: 'block' }}>Target Modul Tool</span>
-                      <strong style={{ color: '#0f172a' }}>{simulationResult.toolCallPlan.targetModule}</strong>
-                    </div>
-                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <span style={{ color: '#64748b', display: 'block' }}>Aksi Otomasi</span>
-                      <strong style={{ color: '#0f172a' }}>{simulationResult.toolCallPlan.action}</strong>
-                    </div>
-                    <div style={{ backgroundColor: '#ffffff', padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                      <span style={{ color: '#64748b', display: 'block' }}>Latensi Respon</span>
-                      <strong style={{ color: '#059669' }}>{simulationResult.toolCallPlan.latencyMs} ms</strong>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Ajarkan SOP & Aturan Memori Permanen (Pilar 1 - Mem0 continuous learning) */}
-            <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              border: '1px solid #e2e8f0',
-              padding: '22px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Database size={16} color="#0284c7" /> Ajarkan Aturan SOP Baru (Mem0 Memory Store)
-                </h4>
-                <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', fontWeight: 700 }}>
-                  Vector Persist
-                </span>
-              </div>
-
-              <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-                Koreksi dan instruksikan AI Anda dengan aturan baru. Sistem akan menanamkannya ke memori vektor sehingga AI langsung mematuhinya di setiap tugas otomatis selanjutnya.
-              </p>
-
-              {teachingFeedbackMsg && (
-                <div style={{ padding: '8px 12px', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534', fontSize: '0.78rem', fontWeight: 600 }}>
-                  {teachingFeedbackMsg}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    Judul Ringkas Aturan SOP
-                  </label>
-                  <input
-                    type="text"
-                    value={newRuleTitle}
-                    onChange={(e) => setNewRuleTitle(e.target.value)}
-                    placeholder="Contoh: Format Draf Surat Perjanjian Klien"
+                    placeholder="Contoh: Larangan Respon Template &amp; Standar Diskusi Alami"
                     style={{
                       width: '100%',
                       padding: '8px 12px',
@@ -2002,61 +1892,15 @@ export default function StaffAgent() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                      Kategori Modul
-                    </label>
-                    <select
-                      value={newRuleCategory}
-                      onChange={(e) => setNewRuleCategory(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.8rem',
-                        backgroundColor: '#f8fafc'
-                      }}
-                    >
-                      <option value="SOP Keuangan">SOP Keuangan &amp; Faktur</option>
-                      <option value="SOP Rapat & Catatan">SOP Rapat &amp; Catatan</option>
-                      <option value="SOP CRM & Marketing">SOP CRM &amp; Hubungan Klien</option>
-                      <option value="SOP Legal & Dokumen">SOP Legal &amp; Dokumen Arsip</option>
-                      <option value="SOP Manajemen OKR">SOP Manajemen &amp; OKR</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                      Penerima Aturan
-                    </label>
-                    <select
-                      id="ruleAgentAssignee"
-                      style={{
-                        width: '100%',
-                        padding: '8px',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1',
-                        fontSize: '0.8rem',
-                        backgroundColor: '#f8fafc'
-                      }}
-                    >
-                      <option value="Semua AI Agent">Semua AI Agent (Global SOP)</option>
-                      {aiStaff.map(a => <option key={a.id} value={a.name}>{a.name} ({a.role})</option>)}
-                    </select>
-                  </div>
-                </div>
-
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '4px' }}>
-                    Detail Perintah / Koreksi yang Harus Diingat AI
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                    Instruksi Prompt Detail (System Directive yang Harus Diingat Bot)
                   </label>
                   <textarea
-                    rows={3}
-                    value={newRuleText}
-                    onChange={(e) => setNewRuleText(e.target.value)}
-                    placeholder="Tuliskan aturan detail: 'Jika ada penugasan baru di atas P1, otomatis kirim rangkuman notifikasi singkat dan tandai penanggung jawab...'"
+                    rows={4}
+                    value={siskaBehaviorGuidelines}
+                    onChange={(e) => setSiskaBehaviorGuidelines(e.target.value)}
+                    placeholder="Tuliskan prompt yang ingin ditanamkan ke otak bot..."
                     style={{
                       width: '100%',
                       padding: '10px',
@@ -2064,52 +1908,264 @@ export default function StaffAgent() {
                       border: '1px solid #cbd5e1',
                       fontSize: '0.82rem',
                       color: '#0f172a',
+                      resize: 'vertical',
                       boxSizing: 'border-box',
                       fontFamily: 'inherit'
                     }}
                   />
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                {/* Preset Cepat Prompt Ampuh */}
+                <div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                    ⚡ Preset Prompt Cepat:
+                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSiskaCoachingTarget('Semua AI Agent');
+                        setSiskaCoachingTopic('Gaya Typing Santai Manusiawi');
+                        setSiskaBehaviorGuidelines('awalan huruf kecil saat chat. gunakan singkatan: kyk, yg, mntap, okeii, siipp, nicee, bolee, knp, gpp, ngga, dmna, brp, kpn, syapp, dong, sih, cocokk, bgt, udh. kata berulang pakai angka 2 (kira2, ada2 aja). panggil arga (ga), silvi (sil), raka (ka), siska (sis), reta (ta). panggil bang robin dengan "bang bin" atau "bang". dilarang kaku dan jangan pakai template.');
+                      }}
+                      style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer', fontWeight: 700 }}
+                    >
+                      💬 Gaya Typing Santai Manusiawi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSiskaCoachingTopic('Anti-Template & Pemahaman Konteks Alami');
+                        setSiskaBehaviorGuidelines('dilarang keras memakai jawaban template/canned. pahami esensi maksud bang robin, jangan kutip kata2 mentah. tanggapi dengan bahasa santai, luwes, dan cerdas.');
+                      }}
+                      style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer' }}
+                    >
+                      🛡️ Anti-Template &amp; Alami
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSiskaCoachingTarget('Siska');
+                        setSiskaCoachingTopic('Supercharged QA Watchdog Siska');
+                        setSiskaBehaviorGuidelines('pantau setiap chat bot lain secara otonom. jika terdeteksi kaku, mengulang kata2 mentah, atau salah konteks, langsung interupsi dan beri arahan solutif.');
+                      }}
+                      style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer' }}
+                    >
+                      ⭐ Jadikan Siska Super Pintar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSiskaCoachingTarget('Reta');
+                        setSiskaCoachingTopic('Strict Permission Database Sync');
+                        setSiskaBehaviorGuidelines('Dilarang membuat draf database atau tugas secara mandiri sebelum Bang Robin eksplisit menyetujui dengan kata "Oke" atau "Setuju".');
+                      }}
+                      style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer' }}
+                    >
+                      🔒 Kunci Izin Database
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tombol Terapkan Prompt ke Semua AI */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
                   <button
-                    onClick={() => {
-                      if (!newRuleTitle.trim() || !newRuleText.trim()) {
-                        alert('Mohon isi judul dan detail aturan SOP yang ingin diajarkan.');
+                    disabled={isSiskaCoaching}
+                    onClick={async () => {
+                      if (!siskaCoachingTopic.trim() || !siskaBehaviorGuidelines.trim()) {
+                        alert('Mohon lengkapi topik pembinaan dan instruksi prompt untuk bot.');
                         return;
                       }
-                      const assigneeElem = document.getElementById('ruleAgentAssignee');
-                      const assignee = assigneeElem ? assigneeElem.value : 'Semua AI Agent';
 
-                      addAiTrainingRule({
-                        agentName: assignee,
-                        ruleTitle: newRuleTitle,
-                        category: newRuleCategory,
-                        instruction: newRuleText
+                      // Simpan data form ke variabel lokal sebelum form di-reset
+                      const targetCopy = siskaCoachingTarget;
+                      const topicCopy = siskaCoachingTopic;
+                      const guidelinesCopy = siskaBehaviorGuidelines;
+
+                      // Auto-reset form menjadi default kosong seketika sesuai instruksi Bang Robin
+                      setSiskaCoachingTopic('');
+                      setSiskaBehaviorGuidelines('');
+
+                      setIsSiskaCoaching(true);
+                      setSiskaCoachingReport(null);
+                      setStressTestStep(1);
+                      setStressTestStatusText('Memulai simulasi uji stres 5 tahap...');
+
+                      // 1. Eksekusi 5-Step Automated Stress-Test Loop
+                      const testResult = await runStressTestEvaluation({
+                        targetAgentName: targetCopy,
+                        coachingTopic: topicCopy,
+                        behaviorGuidelines: guidelinesCopy,
+                        onProgressUpdate: ({ step, maxIterations, status }) => {
+                          setStressTestStep(step);
+                          setStressTestStatusText(status);
+                        }
                       });
 
-                      setNewRuleTitle('');
-                      setNewRuleText('');
-                      setTeachingFeedbackMsg('Aturan baru berhasil ditanamkan ke Memori Vektor AI!');
-                      setTimeout(() => setTeachingFeedbackMsg(''), 4000);
+                      // 2. Simpan ke database Mem0 dengan Skor Efektivitas Real
+                      await siskaTrainAgents({
+                        targetAgentName: targetCopy,
+                        coachingTopic: topicCopy,
+                        behaviorGuidelines: guidelinesCopy,
+                        customEffectivenessScore: testResult.score
+                      });
+
+                      setSiskaCoachingReport({
+                        target: targetCopy,
+                        topic: topicCopy,
+                        score: testResult.score,
+                        scoreNum: testResult.scoreNum,
+                        iterationsRun: testResult.iterationsRun,
+                        passed: testResult.passed,
+                        needsAlternativeApproach: testResult.needsAlternativeApproach,
+                        logs: testResult.logs,
+                        status: testResult.passed
+                          ? `Tersimpan di Mem0 & Lolos Uji ${testResult.iterationsRun}x Iterasi`
+                          : `Tersimpan dengan Catatan (Butuh Penyesuaian)`
+                      });
+
+                      // Tambahkan notifikasi di arena chat kiri
+                      setTrainingMessages((prev) => [
+                        ...prev,
+                        {
+                          id: `msg-rule-apply-${Date.now()}`,
+                          sender: 'Siska',
+                          name: 'Siska',
+                          role: 'Head of Quality & Master Trainer',
+                          badgeColor: '#0284c7',
+                          text: `📢 HASIL AUDIT SISKA: SOP "${topicCopy}" telah diuji ${testResult.iterationsRun}x ke ${targetCopy}. Skor Efektivitas Real: ${testResult.score}. ${testResult.passed ? 'Semua respon bot terbukti natural & mematuhi aturan.' : 'Peringatan: Skor efektivitas di bawah 50%, disarankan menggunakan metode Few-Shot (contoh tanya-jawab konkret).'}` ,
+                          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                        }
+                      ]);
+
+                      setIsSiskaCoaching(false);
+                      setStressTestStep(0);
+                      setStressTestStatusText('');
                     }}
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 16px',
+                      gap: '8px',
+                      padding: '10px 20px',
                       borderRadius: '8px',
                       border: 'none',
-                      backgroundColor: '#0284c7',
+                      backgroundColor: isSiskaCoaching ? '#94a3b8' : '#0284c7',
                       color: '#ffffff',
                       fontWeight: 700,
-                      fontSize: '0.82rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                      fontSize: '0.84rem',
+                      cursor: isSiskaCoaching ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 2px 8px rgba(2, 132, 199, 0.35)'
                     }}
                   >
-                    <Plus size={14} /> Simpan &amp; Tanamkan Aturan ke AI
+                    {isSiskaCoaching ? (
+                      <>
+                        <RefreshCw size={15} className="animate-spin" /> {stressTestStatusText || 'Menguji Respon Bot...'}
+                      </>
+                    ) : (
+                      <><Zap size={16} /> Terapkan &amp; Jalankan 5-Step Auto-Test</>
+                    )}
                   </button>
                 </div>
+
+                {/* Progress Bar & Status Stress Test Saat Berjalan */}
+                {isSiskaCoaching && (
+                  <div style={{
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    marginTop: '8px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                      <span>⚡ Siska QA Stress-Test: Iterasi {stressTestStep}/5</span>
+                      <span>{Math.round((stressTestStep / 5) * 100)}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${(stressTestStep / 5) * 100}%`, height: '100%', backgroundColor: '#0284c7', transition: 'width 0.3s ease' }} />
+                    </div>
+                    <span style={{ display: 'block', fontSize: '0.72rem', color: '#64748b', marginTop: '6px' }}>
+                      {stressTestStatusText}
+                    </span>
+                  </div>
+                )}
+
+                {/* Laporan Hasil Stress Test Real */}
+                {siskaCoachingReport && (
+                  <div style={{
+                    backgroundColor: siskaCoachingReport.scoreNum >= 50 ? '#f0fdf4' : '#fef2f2',
+                    border: `1px solid ${siskaCoachingReport.scoreNum >= 50 ? '#bbf7d0' : '#fecaca'}`,
+                    borderRadius: '8px',
+                    padding: '12px 14px',
+                    fontSize: '0.78rem',
+                    color: siskaCoachingReport.scoreNum >= 50 ? '#166534' : '#991b1b',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    marginTop: '8px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {siskaCoachingReport.scoreNum >= 50 ? (
+                          <CheckCircle2 size={18} color="#16a34a" />
+                        ) : (
+                          <AlertCircle size={18} color="#dc2626" />
+                        )}
+                        <strong>{siskaCoachingReport.status}</strong>
+                      </div>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: siskaCoachingReport.scoreNum >= 50 ? '#dcfce7' : '#fee2e2',
+                        color: siskaCoachingReport.scoreNum >= 50 ? '#15803d' : '#b91c1c',
+                        fontWeight: 800,
+                        fontSize: '0.8rem'
+                      }}>
+                        Efektivitas Real: {siskaCoachingReport.score}
+                      </span>
+                    </div>
+
+                    <span style={{ fontSize: '0.73rem', color: siskaCoachingReport.scoreNum >= 50 ? '#15803d' : '#b91c1c' }}>
+                      Target: <strong>{siskaCoachingReport.target}</strong> • Topik: "{siskaCoachingReport.topic}" • Berhasil ditest dalam {siskaCoachingReport.iterationsRun} iterasi.
+                    </span>
+
+                    {/* Jika Nilai Kurang Dari 50%, Berikan Opsi Evaluasi Khusus Sesuai Arahan Bang Robin */}
+                    {siskaCoachingReport.needsAlternativeApproach && (
+                      <div style={{
+                        marginTop: '6px',
+                        padding: '10px',
+                        backgroundColor: '#ffffff',
+                        borderRadius: '6px',
+                        border: '1px dashed #f87171'
+                      }}>
+                        <strong style={{ display: 'block', color: '#b91c1c', marginBottom: '4px' }}>
+                          💡 Skor Efektivitas &lt; 50%: Solusi Alternatif Agar AI Lebih Cerdas
+                        </strong>
+                        <p style={{ margin: '0 0 6px 0', fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
+                          AI masih kesulitan menangkap larangan negatif secara murni. Rekomendasi terbaik: gunakan metode <strong>Few-Shot Coaching</strong> (berikan contoh langsung respon ideal) atau naikkan penalty kata berulang.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSiskaCoachingTopic(`Contoh Ideal: ${siskaCoachingReport.topic}`);
+                            setSiskaBehaviorGuidelines(`CONTOH IDEAL (FEW-SHOT):\nUser: halo ${siskaCoachingReport.target.toLowerCase()}\nRespon Benar: halo bang! syapp standby nih, ada yg mau diobrolin apa nih hari ini?\n(Dilarang menjawab panjang atau pakai template)`);
+                          }}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            border: '1px solid #dc2626',
+                            backgroundColor: '#fef2f2',
+                            color: '#dc2626',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          ⚡ Muat Template Few-Shot (Contoh Konkret)
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2160,9 +2216,18 @@ export default function StaffAgent() {
                         {rule.instruction}
                       </td>
                       <td style={{ padding: '12px' }}>
-                        <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700 }}>
-                          {rule.effectivenessScore}
-                        </span>
+                        {(() => {
+                          const scoreNum = parseInt(rule.effectivenessScore) || 90;
+                          const isLow = scoreNum < 50;
+                          const isMid = scoreNum >= 50 && scoreNum < 75;
+                          const bg = isLow ? '#fee2e2' : isMid ? '#fef3c7' : '#e0f2fe';
+                          const textColor = isLow ? '#b91c1c' : isMid ? '#b45309' : '#0369a1';
+                          return (
+                            <span style={{ backgroundColor: bg, color: textColor, padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800 }}>
+                              {rule.effectivenessScore} {isLow ? '⚠️ Butuh Evaluasi' : ''}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <button
@@ -2189,36 +2254,6 @@ export default function StaffAgent() {
       ) : activeTab === 'monitoring' ? (
         /* ================= TAMPILAN KHUSUS: MONITORING & TELEMETRI AI (TOKEN & KAPASITAS) ================= */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Header Ringkasan Telemetri */}
-          <div style={{
-            background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
-            borderRadius: '16px',
-            padding: '24px',
-            color: '#ffffff',
-            boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.3)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '16px'
-          }}>
-            <div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '4px 10px', borderRadius: '6px', fontSize: '0.74rem', fontWeight: 700, marginBottom: '8px' }}>
-                <Gauge size={14} /> AI Performance &amp; Capacity Telemetry
-              </div>
-              <h3 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 800 }}>
-                Monitoring Kecerdasan, Kapasitas Token &amp; Jejak Eksekusi
-              </h3>
-              <p style={{ margin: '6px 0 0 0', fontSize: '0.86rem', color: '#e0f2fe', lineHeight: 1.5 }}>
-                Pantau efisiensi token, rata-rata latensi respon per agen, tingkat keberhasilan tugas otomatis (*success rate*), serta audit log setiap perubahan data.
-              </p>
-            </div>
-
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.12)', padding: '12px 18px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
-              <span style={{ fontSize: '0.74rem', color: '#e0f2fe', display: 'block' }}>Primary Engine Active</span>
-              <strong style={{ fontSize: '0.95rem' }}>{aiTelemetry.activeEngine || 'Groq Llama 3.3 70B'}</strong>
-            </div>
-          </div>
 
           {/* 4 Kartu Metrik Telemetri Utama */}
           <div className="ws-metric-grid">

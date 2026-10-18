@@ -44,30 +44,37 @@ export default function KeuanganProfit() {
   });
 
   const totalIncome = financeTransactions
-    .filter(t => t.type === 'Pemasukan' && t.status === 'Lunas')
-    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    .filter(t => t.type === 'Pemasukan' && t.status !== 'Dibatalkan')
+    .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
   const totalExpense = financeTransactions
-    .filter(t => t.type === 'Pengeluaran' && t.status === 'Lunas')
-    .reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    .filter(t => t.type === 'Pengeluaran' && t.status !== 'Dibatalkan')
+    .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
   const netProfit = totalIncome - totalExpense;
 
   // Data Bar Chart: Pemasukan vs Pengeluaran per Kategori
   const categoryAmounts = financeTransactions.reduce((acc, t) => {
+    if (t.status === 'Dibatalkan') return acc;
     const cat = t.category || 'Operasional';
-    acc[cat] = (acc[cat] || 0) + (t.amount || 0);
+    acc[cat] = (acc[cat] || 0) + (Number(t.amount) || 0);
     return acc;
   }, {});
 
   const financeBarData = Object.keys(categoryAmounts).slice(0, 5).map((cat, idx) => {
-    const valJt = Math.round(categoryAmounts[cat] / 1000000);
+    const rawVal = categoryAmounts[cat] || 0;
+    const valJt = rawVal >= 1000000 
+      ? Number((rawVal / 1000000).toFixed(1)) 
+      : Number((rawVal / 1000).toFixed(0));
+    const displayVal = rawVal >= 1000000 
+      ? `Rp ${(rawVal / 1000000).toFixed(1)}Jt` 
+      : `Rp ${rawVal.toLocaleString('id-ID')}`;
     const colors = ['#0284c7', '#0ea5e9', '#38bdf8', '#60a5fa', '#93c5fd'];
     const rawCat = (cat && typeof cat === 'string') ? cat : `Kategori ${idx+1}`;
     return {
       label: rawCat.split(' ')[0] || rawCat,
       value: valJt,
-      displayVal: `Rp ${valJt}Jt`,
+      displayVal: displayVal,
       color: colors[idx % colors.length]
     };
   });
@@ -110,6 +117,7 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '135px',
+      options: ['Pemasukan', 'Pengeluaran'],
       render: (val) => {
         const isIncome = val === 'Pemasukan';
         return (
@@ -197,6 +205,7 @@ export default function KeuanganProfit() {
         </span>
       ),
       minWidth: '130px',
+      options: ['Lunas', 'Pending', 'Dibatalkan'],
       render: (val) => {
         const statusColors = {
           'Lunas': '#16a34a',
@@ -270,7 +279,7 @@ export default function KeuanganProfit() {
 
       <div className="ws-metric-grid">
         <MetricCard
-          title="Total Pemasukan (Lunas)"
+          title="Total Pemasukan"
           value={`Rp ${(totalIncome / 1000000).toFixed(1)} Jt`}
           icon={ArrowUpRight}
         />

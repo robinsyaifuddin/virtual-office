@@ -57,7 +57,13 @@ export default function UniversalDetailModal({
 
   const handleFieldChange = (fieldKey, value) => {
     if (onUpdateField) {
-      onUpdateField(data.id, fieldKey, value);
+      const numericKeys = ['amount', 'dealValue', 'adSpend', 'targetNum', 'currentNum', 'rating', 'value', 'nominal', 'cost', 'budget'];
+      let finalVal = value;
+      if (numericKeys.includes(fieldKey) && typeof value === 'string') {
+        const cleanVal = value.replace(/[^0-9.-]/g, '');
+        finalVal = cleanVal === '' ? 0 : (Number(cleanVal) || 0);
+      }
+      onUpdateField(data.id, fieldKey, finalVal);
       triggerToast();
     }
   };

@@ -266,7 +266,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         name: 'Arga',
         role: 'Chief Strategy Officer (CSO)',
         badgeColor: '#0284c7',
-        text: 'Halo Bang Robin! Senang bisa menyapa. Siap mendiskusikan rencana atau strategi kantor hari ini.',
+        text: 'halo bang bin! syapp standby nih, ada yg mau diobrolin apa nih hari ini?',
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 600);
 
@@ -277,18 +277,18 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         name: 'Silvi',
         role: 'Head of Growth & Creative',
         badgeColor: '#0284c7',
-        text: 'Halo Bang Robin! Tim kreatif & growth standby siap berdiskusi.',
+        text: 'haloo bang! tim konten & growth jg udh siap kyk biasa nih, gas ajaa.',
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 500);
 
-      setTypingAgentName('Raka & Reta');
+      setTypingAgentName('Reta');
       await appendMessageSequentially({
         id: `msg-reta-${Date.now()}`,
         sender: 'Reta',
-        name: 'Reta & Raka',
+        name: 'Reta',
         role: 'COO & Legal',
         badgeColor: '#0369a1',
-        text: 'Halo Bang Robin! Operasional dan repositori berkas legal siap mendampingi arahan Bapak.',
+        text: 'siap bang bin, sy sm ka raka jg stanby pantau operasional yaa.',
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 500);
 
