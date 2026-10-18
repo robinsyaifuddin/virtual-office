@@ -2,50 +2,11 @@
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 
 /**
- * Call Groq API via direct REST endpoint dengan model aktif qwen/qwen3.8-27b
- */
-async function callGroqChat(messages, systemInstruction, maxTokens = 500, temperature = 0.75) {
-  if (!GROQ_API_KEY) {
-    throw new Error('GROQ_API_KEY tidak ditemukan di .env');
-  }
-
-  const payloadMessages = [
-    { role: 'system', content: systemInstruction },
-    ...messages
-  ];
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'qwen/qwen3.8-27b',
-      messages: payloadMessages,
-      temperature,
-      max_tokens: maxTokens
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Groq API error ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  const reply = data?.choices?.[0]?.message?.content || '';
-  return {
-    text: reply.trim(),
-    engine: 'Groq Qwen 27B',
-    usage: data?.usage || { total_tokens: 280 }
-  };
-}
-
-/**
- * Call Google Gemini REST API sebagai Fallback saat Groq kehabisan token / limit
+ * 1. UTAMA: Google Gemini REST API (Gemini 2.5 Flash / Flash Latest)
+ * Daya penalaran tinggi, context window raksasa, free tier kuota tinggi
  */
 async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
   if (!GEMINI_API_KEY) {
@@ -60,7 +21,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
     });
   });
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -88,16 +49,102 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 500) {
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   return {
     text: reply.trim(),
-    engine: 'Google Gemini Flash (Fallback)',
+    engine: 'Google Gemini 2.5 Flash (Primary)',
     usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 310 }
   };
 }
 
 /**
+ * 2. CADANGAN PERTAMA: Groq API (Llama 3.3 70B / Qwen)
+ * Super cepat 300+ token/detik
+ */
+async function callGroqChat(messages, systemInstruction, maxTokens = 500, temperature = 0.75) {
+  if (!GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY tidak ditemukan di .env');
+  }
+
+  const payloadMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages
+  ];
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: payloadMessages,
+      temperature,
+      max_tokens: maxTokens
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Groq API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const reply = data?.choices?.[0]?.message?.content || '';
+  return {
+    text: reply.trim(),
+    engine: 'Groq Llama 3.3 70B (Backup 1)',
+    usage: data?.usage || { total_tokens: 280 }
+  };
+}
+
+/**
+ * 3. CADANGAN KEDUA: OpenRouter Free Models
+ * Fallback penyelamat jika Gemini & Groq limit
+ */
+async function callOpenRouterChat(messages, systemInstruction, maxTokens = 500) {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error('OPENROUTER_API_KEY tidak ditemukan di .env');
+  }
+
+  const payloadMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages
+  ];
+
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://digibooster.id',
+      'X-Title': 'DigiBooster LiveChat'
+    },
+    body: JSON.stringify({
+      model: 'google/gemma-4-31b-it:free',
+      messages: payloadMessages,
+      max_tokens: maxTokens
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenRouter error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const reply = data?.choices?.[0]?.message?.content || '';
+  return {
+    text: reply.trim(),
+    engine: 'OpenRouter Free Model (Backup 2)',
+    usage: data?.usage || { total_tokens: 300 }
+  };
+}
+
+/**
  * Multi-Agent Resilient LLM Router:
- * 1. Groq Qwen 27B (Primary Fast & Non-Canned)
- * 2. Auto Fallback ke Google Gemini Flash
- * 3. Jika habis token / offline -> Respon humanis "sedang sakit / izin cuti"
+ * 1. Utama: Google Gemini (Gemini 2.5 Flash)
+ * 2. Cadangan 1: Groq (Llama 3.3 70B)
+ * 3. Cadangan 2: OpenRouter (Free Model)
+ * 4. Jika semua offline -> Respon humanis "sedang izin cuti"
  */
 export async function generateAgentResponse({
   agentName,
@@ -149,24 +196,32 @@ ${customInstruction}`;
   });
 
   let result = null;
-  // 1. Coba Primary Groq Qwen
+
+  // 1. Prioritas Utama: Google Gemini
   try {
-    result = await callGroqChat(formattedHistory, systemPrompt);
-  } catch (groqErr) {
-    console.warn('Groq error atau limit, beralih ke Fallback Gemini:', groqErr.message);
+    result = await callGeminiChat(formattedHistory, systemPrompt);
+  } catch (geminiErr) {
+    console.warn('[AI Router] Gemini limit atau error, beralih ke Cadangan 1 (Groq):', geminiErr.message);
 
-    // 2. Coba Fallback Gemini
+    // 2. Prioritas Kedua: Groq
     try {
-      result = await callGeminiChat(formattedHistory, systemPrompt);
-    } catch (geminiErr) {
-      console.warn('Gemini juga limit atau error:', geminiErr.message);
+      result = await callGroqChat(formattedHistory, systemPrompt);
+    } catch (groqErr) {
+      console.warn('[AI Router] Groq limit atau error, beralih ke Cadangan 2 (OpenRouter):', groqErr.message);
 
-      // 3. Status Token Habis / Error: Respon Sakit & Izin Cuti sesuai instruksi Bang Robin
-      return {
-        text: `maaf ya bang bin, sy lagi agak kurang enak badan/sakit nih jd izin belum bisa hadir dulu hari ini dan butuh waktu istirahat/cuti bentar yaa 🙏`,
-        engine: 'System Status: Izin Sakit / Cuti',
-        usage: { total_tokens: 0 }
-      };
+      // 3. Prioritas Ketiga: OpenRouter
+      try {
+        result = await callOpenRouterChat(formattedHistory, systemPrompt);
+      } catch (openRouterErr) {
+        console.warn('[AI Router] OpenRouter juga limit atau error:', openRouterErr.message);
+
+        // 4. Status Semua Provider Limit: Respon Humanis Izin Cuti / Sakit
+        return {
+          text: `maaf ya bang bin, sy lagi agak kurang enak badan/sakit nih jd izin belum bisa hadir dulu hari ini dan butuh waktu istirahat/cuti bentar yaa 🙏`,
+          engine: 'System Status: Izin Sakit / Cuti',
+          usage: { total_tokens: 0 }
+        };
+      }
     }
   }
 
