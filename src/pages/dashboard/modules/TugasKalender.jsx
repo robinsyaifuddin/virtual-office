@@ -35,6 +35,19 @@ export default function TugasKalender() {
   const [executingTaskId, setExecutingTaskId] = useState(null);
   const [executionResultModal, setExecutionResultModal] = useState(null);
 
+  // Auto-buka full page modal jika ada query param ?taskId=... dari link chat / tab baru
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlTaskId = params.get('taskId');
+      if (urlTaskId) {
+        setSelectedFullTaskId(urlTaskId);
+      }
+    } catch (e) {
+      console.warn('Error reading URL params:', e);
+    }
+  }, []);
+
   // Fungsi simulasi eksekusi cerdas AI Agent berdasar Persona & Task Prompt
   const handleRunAiAgent = (task, agent) => {
     if (!task || !task.id || !agent) return;

@@ -113,20 +113,35 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       !lower.includes('ngobrol');
 
     if (isExplicitToolCall) {
-      const isSilvi = lower.includes('silvi') || lower.includes('konten') || lower.includes('postingan') || lower.includes('marketing');
-      const executorName = isSilvi ? 'Silvi' : (lower.includes('raka') ? 'Raka' : 'Reta');
+      // Prioritaskan siapa yang dipanggil di kalimat pembuka:
+      const explicitlyAddressedReta = /\b(reta|ret|ta)\b/i.test(lower);
+      const explicitlyAddressedRaka = /\b(raka|ka)\b/i.test(lower);
+      const isSilvi = !explicitlyAddressedReta && !explicitlyAddressedRaka && (lower.includes('silvi') || lower.includes('konten') || lower.includes('postingan') || lower.includes('marketing'));
+      
+      const executorName = explicitlyAddressedReta ? 'Reta' : (isSilvi ? 'Silvi' : (explicitlyAddressedRaka ? 'Raka' : 'Reta'));
       setTypingAgentName(executorName);
 
       setTimeout(async () => {
-        let taskTitle = `Draf: ${raw.replace(/buatkan|tolong buat|masukkan ke tabel|simpan ke tabel/gi, '').trim() || 'Rencana Tindakan Operasional'}`;
+        let taskTitle = `Draf: ${raw.replace(/buatkan|buatin|tolong buat|masukkan ke tabel|simpan ke tabel/gi, '').trim() || 'Rencana Tindakan Operasional'}`;
         let moduleTarget = 'Branding & Marketing';
+        let pic = executorName === 'Reta' ? 'Silvi (Growth) & Reta (Ops)' : (executorName === 'Silvi' ? 'Silvi (Growth)' : 'Raka (Legal)');
+        let priority = 'P1';
+        let targetDueDate = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
+        let taskDesc = `Inisiatif operasional diajukan dari hasil diskusi LiveChat: "${raw}".`;
+        let discussionNotes = `Draft disiapkan Reta berdasarkan instruksi Bang Robin. Memerlukan peninjauan Arga untuk validasi judul dan kesesuaian target.`;
 
         if (lower.includes('invoice') || lower.includes('faktur') || lower.includes('tagihan')) {
-          taskTitle = 'Draf Faktur Penagihan Klien';
+          taskTitle = 'Draf Faktur Penagihan Klien & Rekonsiliasi';
           moduleTarget = 'Keuangan & Profit';
+          pic = 'Silvi (Growth) & Raka (Legal)';
+          taskDesc = `Penerbitan dokumen faktur dan penagihan resmi klien DigiBooster.`;
+          discussionNotes = `Validasi invoice klien riil di sistem, pastikan nominal dan PPN sesuai transaksi.`;
         } else if (lower.includes('kontrak') || lower.includes('pks') || lower.includes('legal')) {
-          taskTitle = 'Draf Perjanjian Kerja Sama (PKS)';
+          taskTitle = 'Draf Perjanjian Kerja Sama (PKS) & NDA Vendor';
           moduleTarget = 'Data & Arsip';
+          pic = 'Raka (Legal & Arsip)';
+          taskDesc = `Penyusunan instrumen hukum PKS/NDA sesuai klausul standar DigiBooster.`;
+          discussionNotes = `Pastikan identitas mitra dan masa berlaku kontrak diverifikasi tanpa data fiktif.`;
         }
 
         const taskId = `ACT-${Date.now().toString().slice(-4)}`;
@@ -135,11 +150,12 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           title: taskTitle,
           category: moduleTarget,
           project: 'DigiBooster Automation',
-          assignee: executorName,
-          priority: 'P1',
+          assignee: pic,
+          priority: priority,
           status: 'Menunggu Review',
-          dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
-          description: `Dibuat atas perintah eksplisit Bang Robin: "${raw}"`
+          dueDate: targetDueDate,
+          description: taskDesc,
+          notes: discussionNotes
         });
 
         store.recordAiTelemetryEvent({
@@ -151,26 +167,157 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           status: 'Success'
         });
 
+        // 1. Respon dari Reta (sebagai penata operasional yang mengajukan draf lengkap 8 field)
         const execReply = {
           id: `msg-exec-${Date.now()}`,
           sender: executorName,
           name: executorName,
-          role: isSilvi ? 'Head of Growth & Creative' : (executorName === 'Raka' ? 'Head of Documentation & Legal' : 'COO Operasional'),
-          badgeColor: '#0284c7',
+          role: executorName === 'Reta' ? 'Chief Operating Officer (COO)' : (executorName === 'Silvi' ? 'Head of Growth & Creative' : 'Head of Documentation & Legal'),
+          badgeColor: executorName === 'Reta' ? '#0369a1' : '#0284c7',
           hasActionPreview: true,
           actionData: {
             id: taskId,
             title: taskTitle,
+            description: taskDesc,
+            dueDate: targetDueDate,
+            status: 'Draf (Menunggu Review Arga & Bang Robin)',
             module: moduleTarget,
-            status: 'Tersimpan di Database (Menunggu Review)'
+            priority: priority,
+            pic: pic,
+            notes: discussionNotes,
+            isLocked: false
           },
-          text: `Siap Bang Robin! Sesuai instruksi spesifik Bapak, draf "${taskTitle}" sudah saya selesaikan dan langsung tercatat di tabel modul ${moduleTarget} [ID: ${taskId}].\n\nSilakan Bapak periksa di dashboard kapan saja.`,
+          text: executorName === 'Reta'
+            ? `Siap Bang Robin! Reta sudah susun format draf penugasannya secara lengkap ke modul ${moduleTarget} [ID: ${taskId}]:\n\n• Nama: ${taskTitle}\n• Keterangan: ${taskDesc}\n• Jadwal: ${targetDueDate}\n• Status: Draf (Menunggu Review)\n• Kategori: ${moduleTarget}\n• Prioritas: ${priority}\n• PIC: ${pic}\n• Catatan: ${discussionNotes}\n\nGa @Arga, tolong tinjau draf ini ya biar judulnya makin tajam dan dipastikan semua datanya valid, no fiktif. Nanti kalau Bang Robin setuju / acc, baru Reta kunci resmi ke eksekusi!`
+            : `Siap Bang Robin! Draf tugas "${taskTitle}" [ID: ${taskId}] telah saya catat ke modul ${moduleTarget} lengkap dengan jadwal dan PIC. Arga akan membantu mereview sebelum difinalkan.`,
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         };
 
         setMessages((prev) => [...prev, execReply]);
-        setIsAgentsTyping(false);
+
+        // 2. Arga langsung meninjau draf Reta: memvalidasi judul, mengecek anti-data fiktif, dan meminta persetujuan Bang Robin
+        if (executorName === 'Reta') {
+          setTypingAgentName('Arga');
+          setTimeout(async () => {
+            const argaResponse = await generateAgentResponse({
+              agentName: 'Arga',
+              agentRole: 'Chief Strategy Officer (CSO)',
+              userMessage: `Reta baru saja membuat draf tugas: "${taskTitle}" dengan rincian: Keterangan: "${taskDesc}", PIC: "${pic}", Jadwal: "${targetDueDate}", Catatan: "${discussionNotes}".
+Tugasmu: Tinjau draf tersebut. Pastikan judulnya tajam, komersial, dan realistis (anti-data fiktif). Ajukan usulan judul final kepada Bang Robin, dan mintakan persetujuannya (misal: "Gimana Bang Robin, kalau judulnya kita pertegas jadi '...', apakah setuju / gas?").`,
+              conversationHistory: [...messages, execReply],
+              customInstruction: `Kamu adalah Arga. Analisis draf Reta secara kritis dan konstruktif. Berikan usulan judul yang lebih tajam dan pastikan tidak ada data fiktif. Lalu tanyakan langsung konfirmasi persetujuan Bang Robin secara santai tapi profesional.`
+            });
+
+            let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+            await appendMessageSequentially({
+              id: `msg-arga-title-refine-${Date.now()}`,
+              sender: 'Arga',
+              name: 'Arga',
+              role: 'Chief Strategy Officer (CSO)',
+              badgeColor: '#0284c7',
+              text: cleanArga,
+              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+            }, 800);
+            setIsAgentsTyping(false);
+          }, 1100);
+        } else {
+          setIsAgentsTyping(false);
+        }
       }, 1000);
+      return;
+    }
+
+    // 1.5. SKENARIO TARIK DATA REAL DARI DATABASE (Real Data Grounding)
+    // Contoh: "gmn dapet ngga", "tarik dari pipeline", "cek crm", "cek data", "gimana dapet"
+    const isDataQuery = 
+      (lower.includes('dapet') && (lower.includes('gmn') || lower.includes('gimana'))) ||
+      lower.includes('tarik data') ||
+      lower.includes('cek data') ||
+      lower.includes('cek crm') ||
+      lower.includes('data crm') ||
+      lower.includes('angka real') ||
+      lower.includes('pipeline') ||
+      lower.includes('laporan deal');
+
+    if (isDataQuery) {
+      setTypingAgentName('Silvi');
+      
+      setTimeout(async () => {
+        // Ambil data real dari store
+        const clients = store.clients || [];
+        const tasks = store.tasks || [];
+        const campaigns = store.marketingCampaigns || [];
+
+        const totalClients = clients.length;
+        const totalDealValue = clients.reduce((acc, c) => acc + (Number(c.dealValue) || 0), 0);
+        const wonDeals = clients.filter(c => (c.stage || '').toLowerCase().includes('won') || (c.stage || '').toLowerCase().includes('deal') || (c.stage || '').toLowerCase().includes('closing'));
+        const wonCount = wonDeals.length;
+        const wonTotal = wonDeals.reduce((acc, c) => acc + (Number(c.dealValue) || 0), 0);
+
+        const realSummaryContext = `DATA REAL DARI DATABASE DIGIBOOSTER SAAT INI:
+- Total Leads / Klien di CRM: ${totalClients} Klien
+- Total Nilai Pipeline Prospek: Rp ${totalDealValue.toLocaleString('id-ID')}
+- Klien Closing / Won: ${wonCount} Deal (Total Nilai: Rp ${wonTotal.toLocaleString('id-ID')})
+- Kampanye Marketing Aktif: ${campaigns.length} Kampanye
+- Daftar Tugas Operasional Terdaftar: ${tasks.length} Tugas`;
+
+        const silviResponse = await generateAgentResponse({
+          agentName: 'Silvi',
+          agentRole: 'Head of Growth & Creative',
+          userMessage: `Bang Robin bertanya: "${raw}". Sampaikan data real ini secara santai, jelas, dan transparan:\n${realSummaryContext}`,
+          conversationHistory: messages,
+          customInstruction: `Kamu adalah Silvi. Berikan laporan ringkas angka real dari database CRM/Pipeline ke Bang Robin dan Arga.
+Sebutkan angka total leads, closing, atau nilai deals dengan gaya santai (contoh: "nih bang sy udh tarik datanya dari pipeline: ada ...").
+Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
+        });
+
+        let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+        const silviMsg = {
+          id: `msg-silvi-data-${Date.now()}`,
+          sender: 'Silvi',
+          name: 'Silvi',
+          role: 'Head of Growth & Creative',
+          badgeColor: '#0284c7',
+          hasActionPreview: true,
+          actionData: {
+            id: `CRM-STATS-${Date.now().toString().slice(-4)}`,
+            title: `Laporan Real Pipeline & Deals CRM`,
+            module: 'CRM & Klien',
+            status: `${totalClients} Klien • ${wonCount} Won Deals (Rp ${wonTotal.toLocaleString('id-ID')})`
+          },
+          text: cleanSilvi,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        };
+
+        await appendMessageSequentially(silviMsg, 600);
+
+        // Setelah Silvi memaparkan data, Arga langsung masuk memberi analisa strategisnya
+        setTypingAgentName('Arga');
+        setTimeout(async () => {
+          const argaResponse = await generateAgentResponse({
+            agentName: 'Arga',
+            agentRole: 'Chief Strategy Officer (CSO)',
+            userMessage: `Silvi baru saja memaparkan data CRM real: "${cleanSilvi}". Berikan analisamu kepada Bang Robin.`,
+            conversationHistory: [...messages, silviMsg],
+            customInstruction: `Kamu adalah Arga. Analisa angka yang dipaparkan Silvi secara taktis dan berikan rekomendasi langkah berikutnya ke Bang Robin secara santai dan cerdas.`
+          });
+
+          let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+          await appendMessageSequentially({
+            id: `msg-arga-data-eval-${Date.now()}`,
+            sender: 'Arga',
+            name: 'Arga',
+            role: 'Chief Strategy Officer (CSO)',
+            badgeColor: '#0284c7',
+            text: cleanArga,
+            timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+          }, 800);
+          setIsAgentsTyping(false);
+        }, 1100);
+      }, 800);
       return;
     }
 
@@ -185,6 +332,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       lower.startsWith('oke ') ||
       lower.startsWith('ok ') ||
       lower.includes('saya setuju') || 
+      lower.includes('setuju') ||
       lower.includes('jalankan saja');
 
     if (isApprovalCommand) {
@@ -193,31 +341,60 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       const targetDate = new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0];
 
       setTimeout(async () => {
-        const recentContext = messages.slice(-4).map(m => m.text).join(' ');
+        // Ambil konteks pesan draf sebelumnya dari Reta & evaluasi Arga
+        const recentMessages = messages.slice(-5);
+        const lastDraftMsg = [...recentMessages].reverse().find(m => m.actionData && !m.actionData.isLocked);
+        const lastArgaMsg = [...recentMessages].reverse().find(m => m.sender === 'Arga');
+
         let taskTitle = 'Eksekusi Program Kerja Sinergi Dewan Agen';
         let moduleTarget = 'Tugas & Kalender';
-        let pic = 'Silvi & Reta';
+        let pic = 'Silvi (Growth) & Reta (Ops)';
+        let priority = 'P1';
+        let taskDesc = 'Tugas disahkan langsung oleh Bang Robin di HQ LiveChat setelah ditinjau Arga & disiapkan Reta.';
+        let discussionNotes = 'Data diverifikasi akurat & relevan dari diskusi multi-agent tanpa data fiktif.';
 
-        if (recentContext.toLowerCase().includes('konten') || recentContext.toLowerCase().includes('video') || recentContext.toLowerCase().includes('branding')) {
-          taskTitle = 'Produksi Kampanye Konten & Funnel Acquisition Baru';
-          moduleTarget = 'Branding & Marketing';
-          pic = 'Silvi (Growth)';
-        } else if (recentContext.toLowerCase().includes('invoice') || recentContext.toLowerCase().includes('keuangan')) {
-          taskTitle = 'Penerbitan Rekonsiliasi & Dokumen Faktur Klien';
-          moduleTarget = 'Keuangan & Profit';
-          pic = 'Silvi & Raka';
+        if (lastDraftMsg && lastDraftMsg.actionData) {
+          moduleTarget = lastDraftMsg.actionData.module || moduleTarget;
+          pic = lastDraftMsg.actionData.pic || pic;
+          priority = lastDraftMsg.actionData.priority || priority;
+          taskDesc = lastDraftMsg.actionData.description || taskDesc;
+          discussionNotes = lastDraftMsg.actionData.notes || discussionNotes;
+          taskTitle = lastDraftMsg.actionData.title || taskTitle;
         }
 
+        // Jika Arga mengusulkan judul yang dikutip dalam tanda petik, gunakan judul Arga yang lebih tajam
+        if (lastArgaMsg && lastArgaMsg.text) {
+          const quotedMatch = lastArgaMsg.text.match(/"([^"]+)"/);
+          if (quotedMatch && quotedMatch[1] && quotedMatch[1].length > 6) {
+            taskTitle = quotedMatch[1].trim();
+          }
+        }
+
+        const recentContext = messages.slice(-4).map(m => m.text).join(' ');
+        if (!lastDraftMsg) {
+          if (recentContext.toLowerCase().includes('konten') || recentContext.toLowerCase().includes('video') || recentContext.toLowerCase().includes('branding')) {
+            taskTitle = 'Produksi Kampanye Konten & Funnel Acquisition Baru';
+            moduleTarget = 'Branding & Marketing';
+            pic = 'Silvi (Growth)';
+          } else if (recentContext.toLowerCase().includes('invoice') || recentContext.toLowerCase().includes('keuangan')) {
+            taskTitle = 'Penerbitan Rekonsiliasi & Dokumen Faktur Klien';
+            moduleTarget = 'Keuangan & Profit';
+            pic = 'Silvi (Growth) & Raka (Legal)';
+          }
+        }
+
+        // Simpan tugas resmi yang telah di-ACC dengan 8 atribut lengkap
         await store.addTask({
           id: taskId,
           title: taskTitle,
           category: moduleTarget,
           project: 'DigiBooster Executive Action',
           assignee: pic,
-          priority: 'P1',
+          priority: priority,
           status: 'Sedang Dikerjakan',
           dueDate: targetDate,
-          description: `Disahkan langsung oleh Bang Robin di HQ LiveChat setelah diskusi terarah. Reta mengawal jadwal & follow-up deliverable.`
+          description: taskDesc,
+          notes: discussionNotes
         });
 
         store.recordAiTelemetryEvent({
@@ -239,10 +416,16 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
           actionData: {
             id: taskId,
             title: taskTitle,
+            description: taskDesc,
+            dueDate: targetDate,
+            status: 'Sedang Dikerjakan',
             module: moduleTarget,
-            status: 'Terkunci di Database (Deadline: ' + targetDate + ')'
+            priority: priority,
+            pic: pic,
+            notes: discussionNotes,
+            isLocked: true
           },
-          text: `Siap Bang Robin, terima kasih! Kesepakatan resmi saya kunci ke modul ${moduleTarget}:\n\n• ID Tugas: ${taskId}\n• Judul: ${taskTitle}\n• PIC Utama: ${pic}\n• Tenggat Waktu: ${targetDate}\n\nSaya pribadi yang akan mengawal follow-up progresnya setiap hari sampai tuntas dan melaporkan hasilnya langsung ke Bang Robin.`,
+          text: `Siap Bang Robin! Approval diterima resmi. Reta sudah kunci tugas ke database modul ${moduleTarget}:\n\n• Nama: ${taskTitle}\n• Keterangan: ${taskDesc}\n• Jadwal: ${targetDate}\n• Status: Sedang Dikerjakan\n• Kategori: ${moduleTarget}\n• Prioritas: ${priority}\n• PIC: ${pic}\n• Catatan: ${discussionNotes}\n\nSilakan klik tombol link di kartu tugas di bawah untuk melihat detailnya di tab baru dashboard. Reta dan tim dewan langsung tancap gas mengawal eksekusinya!`,
           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
         };
 
@@ -332,7 +515,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
 
       let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
-      await appendMessageSequentially({
+      const silviMsg = {
         id: `msg-silvi-${Date.now()}`,
         sender: 'Silvi',
         name: 'Silvi',
@@ -340,7 +523,9 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         badgeColor: '#0284c7',
         text: cleanSilvi,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      }, 700);
+      };
+
+      await appendMessageSequentially(silviMsg, 700);
 
       store.recordAiTelemetryEvent({
         agent: 'Silvi (Growth)',
@@ -350,6 +535,56 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         latencyMs: 310,
         status: 'Success'
       });
+
+      // Operan Diskusi dari Silvi ke Bot Lain (Misal Silvi memanggil Raka: "ka, nanti bisa bantu...")
+      const lowerSilvi = cleanSilvi.toLowerCase();
+      const silviCalledRaka = /\b(ka|raka)\b/i.test(lowerSilvi);
+      const silviCalledReta = /\b(ta|ret|reta)\b/i.test(lowerSilvi);
+      const silviCalledArga = /\b(ga|arga)\b/i.test(lowerSilvi);
+
+      if (silviCalledRaka) {
+        setTypingAgentName('Raka');
+        const rakaResponse = await generateAgentResponse({
+          agentName: 'Raka',
+          agentRole: 'Head of Documentation & Legal Systems',
+          userMessage: `Silvi meminta bantuanmu: "${cleanSilvi}". Berikan respon singkat kesiapanmu dari segi legal/arsip.`,
+          conversationHistory: [...messages, silviMsg],
+          customInstruction: 'Kamu adalah Raka. Tanggapi langsung permintaan Silvi dan Bang Robin secara santai, taktis, dan lugas (1-2 kalimat). Jangan membuat tugas/database.'
+        });
+
+        let cleanRaka = (rakaResponse.text || '').replace(new RegExp(`^(Raka|Silvi|Arga|Reta|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+        await appendMessageSequentially({
+          id: `msg-chain-raka-${Date.now()}`,
+          sender: 'Raka',
+          name: 'Raka',
+          role: 'Head of Documentation & Legal',
+          badgeColor: '#0c4a6e',
+          text: cleanRaka,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        }, 800);
+      } else if (silviCalledReta) {
+        setTypingAgentName('Reta');
+        const retaResponse = await generateAgentResponse({
+          agentName: 'Reta',
+          agentRole: 'Chief Operating Officer (COO)',
+          userMessage: `Silvi melempar hal ini: "${cleanSilvi}".`,
+          conversationHistory: [...messages, silviMsg],
+          customInstruction: 'Kamu adalah Reta. Berikan tanggapan operasional singkat.'
+        });
+
+        let cleanReta = (retaResponse.text || '').replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+        await appendMessageSequentially({
+          id: `msg-chain-reta-${Date.now()}`,
+          sender: 'Reta',
+          name: 'Reta',
+          role: 'Chief Operating Officer (COO)',
+          badgeColor: '#0369a1',
+          text: cleanReta,
+          timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+        }, 800);
+      }
 
       setIsAgentsTyping(false);
       return;
@@ -541,6 +776,27 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
         role: 'Chief Operating Officer (COO)',
         badgeColor: '#0369a1',
         text: cleanReta,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 900);
+    } else if (argaCalledRaka) {
+      setTypingAgentName('Raka');
+      const rakaResponse = await generateAgentResponse({
+        agentName: 'Raka',
+        agentRole: 'Head of Documentation & Legal Systems',
+        userMessage: `Arga meminta koordinasi berkas/legalitas: "${cleanArga}".`,
+        conversationHistory: [...messages, argaMsg],
+        customInstruction: `Tanggapi pandangan Arga dari segi dokumen dan legalitas secara singkat santai.`
+      });
+
+      let cleanRaka = (rakaResponse.text || '').replace(new RegExp(`^(Raka|Reta|Silvi|Arga|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      await appendMessageSequentially({
+        id: `msg-deb-raka-${Date.now()}`,
+        sender: 'Raka',
+        name: 'Raka',
+        role: 'Head of Documentation & Legal',
+        badgeColor: '#0c4a6e',
+        text: cleanRaka,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 900);
     }
@@ -738,29 +994,86 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                   {/* Preview Tindakan Nyata Database */}
                   {msg.hasActionPreview && msg.actionData && (
                     <div style={{
-                      marginTop: '8px',
+                      marginTop: '10px',
                       backgroundColor: '#f8fafc',
                       border: '1px solid #bae6fd',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
+                      borderRadius: '10px',
+                      padding: '10px 12px',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '4px'
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(2, 132, 199, 0.08)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0284c7' }}>
-                          ✓ Data Tersimpan di Sistem
+                        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#0284c7', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          ✓ {msg.actionData.isLocked ? 'Tugas Resmi Terkunci di Database' : 'Draft Tugas Tercatat'}
                         </span>
-                        <span style={{ fontSize: '0.66rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                          {msg.actionData.module}
+                        <span style={{ fontSize: '0.66rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          {msg.actionData.module || 'Tugas & Kalender'}
                         </span>
                       </div>
-                      <strong style={{ fontSize: '0.78rem', color: '#0f172a' }}>
+
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a', lineHeight: 1.35 }}>
                         {msg.actionData.title}
                       </strong>
-                      <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
-                        ID: {msg.actionData.id} • Status: {msg.actionData.status}
-                      </span>
+
+                      {/* Detail 8 Atribut Kelengkapan Tugas */}
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '4px 8px',
+                        fontSize: '0.68rem',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '6px',
+                        padding: '6px 8px',
+                        color: '#475569'
+                      }}>
+                        <div><strong>ID:</strong> {msg.actionData.id || '-'}</div>
+                        <div><strong>Status:</strong> <span style={{ color: msg.actionData.isLocked ? '#16a34a' : '#d97706', fontWeight: 700 }}>{msg.actionData.status || 'Draft'}</span></div>
+                        <div><strong>Kategori:</strong> {msg.actionData.module || 'Operasional'}</div>
+                        <div><strong>Prioritas:</strong> <span style={{ color: '#dc2626', fontWeight: 700 }}>{msg.actionData.priority || 'P1'}</span></div>
+                        <div><strong>Jadwal:</strong> {msg.actionData.dueDate || '3 Hari Kerja'}</div>
+                        <div><strong>PIC:</strong> <span style={{ color: '#0284c7', fontWeight: 700 }}>{msg.actionData.pic || msg.actionData.assignee || 'Reta & Silvi'}</span></div>
+                        {msg.actionData.description && (
+                          <div style={{ gridColumn: 'span 2', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '2px', color: '#64748b' }}>
+                            <strong>Keterangan:</strong> {msg.actionData.description}
+                          </div>
+                        )}
+                        {msg.actionData.notes && (
+                          <div style={{ gridColumn: 'span 2', color: '#0369a1', fontStyle: 'italic' }}>
+                            <strong>Catatan Diskusi:</strong> {msg.actionData.notes}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Direct Clickable Link ke Tugas (Buka di Tab Baru) */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                        <a
+                          href={`/dashboard/tugasdankalender?taskId=${msg.actionData.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            backgroundColor: '#0284c7',
+                            color: '#ffffff',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)',
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+                        >
+                          <span>Buka Data Tugas di Tab Baru</span>
+                          <span>↗</span>
+                        </a>
+                      </div>
                     </div>
                   )}
 

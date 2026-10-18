@@ -71,7 +71,8 @@ function App() {
     setIsAuthenticated(true);
     setCurrentRoute('dashboard');
     const targetModule = activeModule && activeModule !== 'executivedashboard' ? activeModule : '';
-    window.history.pushState({}, '', targetModule ? `/dashboard/${targetModule}` : '/dashboard');
+    const currentSearch = window.location.search || '';
+    window.history.pushState({}, '', targetModule ? `/dashboard/${targetModule}${currentSearch}` : `/dashboard${currentSearch}`);
   };
 
   const handleLogout = () => {
