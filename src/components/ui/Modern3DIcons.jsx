@@ -185,3 +185,79 @@ export function Icon3DDownload({ size = 16, className = '' }) {
   );
 }
 
+// 10. Icon 3D Modern Thumb Up Biru (👍)
+export function Icon3DThumbUpBlue({ size = 18, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="thumbGrad3D" x1="2" y1="4" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#38bdf8" />
+          <stop offset="0.6" stopColor="#0284c7" />
+          <stop offset="1" stopColor="#0369a1" />
+        </linearGradient>
+        <filter id="thumbShadow3D" x="-15%" y="-15%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1" floodColor="#0284c7" floodOpacity="0.3" />
+        </filter>
+      </defs>
+      <path
+        d="M7 10V20M7 10L11.5 3C12.5 3 13.5 4 13.5 5.5V9H18.5C19.8807 9 21 10.1193 21 11.5C21 12.012 20.8457 12.488 20.5815 12.884L18.8 17.5C18.4 18.5 17.4 19.5 16 19.5H7M7 10H4C2.89543 10 2 10.8954 2 12V18C2 19.1046 2.89543 20 4 20H7"
+        stroke="url(#thumbGrad3D)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        filter="url(#thumbShadow3D)"
+      />
+    </svg>
+  );
+}
+
+// 11. Icon 3D Modern Sad Face Biru (😢)
+export function Icon3DSadBlue({ size = 18, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="sadGrad3D" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#60a5fa" />
+          <stop offset="0.6" stopColor="#0284c7" />
+          <stop offset="1" stopColor="#1d4ed8" />
+        </linearGradient>
+        <filter id="sadShadow3D" x="-15%" y="-15%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1" floodColor="#0284c7" floodOpacity="0.3" />
+        </filter>
+      </defs>
+      <circle cx="12" cy="12" r="9" stroke="url(#sadGrad3D)" strokeWidth="2.2" filter="url(#sadShadow3D)" />
+      <circle cx="9" cy="10" r="1.3" fill="#0284c7" />
+      <circle cx="15" cy="10" r="1.3" fill="#0284c7" />
+      <path d="M8.5 16C9.5 14.5 11 13.8 12 13.8C13 13.8 14.5 14.5 15.5 16" stroke="url(#sadGrad3D)" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M16 12.5C15.8 13.3 15.4 14.2 16.2 14.8C16.8 14.8 17 14.2 16.8 13.5L16 12.5Z" fill="#38bdf8" />
+    </svg>
+  );
+}
+
+// 12. Icon 3D Modern Salim / Gratitude Biru (🙏)
+export function Icon3DPrayBlue({ size = 18, className = '' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="prayGrad3D" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#38bdf8" />
+          <stop offset="0.5" stopColor="#0284c7" />
+          <stop offset="1" stopColor="#0369a1" />
+        </linearGradient>
+        <filter id="prayShadow3D" x="-15%" y="-15%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="1.5" stdDeviation="1" floodColor="#0284c7" floodOpacity="0.3" />
+        </filter>
+      </defs>
+      <path
+        d="M12 4V19M12 4C11.5 5.5 10 7.5 8 9L7 10C5.5 11.5 5 13 6 15L7.5 17L12 19M12 4C12.5 5.5 14 7.5 16 9L17 10C18.5 11.5 19 13 18 15L16.5 17L12 19"
+        stroke="url(#prayGrad3D)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        filter="url(#prayShadow3D)"
+      />
+      <circle cx="12" cy="3" r="1.2" fill="#38bdf8" />
+    </svg>
+  );
+}
+

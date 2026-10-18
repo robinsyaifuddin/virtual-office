@@ -8,6 +8,11 @@ import {
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { generateAgentResponse } from '../../services/multiAgentAiService';
+import { 
+  Icon3DThumbUpBlue, 
+  Icon3DSadBlue, 
+  Icon3DPrayBlue 
+} from '../ui/Modern3DIcons';
 
 export default function OfficeGroupLiveChat({ isOpen, onClose }) {
   const store = useWorkspaceStore();
@@ -296,79 +301,36 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       return;
     }
 
-    // 4. MEKANISME ROUTING PEMBICARA TARGET (Anti-Menumpuk / Anti-Brutal):
-    // Bot HANYA merespons jika:
-    // a) Disebut eksplisit oleh Bang Robin (misal: "reta", "arga", "silvi", "raka", "siska")
-    // b) Jika tidak menyebut nama siapapun, default rekan ngobrol utama adalah Arga (CSO)
-    // Siska HANYA muncul jika:
-    // a) Disebut langsung oleh Bang Robin
-    // b) Bang Robin menyampaikan koreksi / komplain / komplain template / kesalahan
-    // c) Terdeteksi blunder anomali pada jawaban bot
+    // 4. MEKANISME ROUTING PEMBICARA TARGET (Anti-Menumpuk & Sesuai Panggilan):
+    // Prioritas deteksi nama lengkap & panggilan akrab:
+    const mentionedSilvi = /\b(silvi|sil)\b/i.test(lower);
+    const mentionedReta = /\b(reta|ret|ta)\b/i.test(lower);
+    const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || (lower.includes('berkas') && lower.includes('siapkan'));
+    const mentionedSiska = /\b(siska|sis)\b/i.test(lower);
+    const mentionedArga = /\b(arga|ga)\b/i.test(lower);
 
-    const mentionedReta = lower.includes('reta');
-    const mentionedSilvi = lower.includes('silvi');
-    const mentionedArga = lower.includes('arga');
-    const mentionedRaka = lower.includes('raka');
-    const mentionedSiska = lower.includes('siska');
-
-    const isCorrectionOrComplain = 
-      lower.includes('salah') || 
-      lower.includes('kurang') || 
+    // Siska HANYA bersuara jika:
+    // 1. Bang Robin eksplisit memanggil Siska ("sis", "siska")
+    // 2. ATAU Bang Robin eksplisit meminta koreksi ("tegur", "koreksi", "salah botnya")
+    const isExplicitCorrection = 
       lower.includes('tegur') || 
       lower.includes('koreksi') || 
-      lower.includes('bodoh') || 
-      lower.includes('kaku') || 
-      lower.includes('template') || 
-      lower.includes('tamplate') || 
-      lower.includes('pengulangan') || 
-      lower.includes('aneh') || 
-      lower.includes('jangan');
+      lower.includes('bot salah') || 
+      lower.includes('salah jawab') ||
+      lower.includes('blunder');
 
-    // JIKA USER MENYEBUT RETAL LANGSUNG (Contoh: "untuk ini saya masih mau diskusi reta...")
-    if (mentionedReta && !mentionedArga && !mentionedSilvi && !isCorrectionOrComplain) {
-      setTypingAgentName('Reta');
-      const retaResponse = await generateAgentResponse({
-        agentName: 'Reta',
-        agentRole: 'Chief Operating Officer (COO)',
-        userMessage: raw,
-        conversationHistory: messages,
-        customInstruction: 'Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi secara langsung. Berikan respon taktis mengenai langkah operasional pertama yang paling konkret dan realistis untuk mencapai persepsi berkelas dan eksekusi yang rapi. Jangan mengutip kalimat Bang Robin kata demi kata. Jangan membuat tugas/database sebelum Bang Robin menyetujui arahannya.'
-      });
-
-      await appendMessageSequentially({
-        id: `msg-reta-${Date.now()}`,
-        sender: 'Reta',
-        name: 'Reta',
-        role: 'Chief Operating Officer (COO)',
-        badgeColor: '#0369a1',
-        text: retaResponse.text,
-        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      }, 700);
-
-      // Catat telemetri
-      store.recordAiTelemetryEvent({
-        agent: 'Reta (COO)',
-        action: 'Direct Discussion',
-        targetModule: 'Operasional',
-        tokensUsed: retaResponse.usage?.total_tokens || 350,
-        latencyMs: 310,
-        status: 'Success'
-      });
-
-      setIsAgentsTyping(false);
-      return;
-    }
-
-    // JIKA USER MENYEBUT SILVI LANGSUNG
-    if (mentionedSilvi && !mentionedArga && !mentionedReta && !isCorrectionOrComplain) {
+    // JIKA USER MENYEBUT SILVI LANGSUNG (Contoh: "gmn sil", "silvi gimana", dll)
+    if (mentionedSilvi && !mentionedArga && !isExplicitCorrection) {
       setTypingAgentName('Silvi');
       const silviResponse = await generateAgentResponse({
         agentName: 'Silvi',
         agentRole: 'Head of Growth & Creative',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: 'Bang Robin berbicara langsung denganmu (Silvi). Berikan pandangan kreatif, strategi branding, konten visual, atau taktik closing deals yang elegan. Jangan langsung membuat draf database tanpa persetujuan Bang Robin.'
+        customInstruction: 'Bang Robin berbicara langsung denganmu (Silvi). Berikan pandangan kreatif, strategi branding, konten visual, atau taktik closing deals yang santai dan lugas. Boleh sebut Arga (ga) atau Reta (ta) jika butuh sinergi. Dilarang membuat tugas/database tanpa persetujuan Bang Robin.'
       });
+
+      let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
       await appendMessageSequentially({
         id: `msg-silvi-${Date.now()}`,
@@ -376,7 +338,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         name: 'Silvi',
         role: 'Head of Growth & Creative',
         badgeColor: '#0284c7',
-        text: silviResponse.text,
+        text: cleanSilvi,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 700);
 
@@ -393,8 +355,44 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       return;
     }
 
+    // JIKA USER MENYEBUT RETA LANGSUNG
+    if (mentionedReta && !mentionedArga && !mentionedSilvi && !isExplicitCorrection) {
+      setTypingAgentName('Reta');
+      const retaResponse = await generateAgentResponse({
+        agentName: 'Reta',
+        agentRole: 'Chief Operating Officer (COO)',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: 'Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi secara langsung. Berikan respon taktis mengenai langkah operasional pertama yang paling konkret dan realistis. Jangan membuat tugas/database sebelum Bang Robin menyetujui arahannya.'
+      });
+
+      let cleanReta = (retaResponse.text || '').replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      await appendMessageSequentially({
+        id: `msg-reta-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta',
+        role: 'Chief Operating Officer (COO)',
+        badgeColor: '#0369a1',
+        text: cleanReta,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 700);
+
+      store.recordAiTelemetryEvent({
+        agent: 'Reta (COO)',
+        action: 'Direct Discussion',
+        targetModule: 'Operasional',
+        tokensUsed: retaResponse.usage?.total_tokens || 350,
+        latencyMs: 310,
+        status: 'Success'
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
     // JIKA USER MENYEBUT RAKA LANGSUNG
-    if (mentionedRaka && !mentionedArga && !isCorrectionOrComplain) {
+    if (mentionedRaka && !mentionedArga && !isExplicitCorrection) {
       setTypingAgentName('Raka');
       const rakaResponse = await generateAgentResponse({
         agentName: 'Raka',
@@ -404,13 +402,15 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         customInstruction: 'Bang Robin berbicara langsung denganmu (Raka). Tanggapi dari sudut pandang repositori dokumen, instrumen hukum PKS/NDA, dan kesiapan sistem.'
       });
 
+      let cleanRaka = (rakaResponse.text || '').replace(new RegExp(`^(Raka|Reta|Silvi|Arga|Siska)\\s*:\\s*`, 'i'), '').trim();
+
       await appendMessageSequentially({
         id: `msg-raka-${Date.now()}`,
         sender: 'Raka',
         name: 'Raka',
         role: 'Head of Documentation & Legal',
         badgeColor: '#0c4a6e',
-        text: rakaResponse.text,
+        text: cleanRaka,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 700);
 
@@ -418,8 +418,8 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       return;
     }
 
-    // JIKA ADA KOREKSI / COMPLAIN ATAU SISKA DISEBUT SECARA SPESIFIK
-    if (isCorrectionOrComplain || mentionedSiska) {
+    // JIKA ADA KOREKSI BLUNDER ATAU SISKA DIPANGGIL LANGSUNG
+    if (isExplicitCorrection || (mentionedSiska && !mentionedArga && !mentionedSilvi)) {
       setTypingAgentName('Siska');
 
       // Tentukan target yang sedang dikoreksi
@@ -466,9 +466,7 @@ Sebagai Head of Quality Control & Trainer:
       return;
     }
 
-    // 5. SKENARIO DISKUSI UMUM (Jika tidak sebut nama, Arga sebagai mitra ngobrol utama memimpin diskusi)
-    // Silvi HANYA nimbrung singkat jika topik sangat relevan dengan branding/konten/sales
-    // Reta dan Siska DIAM (tidak ikut berbicara menumpuk)
+    // 5. SKENARIO DISKUSI UMUM: Arga sebagai mitra diskusi utama Bang Robin
     setTypingAgentName('Arga');
 
     const argaResponse = await generateAgentResponse({
@@ -476,41 +474,44 @@ Sebagai Head of Quality Control & Trainer:
       agentRole: 'Chief Strategy Officer (CSO)',
       userMessage: raw,
       conversationHistory: messages,
-      customInstruction: `Kamu adalah Arga, partner sparring diskusi utama Bang Robin.
+      customInstruction: `Kamu adalah Arga, rekan diskusi utama Bang Robin.
 TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
-- JANGAN PERNAH mengutip kata-kata Bang Robin mentah-mentah (seperti: 'Mengenai "..." kalau kita bedah...'). Pahami maknanya!
-- Jika Bang Robin ingin DigiBooster dipandang berkelas dan canggih: jelaskan ide strategis bagaimana membangun reputasi dan kredibilitas tersebut melalui output nyata.
-- Jika konteksnya masih luas, lontarkan 1 pertanyaan klarifikasi yang tajam dan berbobot untuk memperjelas target Bang Robin.`
+- Tanggapi dengan santai, solutif, analitis, dan berbobot.
+- Jika butuh bantuan spesifik (misal konten visual/branding atau berkas legal), lempar pertanyaan ke rekan lain secara alami (contoh: "gimana menurutmu sil?", "bisa bantu siapin berkasnya ka?").
+- Dilarang keras memakai nama sendiri sebagai awalan ("Arga: ").`
     });
 
-    await appendMessageSequentially({
+    let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+    const argaMsg = {
       id: `msg-deb-arga-${Date.now()}`,
       sender: 'Arga',
       name: 'Arga',
       role: 'Chief Strategy Officer (CSO)',
       badgeColor: '#0284c7',
-      text: argaResponse.text,
+      text: cleanArga,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-    }, 800);
+    };
 
-    // Jika topik jelas-jelas tentang konten/branding/sales, Silvi boleh memberikan 1 perspektif pelengkap
-    const isTopicContentOrSales = 
-      lower.includes('konten') || 
-      lower.includes('branding') || 
-      lower.includes('sales') || 
-      lower.includes('berkelas') || 
-      lower.includes('klien') || 
-      lower.includes('iklan');
+    await appendMessageSequentially(argaMsg, 800);
 
-    if (isTopicContentOrSales && !mentionedReta && !mentionedRaka) {
+    // Deteksi jika Arga melempar pembicaraan ke teman bot lain (misal: "gimana sil", "ka raka", "reta")
+    const lowerArga = cleanArga.toLowerCase();
+    const argaCalledSilvi = /\b(sil|silvi)\b/i.test(lowerArga);
+    const argaCalledReta = /\b(ret|reta|ta)\b/i.test(lowerArga);
+    const argaCalledRaka = /\b(ka|raka)\b/i.test(lowerArga);
+
+    if (argaCalledSilvi) {
       setTypingAgentName('Silvi');
       const silviResponse = await generateAgentResponse({
         agentName: 'Silvi',
         agentRole: 'Head of Growth & Creative',
-        userMessage: raw,
-        conversationHistory: [...messages, { sender: 'Arga', name: 'Arga', text: argaResponse.text }],
-        customInstruction: `Menyambung pandangan Arga secara ringkas dan lugas (maksimal 2-3 kalimat). Berikan perspektif dari sudut pandang branding & growth: bagaimana menciptakan persepsi berkelas tersebut lewat visual atau studi kasus nyata tanpa terlihat murahan. Jangan membuat tugas/database.`
+        userMessage: `Arga baru saja berdiskusi dengan Bang Robin dan meminta pandanganmu: "${cleanArga}". Berikan tanggapan kreatif dan taktis.`,
+        conversationHistory: [...messages, argaMsg],
+        customInstruction: `Menyambung lemparan diskusi Arga dan Bang Robin secara ringkas dan lugas (2-3 kalimat santai). Jangan membuat tugas/database.`
       });
+
+      let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
       await appendMessageSequentially({
         id: `msg-deb-silvi-${Date.now()}`,
@@ -518,26 +519,30 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
         name: 'Silvi',
         role: 'Head of Growth & Creative',
         badgeColor: '#0284c7',
-        text: silviResponse.text,
+        text: cleanSilvi,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 900);
-    }
+    } else if (argaCalledReta) {
+      setTypingAgentName('Reta');
+      const retaResponse = await generateAgentResponse({
+        agentName: 'Reta',
+        agentRole: 'Chief Operating Officer (COO)',
+        userMessage: `Arga meminta masukan operasional: "${cleanArga}".`,
+        conversationHistory: [...messages, argaMsg],
+        customInstruction: `Tanggapi pandangan Arga dari segi jadwal dan kesiapan eksekusi.`
+      });
 
-    // SISKA WATCHDOG: Mendeteksi jika ada anomali atau pengulangan dari bot
-    // Jika ada jawaban bot yang tidak sengaja mengutip kata mentah atau melanggar SOP, Siska otomatis bersuara
-    const botCombinedText = `${argaResponse.text}`;
-    if (botCombinedText.includes(`"${raw}"`) || botCombinedText.includes(`'${raw}'`)) {
-      setTypingAgentName('Siska');
+      let cleanReta = (retaResponse.text || '').replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
       await appendMessageSequentially({
-        id: `msg-sis-watch-${Date.now()}`,
-        sender: 'Siska',
-        name: 'Siska',
-        role: 'Head of Quality & AI Trainer',
-        badgeColor: '#0284c7',
-        isDirective: true,
-        text: `Quality Watchdog (Siska): Terdeteksi anomali pada cara penyampaian bot yang masih mengutip kalimat Bang Robin secara mentah. Saya tegur langsung tim agar selalu mencerna maksud esensialnya terlebih dahulu. Bang Robin, apakah ada poin spesifik lain yang ingin dikoreksi agar saya perbarui di memori pelatihan?`,
+        id: `msg-deb-reta-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta',
+        role: 'Chief Operating Officer (COO)',
+        badgeColor: '#0369a1',
+        text: cleanReta,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      }, 700);
+      }, 900);
     }
 
     setIsAgentsTyping(false);
@@ -756,6 +761,114 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                       <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
                         ID: {msg.actionData.id} • Status: {msg.actionData.status}
                       </span>
+                    </div>
+                  )}
+
+                  {/* Interactive RLHF Emoji Reaction Bar (Like 👍, Sad 😢, Gratitude 🙏) */}
+                  {!isUser && (
+                    <div style={{
+                      marginTop: '8px',
+                      borderTop: '1px solid #f1f5f9',
+                      paddingTop: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <button
+                        title="Respon Bagus! Pertahankan & Tingkatkan (Thumbs Up)"
+                        onClick={() => {
+                          const agent = msg.name || 'Bot';
+                          setMessages((prev) => [
+                            ...prev,
+                            {
+                              id: `msg-feed-${Date.now()}`,
+                              sender: agent,
+                              name: agent,
+                              role: msg.role,
+                              badgeColor: '#0284c7',
+                              text: `makasih banyak bang bin! sy seneng bgt respon sy dinilai pas. sy bakal terus pertahanin gaya obrolan kyk gini ke depannya yaa!`,
+                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                            }
+                          ]);
+                        }}
+                        style={{
+                          border: '1px solid #bae6fd',
+                          background: '#f0f9ff',
+                          padding: '4px 6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <Icon3DThumbUpBlue size={16} />
+                      </button>
+
+                      <button
+                        title="Respon Kurang Pas! Perbaiki & Jangan Diulang (Sad)"
+                        onClick={() => {
+                          const agent = msg.name || 'Bot';
+                          setMessages((prev) => [
+                            ...prev,
+                            {
+                              id: `msg-feed-${Date.now()}`,
+                              sender: agent,
+                              name: agent,
+                              role: msg.role,
+                              badgeColor: '#0284c7',
+                              text: `maaf ya bang bin, sy catat koreksinya dan janji ga bakal ngulangin respon yg kurang pas kyk tadi. sy bakal perbaiki sekarang juga!`,
+                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                            }
+                          ]);
+                        }}
+                        style={{
+                          border: '1px solid #bae6fd',
+                          background: '#f0f9ff',
+                          padding: '4px 6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <Icon3DSadBlue size={16} />
+                      </button>
+
+                      <button
+                        title="Terima Kasih Banyak! Jawaban Sangat Mantap & Membantu (Salim / Gratitude)"
+                        onClick={() => {
+                          const agent = msg.name || 'Bot';
+                          setMessages((prev) => [
+                            ...prev,
+                            {
+                              id: `msg-feed-${Date.now()}`,
+                              sender: agent,
+                              name: agent,
+                              role: msg.role,
+                              badgeColor: '#0284c7',
+                              text: `wah sama2 bang bin! berkah & semangat bgt dengernya, senang bgt bisa ngebantu bang bin dengan maksimal hari ini! yuk kita gas lagi!`,
+                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                            }
+                          ]);
+                        }}
+                        style={{
+                          border: '1px solid #bae6fd',
+                          background: '#f0f9ff',
+                          padding: '4px 6px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <Icon3DPrayBlue size={16} />
+                      </button>
                     </div>
                   )}
                 </div>

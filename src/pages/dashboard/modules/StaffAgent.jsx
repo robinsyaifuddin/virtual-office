@@ -46,7 +46,10 @@ import {
   Icon3DFlag, 
   Icon3DGear, 
   Icon3DUser, 
-  Icon3DNotes 
+  Icon3DNotes,
+  Icon3DThumbUpBlue,
+  Icon3DSadBlue,
+  Icon3DPrayBlue 
 } from '../../../components/ui/Modern3DIcons';
 
 export default function StaffAgent() {
@@ -1753,28 +1756,140 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       }}>
                         {msg.text}
 
-                        {/* Quick Action Button: Koreksi Jawaban Ini */}
-                        {!isUser && msg.sender !== 'Siska' && (
-                          <div style={{ marginTop: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '6px', display: 'flex', justifyContent: 'flex-end' }}>
-                            <button
-                              onClick={() => {
-                                setSiskaCoachingTarget(msg.name);
-                                setSiskaCoachingTopic(`Koreksi Respon ${msg.name}`);
-                                setSiskaBehaviorGuidelines(`Jangan menjawab seperti ini: "${msg.text.slice(0, 70)}...". Wajib lebih kontekstual, jangan template, dan langsung solutif.`);
-                              }}
-                              style={{
-                                border: 'none',
-                                background: 'transparent',
-                                color: '#0284c7',
-                                fontSize: '0.7rem',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                padding: '2px 6px',
-                                borderRadius: '4px'
-                              }}
-                            >
-                              ⚡ Koreksi Respon Ini di Panel Kanan
-                            </button>
+                        {/* Interactive RLHF Emoji Reaction Bar (Like 👍, Sad 😢, Gratitude 🙏) */}
+                        {!isUser && (
+                          <div style={{
+                            marginTop: '8px',
+                            borderTop: '1px solid #f1f5f9',
+                            paddingTop: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '6px'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                title="Respon Bagus! Pertahankan & Tingkatkan (Thumbs Up)"
+                                onClick={() => {
+                                  const agent = msg.name || 'Bot';
+                                  setTrainingMessages((prev) => [
+                                    ...prev,
+                                    {
+                                      id: `msg-feedback-${Date.now()}`,
+                                      sender: agent,
+                                      name: agent,
+                                      role: msg.role,
+                                      badgeColor: '#0284c7',
+                                      text: `makasih banyak bang bin! sy seneng bgt respon sy dinilai pas. sy bakal terus pertahanin gaya obrolan kyk gini ke depannya yaa!`,
+                                      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                                    }
+                                  ]);
+                                }}
+                                style={{
+                                  border: '1px solid #bae6fd',
+                                  background: '#f0f9ff',
+                                  padding: '4px 6px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                <Icon3DThumbUpBlue size={16} />
+                              </button>
+
+                              <button
+                                title="Respon Kurang Pas! Perbaiki & Jangan Diulang (Sad)"
+                                onClick={() => {
+                                  const agent = msg.name || 'Bot';
+                                  setSiskaCoachingTarget(agent);
+                                  setSiskaCoachingTopic(`Evaluasi Respon Kurang Pas: ${agent}`);
+                                  setSiskaBehaviorGuidelines(`Jangan mengulang respon ini: "${msg.text.slice(0, 80)}...". Wajib diperbaiki agar lebih natural, tepat sasaran, dan relevan dengan maksud Bang Robin.`);
+                                  setTrainingMessages((prev) => [
+                                    ...prev,
+                                    {
+                                      id: `msg-feedback-${Date.now()}`,
+                                      sender: agent,
+                                      name: agent,
+                                      role: msg.role,
+                                      badgeColor: '#0284c7',
+                                      text: `maaf ya bang bin, sy catat koreksinya dan janji ga bakal ngulangin respon yg kurang pas kyk tadi. sy bakal perbaiki sekarang juga!`,
+                                      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                                    }
+                                  ]);
+                                }}
+                                style={{
+                                  border: '1px solid #bae6fd',
+                                  background: '#f0f9ff',
+                                  padding: '4px 6px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                <Icon3DSadBlue size={16} />
+                              </button>
+
+                              <button
+                                title="Terima Kasih Banyak! Jawaban Sangat Mantap & Membantu (Salim / Gratitude)"
+                                onClick={() => {
+                                  const agent = msg.name || 'Bot';
+                                  setTrainingMessages((prev) => [
+                                    ...prev,
+                                    {
+                                      id: `msg-feedback-${Date.now()}`,
+                                      sender: agent,
+                                      name: agent,
+                                      role: msg.role,
+                                      badgeColor: '#0284c7',
+                                      text: `wah sama2 bang bin! berkah & semangat bgt dengernya, senang bgt bisa ngebantu bang bin dengan maksimal hari ini! yuk kita gas lagi!`,
+                                      timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                                    }
+                                  ]);
+                                }}
+                                style={{
+                                  border: '1px solid #bae6fd',
+                                  background: '#f0f9ff',
+                                  padding: '4px 6px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                <Icon3DPrayBlue size={16} />
+                              </button>
+                            </div>
+
+                            {/* Tombol Koreksi Form Cepat */}
+                            {msg.sender !== 'Siska' && (
+                              <button
+                                onClick={() => {
+                                  setSiskaCoachingTarget(msg.name);
+                                  setSiskaCoachingTopic(`Koreksi Respon ${msg.name}`);
+                                  setSiskaBehaviorGuidelines(`Jangan menjawab seperti ini: "${msg.text.slice(0, 70)}...". Wajib lebih kontekstual, jangan template, dan langsung solutif.`);
+                                }}
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: '#0284c7',
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  padding: '2px 4px'
+                                }}
+                              >
+                                ⚡ Edit di Panel
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
