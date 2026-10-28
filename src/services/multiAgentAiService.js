@@ -15,6 +15,28 @@ const DEEPSEEK_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?
 const OPENROUTER_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENROUTER_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_OPENROUTER_API_KEY) || '';
 
 /**
+ * Helper fetch dengan timeout keras (agar tidak stuck jika provider lelet/gantung)
+ */
+async function fetchWithTimeout(resource, options = {}, timeoutMs = 6000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    if (err.name === 'AbortError') {
+      throw new Error(`Koneksi timeout setelah ${timeoutMs}ms`);
+    }
+    throw err;
+  }
+}
+
+/**
  * 1. DeepSeek API (Penalaran Mendalam / Reasoning King)
  * Digunakan saat VITE_DEEPSEEK_API_KEY tersedia
  */
@@ -28,7 +50,7 @@ async function callDeepSeekChat(messages, systemInstruction, maxTokens = 800) {
     ...messages
   ];
 
-  const response = await fetch('https://api.deepseek.com/chat/completions', {
+  const response = await fetchWithTimeout('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -40,7 +62,7 @@ async function callDeepSeekChat(messages, systemInstruction, maxTokens = 800) {
       max_tokens: maxTokens,
       temperature: 0.7
     })
-  });
+  }, 4500);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -69,7 +91,7 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
     ...messages
   ];
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -81,7 +103,7 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
       temperature,
       max_tokens: maxTokens
     })
-  });
+  }, 5000);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -128,11 +150,11 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
     }
   };
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyPayload)
-  });
+  }, 4500);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -163,7 +185,7 @@ async function callPollinationsChat(messages, systemInstruction) {
     headers['Authorization'] = `Bearer ${POLLINATIONS_API_KEY}`;
   }
 
-  const response = await fetch('https://text.pollinations.ai/openai/chat/completions', {
+  const response = await fetchWithTimeout('https://text.pollinations.ai/openai/chat/completions', {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -171,7 +193,7 @@ async function callPollinationsChat(messages, systemInstruction) {
       messages: payloadMessages,
       temperature: 0.7
     })
-  });
+  }, 4500);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -200,7 +222,7 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000)
     ...messages
   ];
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -213,7 +235,7 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000)
       messages: payloadMessages,
       max_tokens: maxTokens
     })
-  });
+  }, 4500);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -339,32 +361,18 @@ ${customInstruction}`;
 
   let result = null;
 
-  // Tentukan urutan eksekusi berdasarkan spesialisasi agen
-  const callSequence = [];
+  // Tentukan urutan eksekusi: Selalu prioritaskan GROQ (Kecepatan 300+ token/detik) agar respon instan tanpa jeda!
+  const callSequence = [
+    () => callGroqChat(formattedHistory, fullPrompt),
+    () => callPollinationsChat(formattedHistory, fullPrompt),
+    () => callOpenRouterChat(formattedHistory, fullPrompt)
+  ];
 
+  // Tambahkan DeepSeek / Gemini sebagai opsi lanjutan jika diperlukan
   if (agentName === 'Arga' && DEEPSEEK_API_KEY) {
-    // Arga memprioritaskan DeepSeek jika API key tersedia
-    callSequence.push(
-      () => callDeepSeekChat(formattedHistory, fullPrompt),
-      () => callGroqChat(formattedHistory, fullPrompt),
-      () => callGeminiChat(formattedHistory, fullPrompt),
-      () => callPollinationsChat(formattedHistory, fullPrompt)
-    );
-  } else if (agentName === 'Siska') {
-    // Siska memprioritaskan Gemini Flash (Context panjang & kepatuhan SOP tinggi)
-    callSequence.push(
-      () => callGeminiChat(formattedHistory, fullPrompt),
-      () => callGroqChat(formattedHistory, fullPrompt),
-      () => callPollinationsChat(formattedHistory, fullPrompt)
-    );
-  } else {
-    // Reta, Raka, Silvi, dan general prioritas Groq (kecepatan kilat) -> Gemini -> Pollinations -> OpenRouter
-    callSequence.push(
-      () => callGroqChat(formattedHistory, fullPrompt),
-      () => callGeminiChat(formattedHistory, fullPrompt),
-      () => callPollinationsChat(formattedHistory, fullPrompt),
-      () => callOpenRouterChat(formattedHistory, fullPrompt)
-    );
+    callSequence.splice(1, 0, () => callDeepSeekChat(formattedHistory, fullPrompt));
+  } else if (GEMINI_API_KEY) {
+    callSequence.splice(1, 0, () => callGeminiChat(formattedHistory, fullPrompt));
   }
 
   // Eksekusi resilient waterfall: coba satu per satu sampai berhasil

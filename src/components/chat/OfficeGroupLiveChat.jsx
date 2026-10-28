@@ -106,9 +106,18 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-    setIsAgentsTyping(true);
 
     const lower = raw.toLowerCase();
+
+    // Tentukan estimasi agen yang paling mungkin menjawab agar UI langsung menampilkan nama agen
+    let expectedAgent = 'Arga';
+    if (/\b(siska|sis)\b/i.test(lower)) expectedAgent = 'Siska';
+    else if (/\b(silvi|sil)\b/i.test(lower) || lower.includes('gambar') || lower.includes('desain') || lower.includes('poster')) expectedAgent = 'Silvi';
+    else if (/\b(reta|ret|ta)\b/i.test(lower)) expectedAgent = 'Reta';
+    else if (/\b(raka|ka)\b/i.test(lower) || lower.includes('word') || lower.includes('dokumen') || lower.includes('pdf')) expectedAgent = 'Raka';
+
+    setTypingAgentName(expectedAgent);
+    setIsAgentsTyping(true);
 
     // JIKA USER MEMINTA GAMBAR / VISUAL (Silvi Visual Engine):
     const isImageCommand = 
