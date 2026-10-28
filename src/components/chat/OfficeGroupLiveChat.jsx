@@ -614,16 +614,19 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       return;
     }
 
-    // 3. SKENARIO SAPAAN GENERAL: SEMUA BOT MENJAWAB SINGKAT DAN HANGAT
+    // 3. SKENARIO SAPAAN GENERAL HANYA JIKA OBROLAN BARU DIMULAI (Maksimal 2 pesan di riwayat)
     const isPureGreeting = (
-      lower.startsWith('halo') || 
-      lower.startsWith('hai') || 
-      lower.startsWith('pagi') || 
-      lower.startsWith('siang') || 
-      lower.startsWith('sore') || 
-      lower.startsWith('malam') || 
+      lower === 'halo' ||
+      lower === 'hai' ||
+      lower === 'pagi' ||
+      lower === 'selamat pagi' ||
+      lower === 'pagi semua' ||
+      lower === 'pagi semuaa' ||
+      lower === 'siang' ||
+      lower === 'sore' ||
+      lower === 'malam' ||
       lower.startsWith('assalamu')
-    ) && !lower.includes('bahas') && !lower.includes('ide') && !lower.includes('konten') && !lower.includes('diskusi') && raw.length < 25;
+    ) && messages.length <= 3;
 
     if (isPureGreeting) {
       setTypingAgentName('Arga');
@@ -1187,7 +1190,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
         name: 'Arga',
         role: 'Chief Strategy Officer (CSO)',
         badgeColor: '#0284c7',
-        text: 'halo bang bin! syapp standby nih, ada yg mau diobrolin apa nih hari ini?',
+        text: `siap bang bin, arga dan tim standby pantau. tadi ada kendala teknis gateway sebentar: ${err?.message || 'koneksi terputus'}. coba sapa atau tanyakan lagi yaa bang.`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 300);
       setIsAgentsTyping(false);
