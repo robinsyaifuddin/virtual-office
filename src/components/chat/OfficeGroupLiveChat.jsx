@@ -938,10 +938,21 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       return;
     }
 
-    // 3. Raka saja (Dukungan Pembuatan Dokumen Word .docx Langsung)
+    // 3. Raka saja (Dukungan Pembuatan Dokumen Word .docx & PDF Langsung)
     if (mentionedRaka && !mentionedArga && !mentionedSilvi && !mentionedReta) {
       setTypingAgentName('Raka');
-      const isWordDocRequested = lower.includes('buatkan doc') || lower.includes('file word') || lower.includes('dokumen word') || lower.includes('kirim filenya') || lower.includes('draf pks') || lower.includes('kontrak');
+      const isWordDocRequested = 
+        lower.includes('word') || 
+        lower.includes('doc') || 
+        lower.includes('docx') || 
+        lower.includes('pdf') || 
+        lower.includes('file') || 
+        lower.includes('berkas') || 
+        lower.includes('kontrak') || 
+        lower.includes('pks') || 
+        lower.includes('nda') ||
+        lower.includes('surat') ||
+        lower.includes('unduh');
 
       const rakaResponse = await generateAgentResponse({
         agentName: 'Raka',
@@ -949,7 +960,7 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
         userMessage: raw,
         conversationHistory: messages,
         customInstruction: isWordDocRequested 
-          ? 'Bang Robin meminta pembuatan dokumen Word resmi. Berikan respon santai bahwa dokumen legal/SOP sedang dirakit rapi lengkap dengan kop surat dan klausul standar, dan dapat langsung diunduh lewat tombol dokumen di bawah.'
+          ? 'Bang Robin meminta pembuatan dokumen Word/PDF resmi. Berikan respon santai bahwa dokumen legal/SOP sedang dirakit rapi lengkap dengan kop surat dan klausul standar, dan dapat langsung diunduh lewat tombol dokumen Word atau PDF di bawah.'
           : 'Bang Robin berbicara langsung denganmu (Raka). Tanggapi dari sudut pandang repositori dokumen, instrumen hukum PKS/NDA, mitigasi risiko, dan kesiapan sistem secara lugas dan cerdas.'
       });
 
@@ -968,7 +979,7 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       if (isWordDocRequested) {
         rakaMsg.hasDocAttachment = true;
         rakaMsg.docData = {
-          title: `Draf Dokumen: ${raw.replace(/raka|ka|tolong|buatkan|file word|dokumen/gi, '').trim() || 'Instrumen Hukum & SOP DigiBooster'}`,
+          title: `Draf Dokumen: ${raw.replace(/raka|ka|tolong|buatkan|file word|dokumen|word|coba buat/gi, '').trim() || 'Instrumen Hukum & SOP DigiBooster'}`,
           category: 'Legal & Dokumentasi',
           author: 'Raka (Head of Documentation & Legal)',
           rawContent: cleanRaka

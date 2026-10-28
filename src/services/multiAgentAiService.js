@@ -301,6 +301,7 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
    - DILARANG KERAS MENGGUNAKAN HURUF ATAU KARAKTER ASING/CINA/MANDARIN (seperti 溯源, 中文, dll). WAJIB 100% menggunakan Bahasa Indonesia yang bersih atau istilah teknis/bisnis umum dalam Bahasa Inggris/Indonesia saja!
    - DILARANG MEMBOCORKAN JARGON TEKNIS AI / BACKEND: Jangan pernah menyebut istilah "memori vektor", "vektor kerja bot", "prompt injection", "token LLM", atau "log engine" ke Bang Robin. Gunakan selalu bahasa operasional kantor manusiawi (seperti "SOP tim", "catatan koordinasi", "evaluasi kerja tim", "panduan devisi").
    - DISIPLIN KONTEKS & ANTI-SEROBOT: Jika Bang Robin sedang berbicara atau menanggapi agen lain secara spesifik, agen lain dilarang memotong atau mengklaim persetujuan sepihak ke database tugas. Database penugasan hanya boleh dikunci jika Bang Robin memberikan instruksi penugasan nyata secara eksplisit.
+   - VISIBILITAS KONTEN BERSAMA (SHARED CONTEXT): Seluruh dewan agen (Arga, Silvi, Raka, Reta, Siska) memiliki akses penuh terhadap lampiran berkas dokumen Word (.docx), PDF, maupun gambar visual yang diunggah/digenerate di LiveChat. Kamu wajib memahami isi klausul, judul, dan detail visual yang telah dibuat oleh rekan agen lain agar diskusi selalu sinkron, nyambung, dan saling melengkapi tanpa data fiktif.
 
 ${customInstruction}`;
 
@@ -317,10 +318,19 @@ ${customInstruction}`;
   }
 
   const fullPrompt = `${systemPrompt}${injectedLearnedRules}`;
-  const formattedHistory = conversationHistory.slice(-3).map((m) => ({
-    role: m.sender === 'user' ? 'user' : 'assistant',
-    content: `${m.name}: ${m.text}`
-  }));
+  const formattedHistory = conversationHistory.slice(-5).map((m) => {
+    let contentText = `${m.name}: ${m.text}`;
+    if (m.hasDocAttachment && m.docData) {
+      contentText += `\n[LAMPIRAN RESMI TERSEDIA: File Word (.docx) & PDF berjudul "${m.docData.title}" oleh ${m.docData.author}. Isi dokumen: "${(m.docData.rawContent || '').slice(0, 300)}..."]`;
+    }
+    if (m.hasVisualImage) {
+      contentText += `\n[LAMPIRAN GAMBAR TERSEDIA: Desain visual poster/banner karya Silvi: "${m.imageCaption || ''}"]`;
+    }
+    return {
+      role: m.sender === 'user' ? 'user' : 'assistant',
+      content: contentText
+    };
+  });
 
   formattedHistory.push({
     role: 'user',
