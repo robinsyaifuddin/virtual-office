@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { generateAgentReply } from '../services/multiAgentAiService';
 
-export default function AgentPerformanceWorkspace({ showToast, onAddSubmission, onAddArchive }) {
+export default function AgentPerformanceWorkspace({ showToast, onAddSubmission, onAddArchive, style }) {
   // Agent roles definition sesuai request pengguna
   const AGENT_PROFILES = [
     {
@@ -314,7 +314,7 @@ PENTING:
   };
 
   return (
-    <main className="fl-canvas" style={{ padding: '24px 32px' }}>
+    <main className="fl-canvas" style={{ padding: '24px 32px', ...style }}>
       {/* Header Studio */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
         <div>

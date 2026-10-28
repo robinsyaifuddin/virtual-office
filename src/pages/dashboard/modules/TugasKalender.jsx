@@ -84,7 +84,7 @@ export default function TugasKalender() {
         status: 'Menunggu Review',
         outputResult: generatedDeliverable,
         completedDate: new Date().toISOString().split('T')[0]
-      });
+      }, agentName);
 
       // Tambahkan komentar notifikasi otomatis
       const currentStore = useWorkspaceStore.getState();
@@ -170,7 +170,7 @@ export default function TugasKalender() {
   ].filter(d => d.value > 0);
 
   const handleUpdateCell = (taskId, field, value) => {
-    updateTask(taskId, { [field]: value });
+    updateTask(taskId, { [field]: value }, 'Executive Owner');
   };
 
   const columns = [
@@ -431,9 +431,9 @@ export default function TugasKalender() {
       completedDate: '',
       outputResult: '',
       createdBy: 'Executive Owner',
-      createdAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      createdAt: new Date().toISOString(),
       updatedBy: 'Executive Owner',
-      updatedAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      updatedAt: new Date().toISOString(),
       comments: []
     };
     addTask(newTask);

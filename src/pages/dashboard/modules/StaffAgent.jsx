@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
+import AgentPerformanceWorkspace from '../../AgentPerformanceWorkspace';
 import { 
   Users, 
   Bot, 
@@ -52,7 +53,7 @@ import {
   Icon3DPrayBlue 
 } from '../../../components/ui/Modern3DIcons';
 
-export default function StaffAgent() {
+export default function StaffAgent({ initialTab = 'all' }) {
   const store = useWorkspaceStore();
   const staffAgents = Array.isArray(store?.staffAgents) ? store.staffAgents : [];
   const addStaffAgent = store?.addStaffAgent || (() => {});
@@ -67,7 +68,13 @@ export default function StaffAgent() {
   const recordAiTelemetryEvent = store?.recordAiTelemetryEvent || (() => {});
   const siskaTrainAgents = store?.siskaTrainAgents || (() => {});
 
-  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'human' | 'ai'
+  const [activeTab, setActiveTab] = useState(initialTab); // 'all' | 'human' | 'ai' | 'performance' | 'training' | 'monitoring'
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
   const [selectedAgentForSetup, setSelectedAgentForSetup] = useState(null);
@@ -515,7 +522,9 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           assignee: selectedAgentForPrompt.name,
           priority: plan.fields?.priority || 'P1',
           status: 'Sedang Dikerjakan',
-          outputResult: 'Tugas diproses secara autonomous oleh AI'
+          outputResult: 'Tugas diproses secara autonomous oleh AI',
+          createdBy: selectedAgentForPrompt.name,
+          updatedBy: selectedAgentForPrompt.name
         });
         execDetails = `Menambahkan tugas operasional baru "${plan.title}" (ID: ${id}) ke modul Tugas & Kalender dengan PIC ${selectedAgentForPrompt.name}.`;
       }
@@ -894,13 +903,17 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           status: 'Sedang Dikerjakan',
           outputResult: 'Load balancer optimal, rerata latensi 0.8s'
         };
-        await store.addTask(newTask);
+        await store.addTask({
+          ...newTask,
+          createdBy: agent.name,
+          updatedBy: agent.name
+        });
 
         // UPDATE (EDIT) status tugas menjadi Menunggu Review
         await store.updateTask(testTaskId, {
           status: 'Menunggu Review',
           outputResult: 'Audit selesai 100%. Latensi stabil di 18ms, tidak ada packet drop.'
-        });
+        }, agent.name);
 
         testDetails = `Berhasil CREATE & UPDATE status tugas operasional ID "${testTaskId}" dari 'Sedang Dikerjakan' menjadi 'Menunggu Review'.`;
         previewCreatedData = { modul: 'Tugas & Kalender', id: testTaskId, status: 'Tersimpan di Supabase' };
@@ -1219,7 +1232,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           </p>
         </div>
 
-        {/* Tab Filter Tampilan: Semua | Staf Manusia | AI Agent Persona */}
+        {/* Tab Filter Tampilan: Semua | Staff | Persona Agent | Kinerja Agent | Training | Monitoring */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -1227,7 +1240,9 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           padding: '4px',
           backgroundColor: '#f1f5f9',
           borderRadius: '10px',
-          border: '1px solid #e2e8f0'
+          border: '1px solid #e2e8f0',
+          overflowX: 'auto',
+          maxWidth: '100%'
         }}>
           <button
             onClick={() => setActiveTab('all')}
@@ -1235,13 +1250,14 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               padding: '6px 14px',
               borderRadius: '7px',
               border: 'none',
-              backgroundColor: activeTab === 'all' ? '#ffffff' : 'transparent',
-              color: activeTab === 'all' ? '#0f172a' : '#64748b',
+              backgroundColor: activeTab === 'all' ? '#0284c7' : 'transparent',
+              color: activeTab === 'all' ? '#ffffff' : '#64748b',
               fontWeight: activeTab === 'all' ? 700 : 500,
               fontSize: '0.82rem',
               cursor: 'pointer',
-              boxShadow: activeTab === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease'
+              boxShadow: activeTab === 'all' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
           >
             Semua ({staffAgents.length})
@@ -1255,16 +1271,17 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               padding: '6px 14px',
               borderRadius: '7px',
               border: 'none',
-              backgroundColor: activeTab === 'human' ? '#ffffff' : 'transparent',
-              color: activeTab === 'human' ? '#0284c7' : '#64748b',
+              backgroundColor: activeTab === 'human' ? '#0284c7' : 'transparent',
+              color: activeTab === 'human' ? '#ffffff' : '#64748b',
               fontWeight: activeTab === 'human' ? 700 : 500,
               fontSize: '0.82rem',
               cursor: 'pointer',
-              boxShadow: activeTab === 'human' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease'
+              boxShadow: activeTab === 'human' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <UserCheck size={14} /> Staf Manusia ({humanStaff.length})
+            <UserCheck size={14} /> Staff ({humanStaff.length})
           </button>
           <button
             onClick={() => setActiveTab('ai')}
@@ -1280,11 +1297,33 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               fontWeight: activeTab === 'ai' ? 700 : 500,
               fontSize: '0.82rem',
               cursor: 'pointer',
-              boxShadow: activeTab === 'ai' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
-              transition: 'all 0.15s ease'
+              boxShadow: activeTab === 'ai' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <Sparkles size={14} /> Persona AI Agents ({aiStaff.length})
+            <Sparkles size={14} /> Persona Agent ({aiStaff.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('performance')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '7px',
+              border: 'none',
+              backgroundColor: activeTab === 'performance' ? '#0284c7' : 'transparent',
+              color: activeTab === 'performance' ? '#ffffff' : '#64748b',
+              fontWeight: activeTab === 'performance' ? 700 : 500,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              boxShadow: activeTab === 'performance' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Bot size={14} /> Kinerja Agent
           </button>
           <button
             onClick={() => setActiveTab('training')}
@@ -1301,10 +1340,11 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               fontSize: '0.82rem',
               cursor: 'pointer',
               boxShadow: activeTab === 'training' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
-              transition: 'all 0.15s ease'
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <BrainCircuit size={14} /> Training &amp; Eksperimen AI
+            <BrainCircuit size={14} /> Training
           </button>
           <button
             onClick={() => setActiveTab('monitoring')}
@@ -1321,10 +1361,11 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               fontSize: '0.82rem',
               cursor: 'pointer',
               boxShadow: activeTab === 'monitoring' ? '0 1px 3px rgba(2, 132, 199, 0.25)' : 'none',
-              transition: 'all 0.15s ease'
+              transition: 'all 0.15s ease',
+              whiteSpace: 'nowrap'
             }}
           >
-            <Activity size={14} /> Monitoring &amp; Telemetri
+            <Activity size={14} /> Monitoring
           </button>
         </div>
       </div>
@@ -1627,6 +1668,16 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
               </div>
             ))}
           </div>
+        </div>
+      ) : activeTab === 'performance' ? (
+        /* ================= TAMPILAN KHUSUS: KINERJA AGENT AI STUDIO ================= */
+        <div style={{ width: '100%', marginTop: '4px' }}>
+          <AgentPerformanceWorkspace 
+            showToast={(msg) => {
+              if (typeof window !== 'undefined') console.log(msg);
+            }}
+            style={{ padding: '8px 0', minHeight: 'auto' }}
+          />
         </div>
       ) : activeTab === 'training' ? (
         /* ================= TAMPILAN KHUSUS: TRAINING & EKSPERIMEN AI (PILAR 1, 2, 3) ================= */
@@ -2569,9 +2620,9 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           </div>
         </div>
       ) : (
-        /* TAMPILAN TABEL STANDAR UNTUK STAF MANUSIA / SEMUA */
+        /* TAMPILAN TABEL STANDAR UNTUK STAFF / SEMUA */
         <NotionTable
-          title={activeTab === 'human' ? "Direktori Staf Manusia (PIC Operasional)" : "Direktori Lengkap Karyawan & Personil"}
+          title={activeTab === 'human' ? "Direktori Staff (PIC Operasional)" : "Direktori Lengkap Karyawan & Personil"}
           data={filteredStaff}
           columns={columns}
           onAddRow={handleAddStaff}

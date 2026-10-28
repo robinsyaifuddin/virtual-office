@@ -34,17 +34,18 @@ export function formatDateID(dateVal, includeTime = false) {
       if (/^\d{2}\s+[A-Za-z]{3}\s+\d{4}$/.test(trimmed)) {
         return trimmed;
       }
-      // Bila berformat "YYYY-MM-DD"
-      if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
-        const parts = trimmed.split(/[-T :]/);
+      // Bila berformat tanggal murni "YYYY-MM-DD"
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const parts = trimmed.split('-');
         const y = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10) - 1;
         const day = parseInt(parts[2], 10);
-        const hh = parts[3] ? parseInt(parts[3], 10) : 0;
-        const mm = parts[4] ? parseInt(parts[4], 10) : 0;
-        d = new Date(y, m, day, hh, mm);
+        d = new Date(y, m, day);
       } else {
         d = new Date(trimmed);
+        if (isNaN(d.getTime()) && trimmed.includes(' ')) {
+          d = new Date(trimmed.replace(' ', 'T'));
+        }
       }
     } else {
       d = new Date(dateVal);

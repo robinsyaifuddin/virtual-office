@@ -2,11 +2,12 @@ import { create } from 'zustand';
 import { supabase } from '../utils/supabaseClient';
 
 // Helper Audit Log
-async function recordAuditLog(action, tableName, recordId, changes) {
+async function recordAuditLog(action, tableName, recordId, changes, actorName = 'Executive Owner', actorType = 'USER') {
   try {
+    const isAi = actorName && (actorName.includes('(') || actorName.includes('Agent') || actorName.includes('DigiBot') || actorName.includes('Reta') || actorName.includes('Arga') || actorName.includes('Silvi') || actorName.includes('Raka') || actorName.includes('Siska'));
     await supabase.from('audit_logs').insert([{
-      actor_type: 'USER',
-      actor_name: 'Executive Owner',
+      actor_type: isAi ? 'AI_AGENT' : actorType,
+      actor_name: actorName,
       action,
       table_name: tableName,
       record_id: String(recordId),
@@ -87,22 +88,29 @@ export const useWorkspaceStore = create((set, get) => ({
         receiptDoc: t.receipt_doc
       }));
 
-      const formattedTasks = (tasks || []).map(tk => ({
-        id: tk.id,
-        title: tk.title,
-        description: tk.description,
-        category: tk.category,
-        project: tk.project,
-        assignee: tk.assignee,
-        priority: tk.priority,
-        status: tk.status,
-        dueDate: tk.due_date,
-        completedDate: tk.completed_date,
-        outputResult: tk.output_result,
-        createdBy: tk.created_by,
-        comments: tk.comments || [],
-        updatedAt: tk.updated_at ? tk.updated_at.replace('T', ' ').substring(0, 16) : ''
-      }));
+      const formattedTasks = (tasks || []).map(tk => {
+        const lastAudit = Array.isArray(tk.comments) 
+          ? tk.comments.slice().reverse().find(c => c && (c.type === 'audit_update' || c.author)) 
+          : null;
+        return {
+          id: tk.id,
+          title: tk.title,
+          description: tk.description,
+          category: tk.category,
+          project: tk.project,
+          assignee: tk.assignee,
+          priority: tk.priority,
+          status: tk.status,
+          dueDate: tk.due_date,
+          completedDate: tk.completed_date,
+          outputResult: tk.output_result,
+          createdBy: tk.created_by || 'Executive Owner',
+          createdAt: tk.created_at || tk.updated_at || '',
+          updatedBy: lastAudit?.author || tk.created_by || 'Executive Owner',
+          comments: tk.comments || [],
+          updatedAt: tk.updated_at || tk.created_at || ''
+        };
+      });
 
       const formattedMkt = (mkt || []).map(m => ({
         id: m.id,
@@ -487,13 +495,16 @@ export const useWorkspaceStore = create((set, get) => ({
   tasks: [],
   addTask: async (task) => {
     const id = task.id || `TSK-${Date.now().toString().slice(-4)}`;
-    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const nowIso = new Date().toISOString();
+    const creator = task.createdBy || 'Executive Owner';
     const newTask = { 
       ...task, 
       id, 
-      comments: task.comments || [],
-      createdAt: task.createdAt || nowStr,
-      updatedAt: nowStr
+      createdBy: creator,
+      createdAt: task.createdAt || nowIso,
+      updatedBy: task.updatedBy || creator,
+      updatedAt: task.updatedAt || nowIso,
+      comments: task.comments || []
     };
 
     set((state) => ({ tasks: [newTask, ...state.tasks] }));
@@ -511,23 +522,40 @@ export const useWorkspaceStore = create((set, get) => ({
         due_date: newTask.dueDate || null,
         completed_date: newTask.completedDate || null,
         output_result: newTask.outputResult || '',
-        created_by: newTask.createdBy || 'Executive Owner',
+        created_by: newTask.createdBy,
         comments: newTask.comments || []
       }]);
-      await recordAuditLog('INSERT', 'tasks', newTask.id, newTask);
+      await recordAuditLog('INSERT', 'tasks', newTask.id, newTask, creator);
     } catch (err) {
       console.error('Gagal simpan task ke Supabase:', err);
     }
   },
 
-  updateTask: async (id, updated) => {
-    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+  updateTask: async (id, updated, editor = null) => {
+    const nowIso = new Date().toISOString();
+    const currentTask = get().tasks.find((item) => item.id === id);
+    const editorName = editor || updated.updatedBy || 'Executive Owner';
+
+    // Jika diedit oleh AI bot agent atau ada catatan khusus, catat riwayat audit ke dalam comments
+    let updatedComments = updated.comments !== undefined ? updated.comments : (currentTask?.comments || []);
+    if (editorName && editorName !== 'Executive Owner' && !updated.comments) {
+      const editAuditLog = {
+        id: `LOG-${Date.now()}`,
+        author: editorName,
+        createdAt: nowIso,
+        text: `Status/output diperbarui oleh ${editorName}`,
+        type: 'audit_update'
+      };
+      updatedComments = [...(currentTask?.comments || []), editAuditLog];
+    }
+
     set((state) => ({
       tasks: state.tasks.map((item) => item.id === id ? { 
         ...item, 
         ...updated, 
-        updatedAt: nowStr,
-        updatedBy: 'Executive Owner'
+        comments: updatedComments,
+        updatedAt: nowIso,
+        updatedBy: editorName
       } : item)
     }));
 
@@ -543,11 +571,11 @@ export const useWorkspaceStore = create((set, get) => ({
       if (updated.dueDate !== undefined) payload.due_date = updated.dueDate || null;
       if (updated.completedDate !== undefined) payload.completed_date = updated.completedDate || null;
       if (updated.outputResult !== undefined) payload.output_result = updated.outputResult;
-      if (updated.comments !== undefined) payload.comments = updated.comments;
-      payload.updated_at = new Date().toISOString();
+      if (updatedComments !== undefined) payload.comments = updatedComments;
+      payload.updated_at = nowIso;
 
       await supabase.from('tasks').update(payload).eq('id', id);
-      await recordAuditLog('UPDATE', 'tasks', id, updated);
+      await recordAuditLog('UPDATE', 'tasks', id, updated, editorName);
     } catch (err) {
       console.error('Gagal update task di Supabase:', err);
     }
@@ -567,11 +595,11 @@ export const useWorkspaceStore = create((set, get) => ({
   },
 
   addTaskComment: async (taskId, commentText, author = 'Executive Owner') => {
-    const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    const nowIso = new Date().toISOString();
     const newComment = {
       id: `C-${Date.now()}`,
       author,
-      createdAt: nowStr,
+      createdAt: nowIso,
       text: commentText
     };
 
@@ -582,7 +610,7 @@ export const useWorkspaceStore = create((set, get) => ({
       tasks: state.tasks.map((item) => item.id === taskId ? {
         ...item,
         comments: updatedComments,
-        updatedAt: nowStr,
+        updatedAt: nowIso,
         updatedBy: author
       } : item)
     }));
@@ -590,8 +618,9 @@ export const useWorkspaceStore = create((set, get) => ({
     try {
       await supabase.from('tasks').update({
         comments: updatedComments,
-        updated_at: new Date().toISOString()
+        updated_at: nowIso
       }).eq('id', taskId);
+      await recordAuditLog('UPDATE', 'tasks', taskId, { comment: newComment }, author);
     } catch (err) {
       console.error('Gagal tambah komentar di Supabase:', err);
     }

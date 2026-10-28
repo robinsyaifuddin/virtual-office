@@ -15,7 +15,8 @@ import {
   FileText,
   UploadCloud,
   Download,
-  Bookmark
+  Bookmark,
+  Sparkles
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../../store/workspaceStore';
 import { exportRowAsPdf } from '../../../utils/exportPdf';
@@ -1169,14 +1170,16 @@ export default function UniversalDetailModal({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Dibuat Oleh</span>
-                  <span style={{ fontWeight: 600, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <Icon3DUser size={13} /> {data.createdBy || 'Executive Owner'}
+                  <span style={{ fontWeight: 600, color: (data.createdBy && (data.createdBy.includes('(') || data.createdBy.includes('Agent') || data.createdBy.includes('Bot') || ['Arga', 'Reta', 'Silvi', 'Raka', 'Siska'].some(n => data.createdBy.includes(n)))) ? '#0284c7' : '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    {(data.createdBy && (data.createdBy.includes('(') || data.createdBy.includes('Agent') || data.createdBy.includes('Bot') || ['Arga', 'Reta', 'Silvi', 'Raka', 'Siska'].some(n => data.createdBy.includes(n)))) ? <Sparkles size={13} color="#0284c7" /> : <Icon3DUser size={13} />}
+                    {data.createdBy || 'Executive Owner'}
                   </span>
                 </div>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Terakhir Diedit Oleh</span>
                   <span style={{ fontWeight: 600, color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <Icon3DUser size={13} /> {data.updatedBy || 'Executive Owner'}
+                    {(data.updatedBy && (data.updatedBy.includes('(') || data.updatedBy.includes('Agent') || data.updatedBy.includes('Bot') || ['Arga', 'Reta', 'Silvi', 'Raka', 'Siska'].some(n => data.updatedBy.includes(n)))) ? <Sparkles size={13} color="#0284c7" /> : <Icon3DUser size={13} />}
+                    {data.updatedBy || data.createdBy || 'Executive Owner'}
                   </span>
                 </div>
               </div>
@@ -1185,11 +1188,15 @@ export default function UniversalDetailModal({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Dibuat</span>
-                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.createdAt ? formatDateID(data.createdAt, true) : '08 Sep 2026 14:23'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>
+                    {data.createdAt ? formatDateID(data.createdAt, true) : (data.updatedAt ? formatDateID(data.updatedAt, true) : '-')}
+                  </span>
                 </div>
                 <div>
                   <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Terakhir Diedit</span>
-                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>{data.updatedAt ? formatDateID(data.updatedAt, true) : '15 Okt 2026 11:20'}</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>
+                    {data.updatedAt ? formatDateID(data.updatedAt, true) : (data.createdAt ? formatDateID(data.createdAt, true) : '-')}
+                  </span>
                 </div>
               </div>
             </div>

@@ -47,7 +47,7 @@ export default function NotionFullPageView({ taskId, onClose }) {
   };
 
   const handleFieldChange = (field, value) => {
-    updateTask(task.id, { [field]: value });
+    updateTask(task.id, { [field]: value }, 'Executive Owner');
     triggerToast();
   };
 
@@ -328,7 +328,7 @@ Hasil otomatis untuk "${task.title}":
                       status: 'Menunggu Review',
                       outputResult: generatedDeliverable,
                       completedDate: new Date().toISOString().split('T')[0]
-                    });
+                    }, agent.name);
 
                     addTaskComment(task.id, `🤖 [Autonomous Run] AI Agent ${agent.name} menyelesaikan eksekusi tugas.`, agent.name);
                     triggerToast();
@@ -423,52 +423,75 @@ Hasil otomatis untuk "${task.title}":
         </div>
 
         {/* Audit Trail Metadata (Sesuai Gambar 1 Notion) */}
-        <div style={{
-          backgroundColor: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
-        }}>
-          <div style={{
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: '#64748b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            <ShieldCheck size={14} color="#0284c7" />
-            Riwayat Perubahan &amp; Audit Trail
-          </div>
+        {(() => {
+          const isCreatorAi = task.createdBy && (
+            task.createdBy.includes('(') || 
+            task.createdBy.toLowerCase().includes('agent') || 
+            task.createdBy.toLowerCase().includes('bot') ||
+            ['Arga', 'Reta', 'Silvi', 'Raka', 'Siska'].some(name => task.createdBy.includes(name))
+          );
+          const isEditorAi = task.updatedBy && (
+            task.updatedBy.includes('(') || 
+            task.updatedBy.toLowerCase().includes('agent') || 
+            task.updatedBy.toLowerCase().includes('bot') ||
+            ['Arga', 'Reta', 'Silvi', 'Raka', 'Siska'].some(name => task.updatedBy.includes(name))
+          );
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '0.8rem' }}>
-            <div>
-              <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Dibuat Oleh</span>
-              <span style={{ fontWeight: 600, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <User size={13} color="#64748b" /> {task.createdBy || 'Executive Owner'}
-              </span>
+          return (
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <div style={{
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: '#64748b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <ShieldCheck size={14} color="#0284c7" />
+                Riwayat Perubahan &amp; Audit Trail
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', fontSize: '0.8rem' }}>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Dibuat Oleh</span>
+                  <span style={{ fontWeight: 600, color: isCreatorAi ? '#0284c7' : '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    {isCreatorAi ? <Sparkles size={13} color="#0284c7" /> : <User size={13} color="#64748b" />}
+                    {task.createdBy || 'Executive Owner'}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Dibuat</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>
+                    {task.createdAt ? formatDateID(task.createdAt, true) : (task.updatedAt ? formatDateID(task.updatedAt, true) : '-')}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Terakhir Diedit Oleh</span>
+                  <span style={{ fontWeight: 600, color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    {isEditorAi ? <Sparkles size={13} color="#0284c7" /> : <User size={13} color="#0284c7" />}
+                    {task.updatedBy || task.createdBy || 'Executive Owner'}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', marginBottom: '2px' }}>Waktu Terakhir Diedit</span>
+                  <span style={{ fontFamily: 'monospace', color: '#334155' }}>
+                    {task.updatedAt ? formatDateID(task.updatedAt, true) : (task.createdAt ? formatDateID(task.createdAt, true) : '-')}
+                  </span>
+                </div>
+              </div>
             </div>
-            <div>
-              <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Dibuat</span>
-              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.createdAt ? formatDateID(task.createdAt, true) : '08 Sep 2026 14:23'}</span>
-            </div>
-            <div>
-              <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Terakhir Diedit Oleh</span>
-              <span style={{ fontWeight: 600, color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <User size={13} color="#0284c7" /> {task.updatedBy || 'Executive Owner'}
-              </span>
-            </div>
-            <div>
-              <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Waktu Terakhir Diedit</span>
-              <span style={{ fontFamily: 'monospace', color: '#334155' }}>{task.updatedAt ? formatDateID(task.updatedAt, true) : '15 Okt 2026 11:20'}</span>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Diskusi & Komentar Realtime */}
         <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

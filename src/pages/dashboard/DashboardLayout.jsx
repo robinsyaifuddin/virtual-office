@@ -134,7 +134,6 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
 
   const menuItems = [
     { key: 'executivedashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
-    { key: 'kinerjaagent', label: 'Kinerja Agent', icon: Bot, isHighlight: true },
     { key: 'crmdanklien', label: 'CRM & Klien', icon: Users },
     { key: 'keuangandanprofit', label: 'Keuangan & Profit', icon: DollarSign },
     { key: 'brandingdanmarketing', label: 'Branding & Marketing', icon: Megaphone },
@@ -168,11 +167,7 @@ export default function DashboardLayout({ onLogout, onSwitchTo3D }) {
       case 'executivedashboard':
         return <ExecutiveDashboard onNavigateModule={handleSelectMenu} />;
       case 'kinerjaagent':
-        return (
-          <AgentPerformanceWorkspace 
-            showToast={(msg) => console.log(msg)}
-          />
-        );
+        return <StaffAgent initialTab="performance" />;
       case 'crmdanklien':
         return <CrmKlien />;
       case 'keuangandanprofit':
