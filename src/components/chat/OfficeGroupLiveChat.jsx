@@ -1750,60 +1750,6 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
           )}
         </div>
 
-        {/* Quick Suggestion Chips untuk Mempercepat Input */}
-        <div style={{
-          padding: '8px 14px 4px 14px',
-          backgroundColor: '#ffffff',
-          display: 'flex',
-          gap: '6px',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          borderTop: '1px solid #f1f5f9'
-        }}>
-          {[
-            'Bahas pondasi perusahaan & blueprint',
-            'Buatkan rencana aksi minggu ini',
-            'Cek progress KPI & evaluasi',
-            'Bagaimana status leads & klien?',
-            'Reta & Silvi, tolong buatkan draft tugas'
-          ].map((chip, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setInputText(chip);
-                if (textareaRef.current) {
-                  textareaRef.current.focus();
-                }
-              }}
-              style={{
-                fontSize: '0.72rem',
-                padding: '4px 10px',
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#f8fafc',
-                color: '#334155',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease',
-                flexShrink: 0
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e0f2fe';
-                e.currentTarget.style.color = '#0284c7';
-                e.currentTarget.style.borderColor = '#bae6fd';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8fafc';
-                e.currentTarget.style.color = '#334155';
-                e.currentTarget.style.borderColor = '#e2e8f0';
-              }}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
         {/* Input Bar Form Responsif & Auto-Expand */}
         <div style={{
           padding: '10px 14px',
