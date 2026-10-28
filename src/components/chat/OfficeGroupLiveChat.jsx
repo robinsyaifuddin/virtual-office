@@ -71,7 +71,12 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       setTimeout(() => {
         // Pastikan teks pesan bersih dari simbol bintang markdown agar mudah dicopas & nyaman dibaca
         if (msg && typeof msg.text === 'string') {
-          msg.text = msg.text.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+          msg.text = msg.text
+            .replace(/\*\*/g, '')
+            .replace(/\*/g, '')
+            .replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '')
+            .replace(/ {2,}/g, ' ')
+            .trim();
         }
         setMessages((prev) => [...prev, msg]);
         resolve();
@@ -336,8 +341,21 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       return;
     }
 
-    // 2. SKENARIO PERSETUJUAN OWNER ATAS RANGKUMAN (Deal / Oke / Setuju / Jalankan)
-    const isApprovalCommand = 
+    // Deteksi panggilan agen spesifik
+    const mentionedSilvi = /\b(silvi|sil)\b/i.test(lower);
+    const mentionedReta = /\b(reta|ret|ta)\b/i.test(lower);
+    const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || (lower.includes('berkas') && lower.includes('siapkan'));
+    const mentionedSiska = /\b(siska|sis)\b/i.test(lower);
+    const mentionedArga = /\b(arga|ga)\b/i.test(lower);
+
+    // Cek apakah pesan user secara spesifik ditujukan ke Siska (obrolan/tanggapan ke Siska)
+    const isTargetedToSiska = mentionedSiska && !mentionedReta && !mentionedArga && !mentionedSilvi && !mentionedRaka;
+
+    // 2. SKENARIO PERSETUJUAN OWNER ATAS RANGKUMAN TUGAS OPERASIONAL (Deal / Oke / Setuju / Jalankan)
+    // Syarat ketat agar TIDAK BLUNDER:
+    // a. Jangan pernah trigger jika user sedang ngobrol/membalas Siska (misal: "oke lakuin aja sis")
+    // b. Wajib ada draf tugas aktif ATAU kata persetujuan tegas yang jelas-jelas ditujukan ke operasional
+    const isGenericAffirmation = 
       lower === 'oke' || 
       lower === 'ok' || 
       lower === 'deal' ||
@@ -349,6 +367,14 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       lower.includes('saya setuju') || 
       lower.includes('setuju') ||
       lower.includes('jalankan saja');
+
+    // Ambil pesan terakhir sebelum pesan ini untuk verifikasi konteks
+    const lastNonEmptyMsg = [...messages].reverse().find(m => m.sender !== 'user');
+    const isFollowupToSiska = lastNonEmptyMsg && (lastNonEmptyMsg.sender === 'Siska' || lastNonEmptyMsg.name === 'Siska');
+    const recentDraftMsg = [...messages.slice(-6)].reverse().find(m => m.actionData && !m.actionData.isLocked);
+
+    // Approval resmi HANYA aktif jika BUKAN ditujukan ke Siska dan relevan dengan draf operasional
+    const isApprovalCommand = isGenericAffirmation && !isTargetedToSiska && !isFollowupToSiska && (!!recentDraftMsg || mentionedReta || lower.includes('tugas') || lower.includes('program kerja'));
 
     if (isApprovalCommand) {
       setTypingAgentName('Reta');
@@ -502,13 +528,6 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
     }
 
     // 4. MEKANISME ROUTING PEMBICARA TARGET (Cerdas, Terarah & Menjawab Bersama Sesuai Panggilan):
-    // Prioritas deteksi nama lengkap & panggilan akrab:
-    const mentionedSilvi = /\b(silvi|sil)\b/i.test(lower);
-    const mentionedReta = /\b(reta|ret|ta)\b/i.test(lower);
-    const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || (lower.includes('berkas') && lower.includes('siapkan'));
-    const mentionedSiska = /\b(siska|sis)\b/i.test(lower);
-    const mentionedArga = /\b(arga|ga)\b/i.test(lower);
-
     // Kumpulkan seluruh agen yang dipanggil secara eksplisit oleh Bang Robin
     const explicitlyMentionedAgents = [];
     if (mentionedArga) explicitlyMentionedAgents.push('Arga');
@@ -519,7 +538,8 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
 
     // Siska HANYA bersuara jika:
     // 1. Bang Robin eksplisit memanggil Siska ("sis", "siska")
-    // 2. ATAU Bang Robin eksplisit meminta koreksi ("tegur", "koreksi", "salah botnya")
+    // 2. ATAU pesan user merupakan tindak lanjut dari tanggapan Siska sebelumnya
+    // 3. ATAU Bang Robin eksplisit meminta koreksi/evaluasi ("tegur", "koreksi", "bot salah", "blunder")
     const isExplicitCorrection = 
       lower.includes('tegur') || 
       lower.includes('koreksi') || 
@@ -527,8 +547,10 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       lower.includes('salah jawab') ||
       lower.includes('blunder');
 
-    // JIKA ADA KOREKSI BLUNDER ATAU SISKA DIPANGGIL EKSPLISIT
-    if (isExplicitCorrection || (mentionedSiska && explicitlyMentionedAgents.length === 1)) {
+    const isDirectSiskaFollowup = isFollowupToSiska && !mentionedArga && !mentionedSilvi && !mentionedReta && !mentionedRaka;
+
+    // JIKA ADA KOREKSI BLUNDER ATAU SISKA DIPANGGIL EKSPLISIT ATAU USER MEMBALAS SISKA
+    if (isExplicitCorrection || isDirectSiskaFollowup || (mentionedSiska && explicitlyMentionedAgents.length <= 1)) {
       setTypingAgentName('Siska');
 
       // Tentukan target yang sedang dikoreksi
@@ -538,20 +560,22 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       else if (lower.includes('reta')) targetFaultAgent = 'Reta';
       else if (lower.includes('raka')) targetFaultAgent = 'Raka';
 
-      const siskaPrompt = `Bang Robin memberikan teguran/koreksi: "${raw}".
-Sebagai Head of Quality Control & Trainer:
-1. Tanggapi dengan santun, lugas, dan cerdas.
-2. Jelaskan deteksi kesalahan secara presisi (misal: bot mengulang-ulang kalimat, mengutip kata user langsung tanpa memahami makna, atau bot menjawab serentak tanpa giliran terarah).
-3. Sampaikan bahwa koreksi ini akan diresmikan ke memori SOP.
-4. Tanyakan kepada Bang Robin apakah ada poin perbaikan spesifik lainnya yang ingin ditambahkan sebelum Siska menyuntikkan permanen ke memori vektor kerja bot.`;
+      const siskaPrompt = `Bang Robin memberikan arahan/evaluasi kualitas kerja: "${raw}".
+Sebagai Head of Quality Control & Team Coach:
+1. Tanggapi dengan santun, lugas, hangat, dan natural layaknya Head of Quality manusia profesional di kantor DigiBooster.
+2. DILARANG KERAS menggunakan jargon teknis robotik seperti "memori vektor", "vektor kerja bot", "log deteksi AI", "suntikkan instruksi ke model". Ganti dengan istilah organisasi profesional yang manusiawi seperti "SOP kerja tim", "evaluasi koordinasi", "panduan kerja", "catatan evaluasi tim".
+3. Tegaskan bahwa Siska sudah mencatat dan mendisiplinkan koordinasi antar-rekan dewan agen agar tidak saling serobot, tidak memotong pembicaraan, dan selalu patuh pada arahan Bang Robin.
+4. Jawab secara ringkas, tegas, ramah, dan solutif (2-3 paragraf pendek).`;
 
       const siskaRes = await generateAgentResponse({
         agentName: 'Siska',
-        agentRole: 'Head of Quality & AI Trainer',
+        agentRole: 'Head of Quality & Team Coach',
         userMessage: raw,
         conversationHistory: messages,
         customInstruction: siskaPrompt
       });
+
+      let cleanSiska = (siskaRes.text || '').replace(new RegExp(`^(Siska|Arga|Silvi|Reta|Raka)\\s*:\\s*`, 'i'), '').trim();
 
       await appendMessageSequentially({
         id: `msg-sis-${Date.now()}`,
@@ -560,7 +584,7 @@ Sebagai Head of Quality Control & Trainer:
         role: 'Head of Quality & AI Trainer',
         badgeColor: '#0284c7',
         isDirective: true,
-        text: siskaRes.text,
+        text: cleanSiska,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 800);
 
@@ -842,20 +866,22 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       else if (lower.includes('reta')) targetFaultAgent = 'Reta';
       else if (lower.includes('raka')) targetFaultAgent = 'Raka';
 
-      const siskaPrompt = `Bang Robin memberikan teguran/koreksi: "${raw}".
-Sebagai Head of Quality Control & Trainer:
-1. Tanggapi dengan santun, lugas, dan cerdas.
-2. Jelaskan deteksi kesalahan secara presisi (misal: bot mengulang-ulang kalimat, mengutip kata user langsung tanpa memahami makna, atau bot menjawab serentak tanpa giliran terarah).
-3. Sampaikan bahwa koreksi ini akan diresmikan ke memori SOP.
-4. Tanyakan kepada Bang Robin apakah ada poin perbaikan spesifik lainnya yang ingin ditambahkan sebelum Siska menyuntikkan permanen ke memori vektor kerja bot.`;
+      const siskaPrompt = `Bang Robin memberikan arahan/evaluasi kualitas kerja: "${raw}".
+Sebagai Head of Quality Control & Team Coach:
+1. Tanggapi dengan santun, lugas, hangat, dan natural layaknya Head of Quality manusia profesional di kantor DigiBooster.
+2. DILARANG KERAS menggunakan jargon teknis robotik seperti "memori vektor", "vektor kerja bot", "log deteksi AI", "suntikkan instruksi ke model". Ganti dengan istilah organisasi profesional yang manusiawi seperti "SOP kerja tim", "evaluasi koordinasi", "panduan kerja", "catatan evaluasi tim".
+3. Tegaskan bahwa Siska sudah mencatat dan mendisiplinkan koordinasi antar-rekan dewan agen agar tidak saling serobot, tidak memotong pembicaraan, dan selalu patuh pada arahan Bang Robin.
+4. Jawab secara ringkas, tegas, ramah, dan solutif (2-3 paragraf pendek).`;
 
       const siskaRes = await generateAgentResponse({
         agentName: 'Siska',
-        agentRole: 'Head of Quality & AI Trainer',
+        agentRole: 'Head of Quality & Team Coach',
         userMessage: raw,
         conversationHistory: messages,
         customInstruction: siskaPrompt
       });
+
+      let cleanSiska = (siskaRes.text || '').replace(new RegExp(`^(Siska|Arga|Silvi|Reta|Raka)\\s*:\\s*`, 'i'), '').trim();
 
       await appendMessageSequentially({
         id: `msg-sis-${Date.now()}`,
@@ -864,7 +890,7 @@ Sebagai Head of Quality Control & Trainer:
         role: 'Head of Quality & AI Trainer',
         badgeColor: '#0284c7',
         isDirective: true,
-        text: siskaRes.text,
+        text: cleanSiska,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       }, 800);
 

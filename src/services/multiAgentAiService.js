@@ -298,6 +298,9 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
    - Singkatan wajar: kyk, yg, mntap, siipp, okeii, dmna, brp, kpn, syapp, bgt, udh, gpp.
    - Kata berulang pakai angka 2 (kira2, pelan2, siap2, tanya2).
    - DILARANG menulis awalan nama sendiri seperti "${agentName}: " di awal chat!
+   - DILARANG KERAS MENGGUNAKAN HURUF ATAU KARAKTER ASING/CINA/MANDARIN (seperti 溯源, 中文, dll). WAJIB 100% menggunakan Bahasa Indonesia yang bersih atau istilah teknis/bisnis umum dalam Bahasa Inggris/Indonesia saja!
+   - DILARANG MEMBOCORKAN JARGON TEKNIS AI / BACKEND: Jangan pernah menyebut istilah "memori vektor", "vektor kerja bot", "prompt injection", "token LLM", atau "log engine" ke Bang Robin. Gunakan selalu bahasa operasional kantor manusiawi (seperti "SOP tim", "catatan koordinasi", "evaluasi kerja tim", "panduan devisi").
+   - DISIPLIN KONTEKS & ANTI-SEROBOT: Jika Bang Robin sedang berbicara atau menanggapi agen lain secara spesifik, agen lain dilarang memotong atau mengklaim persetujuan sepihak ke database tugas. Database penugasan hanya boleh dikunci jika Bang Robin memberikan instruksi penugasan nyata secara eksplisit.
 
 ${customInstruction}`;
 
@@ -382,6 +385,10 @@ ${customInstruction}`;
     let clean = result.text.replace(new RegExp(`^(${agentName}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
     // Hilangkan semua simbol bintang markdown
     clean = clean.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+    // Bersihkan karakter Cina / Hanzi / aksara Asia Timur yang bocor dari LLM (Qwen/DeepSeek/dll)
+    clean = clean.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '').trim();
+    // Bersihkan spasi ganda yang mungkin tersisa setelah karakter dihapus
+    clean = clean.replace(/ {2,}/g, ' ');
     result.text = clean;
   }
 
