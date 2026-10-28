@@ -90,34 +90,35 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
     const raw = inputText.trim();
     if (!raw) return;
 
-    const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    try {
+      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
 
-    const userMsg = {
-      id: `msg-user-${Date.now()}`,
-      sender: 'user',
-      name: 'Bang Robin',
-      role: 'Direktur Utama',
-      text: raw,
-      timestamp: nowStr
-    };
+      const userMsg = {
+        id: `msg-user-${Date.now()}`,
+        sender: 'user',
+        name: 'Bang Robin',
+        role: 'Direktur Utama',
+        text: raw,
+        timestamp: nowStr
+      };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputText('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
+      setMessages((prev) => [...prev, userMsg]);
+      setInputText('');
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
 
-    const lower = raw.toLowerCase();
+      const lower = raw.toLowerCase();
 
-    // Tentukan estimasi agen yang paling mungkin menjawab agar UI langsung menampilkan nama agen
-    let expectedAgent = 'Arga';
-    if (/\b(siska|sis)\b/i.test(lower)) expectedAgent = 'Siska';
-    else if (/\b(silvi|sil)\b/i.test(lower) || lower.includes('gambar') || lower.includes('desain') || lower.includes('poster')) expectedAgent = 'Silvi';
-    else if (/\b(reta|ret|ta)\b/i.test(lower)) expectedAgent = 'Reta';
-    else if (/\b(raka|ka)\b/i.test(lower) || lower.includes('word') || lower.includes('dokumen') || lower.includes('pdf')) expectedAgent = 'Raka';
+      // Tentukan estimasi agen yang paling mungkin menjawab agar UI langsung menampilkan nama agen
+      let expectedAgent = 'Arga';
+      if (/\b(siska|sis)\b/i.test(lower)) expectedAgent = 'Siska';
+      else if (/\b(silvi|sil)\b/i.test(lower) || lower.includes('gambar') || lower.includes('desain') || lower.includes('poster')) expectedAgent = 'Silvi';
+      else if (/\b(reta|ret|ta)\b/i.test(lower)) expectedAgent = 'Reta';
+      else if (/\b(raka|ka)\b/i.test(lower) || lower.includes('word') || lower.includes('dokumen') || lower.includes('pdf')) expectedAgent = 'Raka';
 
-    setTypingAgentName(expectedAgent);
-    setIsAgentsTyping(true);
+      setTypingAgentName(expectedAgent);
+      setIsAgentsTyping(true);
 
     // JIKA USER MEMINTA GAMBAR / VISUAL (Silvi Visual Engine):
     const isImageCommand = 
@@ -1176,7 +1177,21 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
       }, 900);
     }
 
-    setIsAgentsTyping(false);
+      setIsAgentsTyping(false);
+    } catch (err) {
+      console.error('[LiveChat] Terjadi kesalahan saat memproses pesan:', err);
+      // Fallback pesan ramah jika ada exception agar UI tidak stuck
+      await appendMessageSequentially({
+        id: `msg-fallback-${Date.now()}`,
+        sender: 'Arga',
+        name: 'Arga',
+        role: 'Chief Strategy Officer (CSO)',
+        badgeColor: '#0284c7',
+        text: 'halo bang bin! syapp standby nih, ada yg mau diobrolin apa nih hari ini?',
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      }, 300);
+      setIsAgentsTyping(false);
+    }
   };
 
   return (
