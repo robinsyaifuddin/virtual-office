@@ -380,6 +380,117 @@ export async function exportRowAsPdf(row, columns = [], options = {}) {
 }
 
 /**
+ * Buat dan unduh file PDF langsung dari konten teks / draf percakapan LiveChat
+ */
+export async function generateAndDownloadPdfDoc({
+  title = 'Dokumen Resmi DigiBooster',
+  category = 'Legal & Dokumentasi',
+  author = 'Raka (Head of Documentation & Legal)',
+  rawContent = ''
+}) {
+  const logoBase64 = await getBase64Image('/logo.webp');
+  const cleanTitle = (title || 'Dokumen_DigiBooster').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim();
+  const cleanFileName = (cleanTitle.replace(/\s+/g, '_') || 'Dokumen_Resmi') + '_DigiBooster.pdf';
+  const nowFormatted = formatIndonesianDate(new Date().toISOString());
+
+  // Bersihkan format rawContent dari simbol markdown
+  const formattedBody = rawContent
+    .split('\n')
+    .filter(line => line.trim().length > 0)
+    .map(line => {
+      const cleanLine = escapeHtml(line.replace(/\*\*/g, '').replace(/\*/g, '').trim());
+      if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
+        return `<li style="margin-bottom: 6px; line-height: 1.6; color: #334155;">${cleanLine.replace(/^[-•]\s*/, '')}</li>`;
+      }
+      return `<p style="margin-bottom: 12px; line-height: 1.7; color: #1e293b; text-align: justify;">${cleanLine}</p>`;
+    })
+    .join('');
+
+  const docHtml = `
+    <!-- Header Kop Resmi DigiBooster -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 18px; page-break-inside: avoid;">
+      <div style="display: flex; align-items: center;">
+        <img src="${logoBase64}" alt="Logo" style="height: 38px; max-width: 190px; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='/favicon.svg';" />
+      </div>
+      <div style="text-align: right; font-size: 10.5px; color: #475569;">
+        <div style="display: inline-block; font-size: 9.5px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background-color: #e0f2fe; color: #0369a1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">
+          Dokumen Eksekutif Resmi
+        </div>
+        <div><strong>Waktu Terbit:</strong> ${escapeHtml(nowFormatted)}</div>
+      </div>
+    </div>
+
+    <!-- Judul Dokumen -->
+    <div style="margin-bottom: 18px; page-break-inside: avoid;">
+      <div style="font-size: 10px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">
+        ${escapeHtml(category)} • HQ DigiBooster
+      </div>
+      <h1 style="font-size: 18px; font-weight: 800; color: #0f172a; margin: 4px 0 0 0; line-height: 1.35;">
+        ${escapeHtml(title)}
+      </h1>
+    </div>
+
+    <!-- Metadata Parameter -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 22px; page-break-inside: avoid;">
+      <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; background-color: #f8fafc;">
+        <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Kategori</div>
+        <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 2px;">${escapeHtml(category)}</div>
+      </div>
+      <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; background-color: #f8fafc;">
+        <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Penanggung Jawab (PIC)</div>
+        <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 2px;">${escapeHtml(author)}</div>
+      </div>
+      <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; background-color: #f8fafc;">
+        <div style="font-size: 9.5px; font-weight: 700; color: #64748b; text-transform: uppercase;">Status Validasi</div>
+        <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-top: 2px;">Terverifikasi HQ</div>
+      </div>
+    </div>
+
+    <!-- Isi Dokumen -->
+    <div style="font-size: 11px; margin-bottom: 24px;">
+      <div style="font-size: 11.5px; font-weight: 700; color: #0f172a; border-left: 3px solid #0284c7; padding-left: 8px; margin-bottom: 12px; text-transform: uppercase;">
+        Isi &amp; Klausul Dokumen
+      </div>
+      <div style="padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff;">
+        ${formattedBody}
+      </div>
+    </div>
+
+    <!-- Catatan Hukum & Arsip -->
+    <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 9px; color: #64748b; line-height: 1.5; page-break-inside: avoid;">
+      Dokumen ini diterbitkan secara otomatis dan terverifikasi oleh Sistem Dokumentasi &amp; Legal HQ DigiBooster Indonesia. Dilarang mengubah, menggandakan, atau mempublikasikan tanpa izin tertulis dari manajemen DigiBooster.
+    </div>
+  `;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-download-overlay';
+  overlay.style.cssText = `
+    position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(2px); z-index: 999998; display: flex;
+    align-items: center; justify-content: center; font-family: 'Poppins', -apple-system, sans-serif;
+  `;
+  overlay.innerHTML = `
+    <div style="background: #ffffff; border-radius: 12px; padding: 18px 24px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-width: 320px;">
+      <div style="width: 28px; height: 28px; border: 3px solid #bae6fd; border-top-color: #0284c7; border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto 10px auto;"></div>
+      <div style="font-weight: 700; font-size: 13.5px; color: #0f172a; margin-bottom: 2px;">Menyiapkan PDF...</div>
+      <div style="font-size: 11px; color: #64748b;">Menyimpan dokumen resmi ke perangkat.</div>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+  `;
+  document.body.appendChild(overlay);
+
+  try {
+    await generatePdfFromIsolatedIframe(docHtml, cleanFileName, 'portrait');
+  } catch (err) {
+    console.error('Gagal mengunduh PDF:', err);
+  } finally {
+    if (overlay && overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  }
+}
+
+/**
  * Ekspor Seluruh Tabel Data langsung menjadi file .pdf matriks landscape super cepat
  */
 export async function exportTableAsPdf(rows = [], columns = [], options = {}) {

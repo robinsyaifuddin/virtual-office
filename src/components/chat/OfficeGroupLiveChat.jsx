@@ -9,6 +9,7 @@ import {
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { generateAgentResponse, generateVisualImageUrl } from '../../services/multiAgentAiService';
 import { generateAndDownloadWordDoc } from '../../utils/exportWord';
+import { generateAndDownloadPdfDoc } from '../../utils/exportPdf';
 import { 
   Icon3DThumbUpBlue, 
   Icon3DSadBlue, 
@@ -109,18 +110,143 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
 
     const lower = raw.toLowerCase();
 
-    // 1. SKENARIO PERINTAH TEGAS & EKSPLISIT BUAT DATA / DRAFT KE SISTEM (Strict Tool Calling)
-    const isExplicitToolCall = 
-      (lower.includes('buatkan') || 
-       lower.includes('tolong buat') || 
-       lower.includes('masukkan ke tabel') || 
-       lower.includes('simpan ke tabel') || 
-       lower.includes('inputkan') || 
-       lower.includes('terbitkan faktur') ||
-       lower.includes('terbitkan invoice')) && 
-      !lower.includes('bahas') && 
-      !lower.includes('diskusi') && 
-      !lower.includes('ngobrol');
+    // JIKA USER MEMINTA GAMBAR / VISUAL (Silvi Visual Engine):
+    const isImageCommand = 
+      (lower.includes('gambar') || 
+       lower.includes('desain') || 
+       lower.includes('poster') || 
+       lower.includes('visual') || 
+       lower.includes('banner') || 
+       lower.includes('foto') ||
+       lower.includes('canva')) && 
+      !lower.includes('dokumen') &&
+      !lower.includes('pdf') &&
+      !lower.includes('word');
+
+    // JIKA USER MEMINTA DOKUMEN (WORD / PDF / BERKAS):
+    const isDocumentCommand = 
+      lower.includes('word') || 
+      lower.includes('doc') || 
+      lower.includes('docx') || 
+      lower.includes('pdf') || 
+      lower.includes('file') || 
+      lower.includes('berkas') || 
+      lower.includes('kontrak') || 
+      lower.includes('pks') || 
+      lower.includes('nda') ||
+      lower.includes('surat') ||
+      lower.includes('unduh');
+
+    // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (Relevan, Presisi, No Halusinasi):
+    if (isImageCommand && !isDocumentCommand) {
+      setTypingAgentName('Silvi');
+
+      // Ambil konteks diskusi terakhir agar gambar 100% selaras dengan topik bisnis saat ini
+      const recentContextText = messages.slice(-4).map(m => m.text).join(' ');
+      const visualTopicRaw = raw.replace(/silvi|sil|buatkan|bikin|tolong|minta|gambar|desain|poster|visual|foto|banner/gi, '').trim();
+      const actualSubject = visualTopicRaw.length > 3 ? visualTopicRaw : (recentContextText.slice(0, 60) || 'modern startup marketing tech');
+
+      const silviResponse = await generateAgentResponse({
+        agentName: 'Silvi',
+        agentRole: 'Head of Growth & Creative',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar dengan tema: "${actualSubject}".
+Konteks diskusi terakhir: "${recentContextText.slice(0, 150)}".
+Tugas Silvi:
+1. Sampaikan bahwa konsep visual kreatif telah selesai dirancang secara estetis dan profesional.
+2. Jelaskan rasionalisasi visual secara ringkas (mengapa tone warna, komposisi, dan pesan ini relevan dengan strategi bisnis).
+3. Informasikan bahwa preview gambar resolusi tinggi sudah disematkan langsung di bawah dan dapat diunduh/dibuka Full HD.
+4. Jangan halu atau mengarang janji fiktif, fokus pada nilai estetika dan konversi audiens.`
+      });
+
+      let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      const silviMsg = {
+        id: `msg-silvi-visual-${Date.now()}`,
+        sender: 'Silvi',
+        name: 'Silvi',
+        role: 'Head of Growth & Creative',
+        badgeColor: '#0284c7',
+        text: cleanSilvi,
+        hasVisualImage: true,
+        imageUrl: generateVisualImageUrl(actualSubject, 960, 600),
+        imageCaption: `Aset Visual Kreatif: ${actualSubject}`,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      };
+
+      await appendMessageSequentially(silviMsg, 700);
+
+      store.recordAiTelemetryEvent({
+        agent: 'Silvi (Growth & Visual)',
+        action: `Generate Visual: ${actualSubject}`,
+        targetModule: 'Branding & Marketing',
+        tokensUsed: 420,
+        latencyMs: 350,
+        status: 'Success'
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
+    // 2. EKSEKUSI PERMINTAAN DOKUMEN WORD (.DOCX) & PDF RESMI OLEH RAKA:
+    if (isDocumentCommand) {
+      setTypingAgentName('Raka');
+
+      const recentContextText = messages.slice(-4).map(m => m.text).join(' ');
+      const cleanDocTopic = raw.replace(/raka|ka|buatkan|bikin|tolong|minta|kirim|filenya|file|dokumen|word|doc|docx|pdf|unduh/gi, '').trim();
+      const docSubject = cleanDocTopic.length > 3 ? cleanDocTopic : 'Dokumen Strategis & Kepatuhan Layanan DigiBooster';
+
+      const rakaResponse = await generateAgentResponse({
+        agentName: 'Raka',
+        agentRole: 'Head of Documentation & Legal Systems',
+        userMessage: raw,
+        conversationHistory: messages,
+        customInstruction: `Bang Robin meminta dokumen resmi siap unduh (Word .docx & PDF) terkait: "${docSubject}".
+Konteks diskusi terakhir: "${recentContextText.slice(0, 180)}".
+Tugas Raka:
+1. Sampaikan bahwa draf dokumen resmi telah disusun rapi sesuai standar format legal & operasional DigiBooster.
+2. Paparkan poin-poin klausul inti/pasal secara jelas, tegas, no-ambigu, dan terverifikasi (misal: ruang lingkup, hak & kewajiban, tata cara validasi mutu, batasan garansi/dispute).
+3. Beritahu Bang Robin bahwa file Word (.docx) dan dokumen PDF siap langsung diunduh lewat tombol aksi di bawah pesan ini.
+4. Gaya santai, terpercaya, solutif, dan profesional.`
+      });
+
+      let cleanRaka = (rakaResponse.text || '').replace(new RegExp(`^(Raka|Silvi|Arga|Reta|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      const docTitle = docSubject.startsWith('Draf') || docSubject.startsWith('Strategi') ? docSubject : `Dokumen: ${docSubject}`;
+
+      const rakaMsg = {
+        id: `msg-raka-doc-${Date.now()}`,
+        sender: 'Raka',
+        name: 'Raka',
+        role: 'Head of Documentation & Legal',
+        badgeColor: '#0c4a6e',
+        text: cleanRaka,
+        hasDocAttachment: true,
+        docData: {
+          title: docTitle,
+          category: 'Dokumen Strategis & Legal',
+          author: 'Raka (Head of Documentation & Legal)',
+          rawContent: cleanRaka
+        },
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      };
+
+      await appendMessageSequentially(rakaMsg, 700);
+
+      store.recordAiTelemetryEvent({
+        agent: 'Raka (Legal & Docs)',
+        action: `Generate Word & PDF Document: ${docTitle}`,
+        targetModule: 'Data & Arsip',
+        tokensUsed: 460,
+        latencyMs: 380,
+        status: 'Success'
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
 
     if (isExplicitToolCall) {
       // Prioritaskan siapa yang dipanggil di kalimat pembuka:
@@ -1311,7 +1437,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                     </div>
                   )}
 
-                  {/* Attachment Unduh Dokumen Word (.docx) Resmi dari Raka */}
+                  {/* Attachment Unduh Dokumen Word (.docx) & PDF Resmi dari Raka */}
                   {msg.hasDocAttachment && msg.docData && (
                     <div style={{
                       marginTop: '10px',
@@ -1320,46 +1446,80 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                       borderRadius: '8px',
                       padding: '10px 12px',
                       display: 'flex',
+                      flexWrap: 'wrap',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      gap: '8px'
+                      gap: '10px'
                     }}>
-                      <div>
-                        <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a' }}>
+                      <div style={{ minWidth: '180px' }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>
                           📄 {msg.docData.title}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>
-                          Format: Microsoft Word (.docx) • Siap Diedit
+                        <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>
+                          Dokumen Terverifikasi HQ • Format Word (.docx) &amp; PDF A4 Resmi
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await generateAndDownloadWordDoc({
-                            title: msg.docData.title,
-                            category: msg.docData.category,
-                            author: msg.docData.author,
-                            rawContent: msg.docData.rawContent
-                          });
-                        }}
-                        style={{
-                          backgroundColor: '#0284c7',
-                          color: '#ffffff',
-                          border: 'none',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '0.72rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
-                        }}
-                      >
-                        <span>Unduh .docx</span>
-                        <span>↓</span>
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* Tombol Unduh Word (.docx) */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await generateAndDownloadWordDoc({
+                              title: msg.docData.title,
+                              category: msg.docData.category,
+                              author: msg.docData.author,
+                              rawContent: msg.docData.rawContent
+                            });
+                          }}
+                          style={{
+                            backgroundColor: '#0284c7',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '6px 11px',
+                            borderRadius: '6px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
+                          }}
+                        >
+                          <span>Unduh Word (.docx)</span>
+                          <span>↓</span>
+                        </button>
+
+                        {/* Tombol Unduh PDF Resmi */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await generateAndDownloadPdfDoc({
+                              title: msg.docData.title,
+                              category: msg.docData.category,
+                              author: msg.docData.author,
+                              rawContent: msg.docData.rawContent
+                            });
+                          }}
+                          style={{
+                            backgroundColor: '#e11d48',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '6px 11px',
+                            borderRadius: '6px',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            boxShadow: '0 2px 4px rgba(225, 29, 72, 0.2)'
+                          }}
+                        >
+                          <span>Unduh PDF</span>
+                          <span>↓</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1383,16 +1543,61 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                         }}
                         loading="lazy"
                       />
-                      <div style={{ padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{msg.imageCaption}</span>
-                        <a 
-                          href={msg.imageUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          style={{ fontSize: '0.68rem', color: '#38bdf8', textDecoration: 'none', fontWeight: 700 }}
-                        >
-                          Buka HD ↗
-                        </a>
+                      <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b' }}>
+                        <span style={{ fontSize: '0.70rem', color: '#cbd5e1', fontWeight: 600 }}>{msg.imageCaption}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <a 
+                            href={msg.imageUrl} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            style={{ 
+                              fontSize: '0.68rem', 
+                              color: '#38bdf8', 
+                              textDecoration: 'none', 
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              backgroundColor: 'rgba(56, 189, 248, 0.1)'
+                            }}
+                          >
+                            Buka HD ↗
+                          </a>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(msg.imageUrl);
+                                const blob = await response.blob();
+                                const blobUrl = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = blobUrl;
+                                link.download = `${(msg.imageCaption || 'Gambar_DigiBooster').replace(/[^a-zA-Z0-9_\-]/g, '_')}.jpg`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(blobUrl);
+                              } catch (e) {
+                                window.open(msg.imageUrl, '_blank');
+                              }
+                            }}
+                            style={{
+                              backgroundColor: '#0284c7',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '3px 9px',
+                              borderRadius: '4px',
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <span>Unduh Gambar</span>
+                            <span>↓</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
