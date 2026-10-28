@@ -3,7 +3,8 @@ import { useWorkspaceStore } from '../../../store/workspaceStore';
 import NotionTable from '../components/NotionTable';
 import MetricCard from '../components/MetricCard';
 import { SimpleBarChart, DonutChart } from '../components/ChartWidgets';
-import { Mic, Video, CheckSquare, Plus, Link } from 'lucide-react';
+import { Mic, Video, CheckSquare, Plus, Link, Zap, Loader2 } from 'lucide-react';
+import { generateAgentResponse } from '../../../services/multiAgentAiService';
 
 import { 
   Icon3DClipboard, 
@@ -17,10 +18,12 @@ import {
 import { toInputDateFormat } from '../../../utils/dateFormatter';
 
 export default function RapatCatatan() {
-  const { meetings, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
+  const { meetings, tasks, addMeeting, updateMeeting, deleteMeeting } = useWorkspaceStore();
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('Semua Status');
   const [archiveMonth, setArchiveMonth] = useState('September 2026');
+  const [isConveningMeeting, setIsConveningMeeting] = useState(false);
+  const [meetingToast, setMeetingToast] = useState('');
   const statusOptions = ['Semua Status', 'Terjadwal', 'Berlangsung', 'Selesai', 'Dibatalkan'];
 
   const meetingTypes = [
@@ -210,13 +213,137 @@ export default function RapatCatatan() {
     return newM;
   };
 
+  // Gelar Rapat Harian Otonom Dewan Agen AI (Autonomous Daily Standup)
+  const handleTriggerAutonomousStandup = async () => {
+    if (isConveningMeeting) return;
+    setIsConveningMeeting(true);
+    setMeetingToast('Dewan Agen AI (Arga, Reta, Silvi, Raka, Siska) sedang bersidang membahas progres & KPI...');
+
+    try {
+      // 1. Kumpulkan data riil dari sistem (Data Grounding)
+      const pendingTasks = (tasks || []).filter(t => t.status !== 'Selesai');
+      const completedTasks = (tasks || []).filter(t => t.status === 'Selesai');
+      const p1Tasks = pendingTasks.filter(t => t.priority === 'P1');
+
+      const standupPrompt = `Kamu adalah Reta (COO) memimpin Rapat Koordinasi Dewan Agen DigiBooster bersama Arga (CSO), Silvi (Growth), Raka (Legal), dan Siska (QA).
+Data Riil Dashboard Saat Ini:
+- Total Tugas Selesai: ${completedTasks.length}
+- Total Tugas Sedang Berjalan: ${pendingTasks.length}
+- Tugas Prioritas Tinggi (P1) Mendesak: ${p1Tasks.length} (contoh: ${p1Tasks.map(t => t.title).slice(0, 2).join(', ') || 'Optimasi Operasional'})
+
+Tugasmu:
+Buat ringkasan notula rapat eksekutif harian (Autonomous Standup) yang padat, berbobot, cerdas, dan profesional (2-3 kalimat ringkas).
+Sebutkan:
+1. Evaluasi ringkas progres dari Reta & Arga.
+2. Keputusan prioritas utama hari ini.
+3. Jaminan standar mutu dari Siska QA.
+DILARANG format bintang markdown! Gunakan bahasa Indonesia lugas, profesional, dan tegas.`;
+
+      const aiRes = await generateAgentResponse({
+        agentName: 'Reta',
+        agentRole: 'Chief Operating Officer (COO)',
+        userMessage: 'Gelar rapat standup koordinasi dewan agen harian',
+        conversationHistory: [],
+        customInstruction: standupPrompt
+      });
+
+      const cleanSummary = (aiRes.text || '').replace(/\*\*/g, '').replace(/\*/g, '').trim();
+      const todayDateStr = new Date().toISOString().split('T')[0];
+
+      const newMeetingId = `MTG-AUTO-${Date.now().toString().slice(-4)}`;
+      const newStandupMeeting = {
+        id: newMeetingId,
+        title: `Autonomous Standup: Sinkronisasi Prioritas & Evaluasi Deliverable`,
+        dateTime: todayDateStr,
+        type: 'Review Sprint',
+        status: 'Selesai',
+        participants: ['Arga (CSO)', 'Reta (COO)', 'Silvi (Growth)', 'Raka (Legal)', 'Siska (QA)'],
+        link: 'https://meet.google.com/digibooster-hq-standup',
+        summaryNotes: cleanSummary,
+        actionItems: [
+          { text: `Reta (COO): Kawal percepatan ${p1Tasks.length > 0 ? p1Tasks.length : 3} deliverable prioritas utama`, done: false },
+          { text: 'Silvi (Growth): Optimalisasi campaign & scoring lead klien', done: false },
+          { text: 'Siska (QA): Audit kepatuhan SOP seluruh modul dashboard', done: true }
+        ]
+      };
+
+      await addMeeting(newStandupMeeting);
+      setMeetingToast('Rapat Dewan Agen selesai! Notula resmi berhasil dicatat ke sistem.');
+      setTimeout(() => setMeetingToast(''), 4500);
+    } catch (err) {
+      console.error('Gagal menggelar rapat otonom:', err);
+      setMeetingToast('Kendala sinyal saat rapat dewan, silakan coba beberapa saat lagi.');
+      setTimeout(() => setMeetingToast(''), 3000);
+    } finally {
+      setIsConveningMeeting(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div>
-        <h2 className="ws-page-title">
-          Rapat &amp; Catatan
-        </h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2 className="ws-page-title">
+            Rapat &amp; Catatan
+          </h2>
+        </div>
+
+        {/* Tombol Gelar Rapat Harian Otonom Dewan Agen */}
+        <button
+          type="button"
+          onClick={handleTriggerAutonomousStandup}
+          disabled={isConveningMeeting}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: isConveningMeeting ? '#94a3b8' : '#0284c7',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            cursor: isConveningMeeting ? 'not-allowed' : 'pointer',
+            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => { if (!isConveningMeeting) e.currentTarget.style.backgroundColor = '#0369a1'; }}
+          onMouseLeave={(e) => { if (!isConveningMeeting) e.currentTarget.style.backgroundColor = '#0284c7'; }}
+        >
+          {isConveningMeeting ? (
+            <>
+              <Loader2 size={15} className="animate-spin" />
+              <span>Dewan Agen Sedang Rapat...</span>
+            </>
+          ) : (
+            <>
+              <Zap size={15} />
+              <span>Gelar Rapat Dewan Agen Sekarang</span>
+            </>
+          )}
+        </button>
       </div>
+
+      {/* Toast Notifikasi Hasil Rapat */}
+      {meetingToast && (
+        <div style={{
+          backgroundColor: '#f0f9ff',
+          border: '1px solid #bae6fd',
+          color: '#0369a1',
+          padding: '10px 16px',
+          borderRadius: '8px',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <span>⚡</span>
+          <span>{meetingToast}</span>
+        </div>
+      )}
 
       <div className="ws-metric-grid">
         <MetricCard
