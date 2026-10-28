@@ -136,8 +136,8 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
     });
   });
 
-  // Gunakan gemini-3.5-flash-lite yang stabil & cepat
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+  // Gunakan gemini-flash-latest yang aktif & valid di API Google
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -361,19 +361,13 @@ ${customInstruction}`;
 
   let result = null;
 
-  // Tentukan urutan eksekusi: Selalu prioritaskan GROQ (Kecepatan 300+ token/detik) agar respon instan tanpa jeda!
+  // Tentukan urutan eksekusi: Selalu prioritaskan GROQ (Kecepatan 300+ token/detik) & Gemini Flash
   const callSequence = [
     () => callGroqChat(formattedHistory, fullPrompt),
+    () => callGeminiChat(formattedHistory, fullPrompt),
     () => callPollinationsChat(formattedHistory, fullPrompt),
     () => callOpenRouterChat(formattedHistory, fullPrompt)
   ];
-
-  // Tambahkan DeepSeek / Gemini sebagai opsi lanjutan jika diperlukan
-  if (agentName === 'Arga' && DEEPSEEK_API_KEY) {
-    callSequence.splice(1, 0, () => callDeepSeekChat(formattedHistory, fullPrompt));
-  } else if (GEMINI_API_KEY) {
-    callSequence.splice(1, 0, () => callGeminiChat(formattedHistory, fullPrompt));
-  }
 
   // Eksekusi resilient waterfall: coba satu per satu sampai berhasil
   for (let i = 0; i < callSequence.length; i++) {
