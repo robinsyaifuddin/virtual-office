@@ -6572,6 +6572,9 @@ let clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
 
+  // Optimasi: Pause kalkulasi 3D berat saat modal chat dibuka agar input user 100% lancar tanpa lag
+  if (isOfficeEnginePaused) return;
+
   const dt = Math.min(clock.getDelta(), 0.05);
   const t = clock.getElapsedTime();
 

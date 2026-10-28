@@ -15,8 +15,8 @@ import {
 } from '../ui/Modern3DIcons';
 
 export default function OfficeGroupLiveChat({ isOpen, onClose }) {
-  const store = useWorkspaceStore();
-  const staffAgents = Array.isArray(store?.staffAgents) ? store.staffAgents : [];
+  // Gunakan useWorkspaceStore.getState() agar komponen chat terisolasi & super ringan tanpa re-render beruntun
+  const store = useWorkspaceStore.getState();
 
   // Riwayat Pesan Group Chat
   const [messages, setMessages] = useState([
@@ -64,10 +64,14 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // Helper untuk menambah pesan secara sekuensial alami dengan jeda berpikir
+  // Helper untuk menambah pesan secara sekuensial alami dengan pembersihan format teks bintang
   const appendMessageSequentially = (msg, delay) => {
     return new Promise((resolve) => {
       setTimeout(() => {
+        // Pastikan teks pesan bersih dari simbol bintang markdown agar mudah dicopas & nyaman dibaca
+        if (msg && typeof msg.text === 'string') {
+          msg.text = msg.text.replace(/\*\*/g, '').replace(/\*/g, '').trim();
+        }
         setMessages((prev) => [...prev, msg]);
         resolve();
       }, delay);
@@ -1080,7 +1084,9 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
-            backgroundColor: '#f8fafc'
+            backgroundColor: '#f8fafc',
+            userSelect: 'text',
+            WebkitUserSelect: 'text'
           }}
         >
           {messages.map((msg) => {
@@ -1151,7 +1157,10 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                   boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                   fontSize: '0.82rem',
                   lineHeight: 1.5,
-                  whiteSpace: 'pre-line'
+                  whiteSpace: 'pre-line',
+                  userSelect: 'text',
+                  WebkitUserSelect: 'text',
+                  cursor: 'text'
                 }}>
                   {isSiskaDirective && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#166534', fontWeight: 700, marginBottom: '6px', fontSize: '0.74rem' }}>
@@ -1385,11 +1394,64 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
           )}
         </div>
 
+        {/* Quick Suggestion Chips untuk Mempercepat Input */}
+        <div style={{
+          padding: '8px 14px 4px 14px',
+          backgroundColor: '#ffffff',
+          display: 'flex',
+          gap: '6px',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          borderTop: '1px solid #f1f5f9'
+        }}>
+          {[
+            'Bahas pondasi perusahaan & blueprint',
+            'Buatkan rencana aksi minggu ini',
+            'Cek progress KPI & evaluasi',
+            'Bagaimana status leads & klien?',
+            'Reta & Silvi, tolong buatkan draft tugas'
+          ].map((chip, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                setInputText(chip);
+                if (textareaRef.current) {
+                  textareaRef.current.focus();
+                }
+              }}
+              style={{
+                fontSize: '0.72rem',
+                padding: '4px 10px',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#f8fafc',
+                color: '#334155',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease',
+                flexShrink: 0
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e0f2fe';
+                e.currentTarget.style.color = '#0284c7';
+                e.currentTarget.style.borderColor = '#bae6fd';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8fafc';
+                e.currentTarget.style.color = '#334155';
+                e.currentTarget.style.borderColor = '#e2e8f0';
+              }}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+
         {/* Input Bar Form Responsif & Auto-Expand */}
         <div style={{
-          padding: '12px 14px',
+          padding: '10px 14px',
           backgroundColor: '#ffffff',
-          borderTop: '1px solid #e2e8f0',
           display: 'flex',
           alignItems: 'flex-end',
           gap: '8px'
@@ -1399,13 +1461,16 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
             rows={1}
             value={inputText}
             onChange={handleTextareaChange}
+            autoFocus
+            autoComplete="off"
+            spellCheck={false}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSendMessage();
               }
             }}
-            placeholder="Tulis Pesan..."
+            placeholder="Tulis Pesan... (Tekan Enter untuk kirim, Shift+Enter untuk baris baru)"
             style={{
               flex: 1,
               padding: '10px 14px',
@@ -1420,7 +1485,9 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
               maxHeight: '130px',
               lineHeight: 1.45,
               fontFamily: "'Poppins', sans-serif",
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              userSelect: 'text',
+              WebkitUserSelect: 'text'
             }}
           />
 
