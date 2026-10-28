@@ -50,7 +50,8 @@ import {
   Icon3DNotes,
   Icon3DThumbUpBlue,
   Icon3DSadBlue,
-  Icon3DPrayBlue 
+  Icon3DPrayBlue,
+  Icon3DAvatarUser
 } from '../../../components/ui/Modern3DIcons';
 
 export default function StaffAgent({ initialTab = 'all' }) {
@@ -543,7 +544,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
         {
           id: `MSG-${Date.now()}-done`,
           sender: 'ai',
-          text: `🎉 **Laporan Selesai Dieksekusi:**\n\n✓ **Hasil Tindakan:** ${execDetails}\n✓ **Status Database:** Berhasil disimpan ke Supabase & disinkronkan ke modul ${plan.targetModule}.\n✓ **Log Audit:** Tercatat di jejak riwayat bot pada ${nowStr}.\n\nApakah ada ide atau arahan lain yang ingin kita diskusikan/kerjakan, atau sudah cukup? *(Ketik "Cukup" jika sudah selesai)*`
+          text: `**Laporan Selesai Dieksekusi:**\n\n✓ **Hasil Tindakan:** ${execDetails}\n✓ **Status Database:** Berhasil disimpan ke Supabase & disinkronkan ke modul ${plan.targetModule}.\n✓ **Log Audit:** Tercatat di jejak riwayat bot pada ${nowStr}.\n\nApakah ada ide atau arahan lain yang ingin kita diskusikan/kerjakan, atau sudah cukup? *(Ketik "Cukup" jika sudah selesai)*`
         }
       ]);
     } catch (err) {
@@ -1018,27 +1019,13 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                 style={{ 
                   width: '32px', 
                   height: '32px', 
-                  borderRadius: isAI ? '8px' : '50%', 
+                  borderRadius: '50%', 
                   objectFit: 'cover',
                   border: isAI ? '2px solid #0284c7' : '2px solid #e2e8f0' 
                 }} 
               />
             ) : (
-              <div style={{ 
-                width: '32px', 
-                height: '32px', 
-                borderRadius: isAI ? '8px' : '50%', 
-                backgroundColor: isAI ? '#0284c7' : '#0f172a', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                color: '#fff', 
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                boxShadow: isAI ? '0 2px 8px rgba(2, 132, 199, 0.35)' : 'none'
-              }}>
-                {isAI ? <Bot size={18} /> : (val ? val.substring(0, 2).toUpperCase() : 'ST')}
-              </div>
+              <Icon3DAvatarUser size={32} />
             )}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1082,10 +1069,14 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
             style={{
               fontSize: '0.8rem',
               fontWeight: 600,
-              color: isAI ? '#0284c7' : '#0f172a'
+              color: isAI ? '#0284c7' : '#0f172a',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
             }}
           >
-            {isAI ? '🤖 Autonomous AI' : '👤 Tim Staf Manusia'}
+            <Icon3DAvatarUser size={16} />
+            {isAI ? 'Autonomous AI' : 'Tim Staf Manusia'}
           </span>
         );
       }
@@ -1132,10 +1123,14 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
           style={{
             color: '#0284c7',
             fontSize: '0.8rem',
-            fontWeight: 600
+            fontWeight: 600,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px'
           }}
         >
-          🏢 {val || 'Executive Room'}
+          <Briefcase size={13} color="#0284c7" />
+          {val || 'Executive Room'}
         </span>
       )
     },
@@ -1532,7 +1527,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       alignItems: 'center',
                       gap: '4px'
                     }}>
-                      🏢 3D: {agent.room || 'Operations Room'}
+                      3D: {agent.room || 'Operations Room'}
                     </span>
                   </div>
 
@@ -1586,7 +1581,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                             borderRadius: '4px'
                           }}
                         >
-                          🛡️ {mod}
+                          {mod}
                         </span>
                       ))}
                     </div>
@@ -1807,7 +1802,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       }}>
                         {msg.text}
 
-                        {/* Interactive RLHF Emoji Reaction Bar (Like 👍, Sad 😢, Gratitude 🙏) */}
+                        {/* Interactive RLHF Emoji Reaction Bar (Like, Sad, Gratitude) */}
                         {!isUser && (
                           <div style={{
                             marginTop: '8px',
@@ -1938,7 +1933,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                                   padding: '2px 4px'
                                 }}
                               >
-                                ⚡ Edit di Panel
+                                Edit di Panel
                               </button>
                             )}
                           </div>
@@ -2120,7 +2115,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                 {/* Preset Cepat Prompt Ampuh */}
                 <div>
                   <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', display: 'block', marginBottom: '4px' }}>
-                    ⚡ Preset Prompt Cepat:
+                    Preset Prompt Cepat:
                   </span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                     <button
@@ -2132,7 +2127,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       }}
                       style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer', fontWeight: 700 }}
                     >
-                      💬 Gaya Typing Santai Manusiawi
+                      Gaya Typing Santai Manusiawi
                     </button>
                     <button
                       type="button"
@@ -2142,7 +2137,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       }}
                       style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer' }}
                     >
-                      🛡️ Anti-Template &amp; Alami
+                      Anti-Template &amp; Alami
                     </button>
                     <button
                       type="button"
@@ -2164,7 +2159,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                       }}
                       style={{ fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', color: '#0369a1', cursor: 'pointer' }}
                     >
-                      🔒 Kunci Izin Database
+                      Kunci Izin Database
                     </button>
                   </div>
                 </div>
@@ -2235,7 +2230,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                           name: 'Siska',
                           role: 'Head of Quality & Master Trainer',
                           badgeColor: '#0284c7',
-                          text: `📢 HASIL AUDIT SISKA: SOP "${topicCopy}" telah diuji ${testResult.iterationsRun}x ke ${targetCopy}. Skor Efektivitas Real: ${testResult.score}. ${testResult.passed ? 'Semua respon bot terbukti natural & mematuhi aturan.' : 'Peringatan: Skor efektivitas di bawah 50%, disarankan menggunakan metode Few-Shot (contoh tanya-jawab konkret).'}` ,
+                          text: `HASIL AUDIT SISKA: SOP "${topicCopy}" telah diuji ${testResult.iterationsRun}x ke ${targetCopy}. Skor Efektivitas Real: ${testResult.score}. ${testResult.passed ? 'Semua respon bot terbukti natural & mematuhi aturan.' : 'Peringatan: Skor efektivitas di bawah 50%, disarankan menggunakan metode Few-Shot (contoh tanya-jawab konkret).'}` ,
                           timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
                         }
                       ]);
@@ -2279,7 +2274,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                     marginTop: '8px'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
-                      <span>⚡ Siska QA Stress-Test: Iterasi {stressTestStep}/5</span>
+                      <span>Siska QA Stress-Test: Iterasi {stressTestStep}/5</span>
                       <span>{Math.round((stressTestStep / 5) * 100)}%</span>
                     </div>
                     <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
@@ -2340,7 +2335,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                         border: '1px dashed #f87171'
                       }}>
                         <strong style={{ display: 'block', color: '#b91c1c', marginBottom: '4px' }}>
-                          💡 Skor Efektivitas &lt; 50%: Solusi Alternatif Agar AI Lebih Cerdas
+                          Skor Efektivitas &lt; 50%: Solusi Alternatif Agar AI Lebih Cerdas
                         </strong>
                         <p style={{ margin: '0 0 6px 0', fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
                           AI masih kesulitan menangkap larangan negatif secara murni. Rekomendasi terbaik: gunakan metode <strong>Few-Shot Coaching</strong> (berikan contoh langsung respon ideal) atau naikkan penalty kata berulang.
@@ -2362,7 +2357,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                             cursor: 'pointer'
                           }}
                         >
-                          ⚡ Muat Template Few-Shot (Contoh Konkret)
+                          Muat Template Few-Shot (Contoh Konkret)
                         </button>
                       </div>
                     )}
@@ -2426,7 +2421,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                           const textColor = isLow ? '#b91c1c' : isMid ? '#b45309' : '#0369a1';
                           return (
                             <span style={{ backgroundColor: bg, color: textColor, padding: '3px 8px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800 }}>
-                              {rule.effectivenessScore} {isLow ? '⚠️ Butuh Evaluasi' : ''}
+                              {rule.effectivenessScore} {isLow ? 'Butuh Evaluasi' : ''}
                             </span>
                           );
                         })()}
@@ -3209,7 +3204,7 @@ Dilarang keras memakai nama sendiri sebagai awalan teks ("${targetBotName}: ").`
                     </span>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                    {selectedAgentForPrompt.role} • 🏢 {selectedAgentForPrompt.room || 'Operations Room'}
+                    {selectedAgentForPrompt.role} • {selectedAgentForPrompt.room || 'Operations Room'}
                   </span>
                 </div>
               </div>

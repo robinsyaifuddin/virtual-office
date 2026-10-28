@@ -7,7 +7,8 @@ import {
   Cpu
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
-import { generateAgentResponse } from '../../services/multiAgentAiService';
+import { generateAgentResponse, generateVisualImageUrl } from '../../services/multiAgentAiService';
+import { generateAndDownloadWordDoc } from '../../utils/exportWord';
 import { 
   Icon3DThumbUpBlue, 
   Icon3DSadBlue, 
@@ -652,15 +653,19 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
     }
 
     // JIKA USER MENYEBUT SATU BOT SECARA SPESIFIK:
-    // 1. Silvi saja
+    // 1. Silvi saja (Dukungan Pembuatan Visual Nyata & Image Gen)
     if (mentionedSilvi && !mentionedArga && !mentionedReta && !mentionedRaka) {
       setTypingAgentName('Silvi');
+      const isVisualRequested = lower.includes('gambar') || lower.includes('desain') || lower.includes('poster') || lower.includes('visual') || lower.includes('canva');
+
       const silviResponse = await generateAgentResponse({
         agentName: 'Silvi',
         agentRole: 'Head of Growth & Creative',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: 'Bang Robin berbicara langsung denganmu (Silvi). Berikan pandangan kreatif, strategi branding, konten visual, atau taktik closing deals yang santai, cerdas, dan lugas. Boleh sebut Arga (ga), Raka (ka), atau Reta (ta) jika butuh sinergi. Dilarang membuat tugas/database tanpa persetujuan Bang Robin.'
+        customInstruction: isVisualRequested
+          ? 'Bang Robin meminta pembuatan konsep gambar/visual/poster marketing. Berikan respon santai dan jelaskan rancangan ide visualnya (warna, pesan utama, dan estetika modern). Hasil preview gambar fotorealistik akan langsung disajikan di bubble chat.'
+          : 'Bang Robin berbicara langsung denganmu (Silvi). Berikan pandangan kreatif, strategi branding, konten visual, atau taktik closing deals yang santai, cerdas, dan lugas. Boleh sebut Arga (ga), Raka (ka), atau Reta (ta) jika butuh sinergi. Dilarang membuat tugas/database tanpa persetujuan Bang Robin.'
       });
 
       let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
@@ -674,6 +679,13 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
         text: cleanSilvi,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       };
+
+      if (isVisualRequested) {
+        const visualSubject = raw.replace(/silvi|sil|tolong|buatkan|gambar|desain|poster/gi, '').trim() || 'modern startup growth marketing';
+        silviMsg.hasVisualImage = true;
+        silviMsg.imageUrl = generateVisualImageUrl(visualSubject, 800, 500);
+        silviMsg.imageCaption = `Konsep Visual: ${visualSubject}`;
+      }
 
       await appendMessageSequentially(silviMsg, 700);
 
@@ -776,20 +788,24 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       return;
     }
 
-    // 3. Raka saja
+    // 3. Raka saja (Dukungan Pembuatan Dokumen Word .docx Langsung)
     if (mentionedRaka && !mentionedArga && !mentionedSilvi && !mentionedReta) {
       setTypingAgentName('Raka');
+      const isWordDocRequested = lower.includes('buatkan doc') || lower.includes('file word') || lower.includes('dokumen word') || lower.includes('kirim filenya') || lower.includes('draf pks') || lower.includes('kontrak');
+
       const rakaResponse = await generateAgentResponse({
         agentName: 'Raka',
         agentRole: 'Head of Documentation & Legal Systems',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: 'Bang Robin berbicara langsung denganmu (Raka). Tanggapi dari sudut pandang repositori dokumen, instrumen hukum PKS/NDA, mitigasi risiko, dan kesiapan sistem secara lugas dan cerdas.'
+        customInstruction: isWordDocRequested 
+          ? 'Bang Robin meminta pembuatan dokumen Word resmi. Berikan respon santai bahwa dokumen legal/SOP sedang dirakit rapi lengkap dengan kop surat dan klausul standar, dan dapat langsung diunduh lewat tombol dokumen di bawah.'
+          : 'Bang Robin berbicara langsung denganmu (Raka). Tanggapi dari sudut pandang repositori dokumen, instrumen hukum PKS/NDA, mitigasi risiko, dan kesiapan sistem secara lugas dan cerdas.'
       });
 
       let cleanRaka = (rakaResponse.text || '').replace(new RegExp(`^(Raka|Reta|Silvi|Arga|Siska)\\s*:\\s*`, 'i'), '').trim();
 
-      await appendMessageSequentially({
+      const rakaMsg = {
         id: `msg-raka-${Date.now()}`,
         sender: 'Raka',
         name: 'Raka',
@@ -797,7 +813,19 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
         badgeColor: '#0c4a6e',
         text: cleanRaka,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      }, 700);
+      };
+
+      if (isWordDocRequested) {
+        rakaMsg.hasDocAttachment = true;
+        rakaMsg.docData = {
+          title: `Draf Dokumen: ${raw.replace(/raka|ka|tolong|buatkan|file word|dokumen/gi, '').trim() || 'Instrumen Hukum & SOP DigiBooster'}`,
+          category: 'Legal & Dokumentasi',
+          author: 'Raka (Head of Documentation & Legal)',
+          rawContent: cleanRaka
+        };
+      }
+
+      await appendMessageSequentially(rakaMsg, 700);
 
       setIsAgentsTyping(false);
       return;
@@ -1252,6 +1280,92 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                         >
                           <span>Buka Data Tugas di Tab Baru</span>
                           <span>↗</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Attachment Unduh Dokumen Word (.docx) Resmi dari Raka */}
+                  {msg.hasDocAttachment && msg.docData && (
+                    <div style={{
+                      marginTop: '10px',
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #bae6fd',
+                      borderRadius: '8px',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a' }}>
+                          📄 {msg.docData.title}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>
+                          Format: Microsoft Word (.docx) • Siap Diedit
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await generateAndDownloadWordDoc({
+                            title: msg.docData.title,
+                            category: msg.docData.category,
+                            author: msg.docData.author,
+                            rawContent: msg.docData.rawContent
+                          });
+                        }}
+                        style={{
+                          backgroundColor: '#0284c7',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
+                        }}
+                      >
+                        <span>Unduh .docx</span>
+                        <span>↓</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Attachment Visual Image Preview dari Silvi */}
+                  {msg.hasVisualImage && msg.imageUrl && (
+                    <div style={{
+                      marginTop: '10px',
+                      backgroundColor: '#0f172a',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      border: '1px solid #334155'
+                    }}>
+                      <img 
+                        src={msg.imageUrl} 
+                        alt={msg.imageCaption || 'Silvi Creative Visual'} 
+                        style={{
+                          width: '100%',
+                          maxHeight: '260px',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                        loading="lazy"
+                      />
+                      <div style={{ padding: '6px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{msg.imageCaption}</span>
+                        <a 
+                          href={msg.imageUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          style={{ fontSize: '0.68rem', color: '#38bdf8', textDecoration: 'none', fontWeight: 700 }}
+                        >
+                          Buka HD ↗
                         </a>
                       </div>
                     </div>

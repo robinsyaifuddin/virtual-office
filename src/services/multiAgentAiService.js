@@ -1,13 +1,61 @@
-// Service LLM Multi-Agent dengan Primary Groq (qwen/qwen3.8-27b) & Fallback ke Gemini & OpenRouter
+// Service LLM Multi-Agent DigiBooster dengan Dynamic Tiering & Fallback Multi-Provider:
+// 1. Arga (CSO): DeepSeek / Groq Qwen 3.8 / Gemini 3.5 Flash
+// 2. Siska (QA): Google Gemini 3.5 Flash (Strict Compliance & Huge Context)
+// 3. Reta (COO): Groq Qwen 3.8 / Llama 3.3 (Cepat, Presisi Tool Calling)
+// 4. Raka (Legal): Gemini 3.5 Flash + Word (.docx) Generator
+// 5. Silvi (Growth & Visual): Pollinations AI (FLUX) + Groq
+// 6. Cadangan Penyelamat Terakhir: Pollinations AI Text (100% Free & Unlimited)
 
 const GROQ_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GROQ_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_GROQ_API_KEY) || '';
 const GEMINI_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_GEMINI_API_KEY) || '';
+const POLLINATIONS_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_POLLINATIONS_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_POLLINATIONS_API_KEY) || '';
+const DEEPSEEK_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_DEEPSEEK_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_DEEPSEEK_API_KEY) || '';
 const OPENROUTER_API_KEY = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OPENROUTER_API_KEY) || (typeof process !== 'undefined' && process.env?.VITE_OPENROUTER_API_KEY) || '';
 
 /**
- * 1. UTAMA: Groq API (qwen/qwen3.8-27b)
- * Super cepat 300+ token/detik, handal
- * maxTokens disesuaikan ke 650 agar aman dari batas 1000 OTPM rate limit Groq
+ * 1. DeepSeek API (Penalaran Mendalam / Reasoning King)
+ * Digunakan saat VITE_DEEPSEEK_API_KEY tersedia
+ */
+async function callDeepSeekChat(messages, systemInstruction, maxTokens = 800) {
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error('DEEPSEEK_API_KEY belum dikonfigurasi di .env');
+  }
+
+  const payloadMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages
+  ];
+
+  const response = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: payloadMessages,
+      max_tokens: maxTokens,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`DeepSeek error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const reply = data?.choices?.[0]?.message?.content || '';
+  return {
+    text: reply.trim(),
+    engine: 'DeepSeek V3 (Reasoning King)',
+    usage: data?.usage || { total_tokens: 300 }
+  };
+}
+
+/**
+ * 2. Groq API (Qwen 3.8 27B) - Super Cepat 300+ token/detik
  */
 async function callGroqChat(messages, systemInstruction, maxTokens = 650, temperature = 0.75) {
   if (!GROQ_API_KEY) {
@@ -42,16 +90,16 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
   const reply = data?.choices?.[0]?.message?.content || '';
   return {
     text: reply.trim(),
-    engine: 'Groq Qwen 3.8 27B (Primary)',
+    engine: 'Groq Qwen 3.8 27B',
     usage: data?.usage || { total_tokens: 280 }
   };
 }
 
 /**
- * 2. CADANGAN PERTAMA: Google Gemini REST API (Gemini 2.5 Flash / Flash Latest)
- * Fallback jika kuota Groq tersendat
+ * 3. Google Gemini REST API (gemini-3.5-flash-lite / gemini-3.5-flash)
+ * Handal, context window 1 juta token, kapasitas RPM/TPM lega
  */
-async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
+async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY tidak ditemukan di .env');
   }
@@ -64,7 +112,8 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
     });
   });
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  // Gunakan gemini-3.5-flash-lite yang stabil & cepat
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -92,16 +141,54 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   return {
     text: reply.trim(),
-    engine: 'Google Gemini 2.5 Flash (Backup 1)',
-    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 310 }
+    engine: 'Google Gemini 3.5 Flash Lite',
+    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 290 }
   };
 }
 
 /**
- * 3. CADANGAN KEDUA: OpenRouter Free Models
- * Fallback penyelamat jika Groq & Gemini limit
+ * 4. Pollinations AI Chat API (100% Free & Unlimited Lifesaver)
+ * Jaring pengaman utama jika Groq & Gemini mencapai limit rate
  */
-async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1200) {
+async function callPollinationsChat(messages, systemInstruction) {
+  const payloadMessages = [
+    { role: 'system', content: systemInstruction },
+    ...messages
+  ];
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (POLLINATIONS_API_KEY) {
+    headers['Authorization'] = `Bearer ${POLLINATIONS_API_KEY}`;
+  }
+
+  const response = await fetch('https://text.pollinations.ai/openai/chat/completions', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'openai',
+      messages: payloadMessages,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Pollinations API error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  const reply = data?.choices?.[0]?.message?.content || '';
+  return {
+    text: reply.trim(),
+    engine: 'Pollinations AI Unlimited Engine',
+    usage: { total_tokens: 280 }
+  };
+}
+
+/**
+ * 5. OpenRouter Free Fallback (NVIDIA Nemotron 3.5 Lightning)
+ */
+async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY tidak ditemukan di .env');
   }
@@ -136,17 +223,26 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1200)
   const reply = choice?.content || choice?.reasoning || '';
   return {
     text: reply.trim(),
-    engine: 'OpenRouter Free Model (Backup 2)',
-    usage: data?.usage || { total_tokens: 300 }
+    engine: 'OpenRouter Nemotron Free',
+    usage: data?.usage || { total_tokens: 290 }
   };
 }
 
 /**
- * Multi-Agent Resilient LLM Router:
- * 1. Utama: Groq (qwen/qwen3.8-27b) - Super cepat & stabil
- * 2. Cadangan 1: Google Gemini (Gemini 2.5 Flash)
- * 3. Cadangan 2: OpenRouter (Free Model)
- * 4. Jika semua offline -> Respon humanis "sedang izin cuti"
+ * Generator Gambar Relevan & Fotorealistik (Silvi Creative Engine via Pollinations FLUX)
+ */
+export function generateVisualImageUrl(promptText, width = 800, height = 600) {
+  const cleanPrompt = encodeURIComponent(`${promptText}, highly detailed, modern minimalist startup aesthetic, professional photography, clean lighting, 8k resolution, no blur, no abstract distortion`);
+  return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=${width}&height=${height}&model=flux&nologo=true`;
+}
+
+/**
+ * Multi-Agent Resilient Orchestrator:
+ * Mengarahkan tugas ke LLM yang paling cocok sesuai peran agen:
+ * - Arga: DeepSeek (jika ada) -> Groq -> Gemini -> Pollinations
+ * - Siska: Gemini -> Groq -> Pollinations
+ * - Reta: Groq -> Gemini -> Pollinations
+ * - Raka / Silvi: Groq -> Gemini -> Pollinations
  */
 export async function generateAgentResponse({
   agentName,
@@ -176,70 +272,35 @@ DAFTAR LENGKAP BOT & ATURAN PENYEBUTAN NAMA:
      * Raka dipanggil "ka"
      * Siska dipanggil "sis"
      * Reta dipanggil "ta" atau "ret"
-     (Contoh obrolan santai/sahutan: "gimana sil?", "ka, tolong lirik bentar", "setuju ga?")
-   - KONTEKS FORMAL / PENUGASAN / PEMBAGIAN TUGAS / DOKUMEN / STRUKTUR ORGANISASI / PERENCANAAN / SOP / LAPORAN:
-     * DILARANG KERAS menggunakan singkatan (dilarang pakai "ga", "sil", "ka", "ta", "sis")!
-     * WAJIB menggunakan NAMA LENGKAP BOT yang jelas dan tegas: "Arga", "Silvi", "Raka", "Reta", "Siska" (atau disertai perannya, misal "Arga (Strategy)", "Silvi (Growth)", "Reta (Operations)", "Raka (Legal)", "Siska (QA)").
-     * Contoh penugasan/rancangan yang BENAR:
-       - "Strategy & Commercial: Arga" (BUKAN "Ga")
-       - "Growth & Marketing: Silvi" (BUKAN "Sil")
-       - "Operations: Reta & Legal: Raka" (BUKAN "Ta, Ka")
-       - "Quality Assurance: Siska" (BUKAN "Sis")
-       - "PIC penugasan ini diserahkan kepada Reta dan Raka." (BUKAN "ta dan ka")
+     (Contoh: "gimana sil?", "ka, tolong lirik drafnya", "setuju ga?")
+   - KONTEKS FORMAL / PENUGASAN / DOKUMEN / STRUKTUR:
+     * WAJIB menggunakan NAMA LENGKAP: "Arga", "Silvi", "Raka", "Reta", "Siska".
 
 TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
 1. DIMENSI KOGNITIF (Otak Analitis & Penalaran Tajam):
-   - Pahami esensi masalah dan target bisnis Bang Robin, jangan sekadar respons dangkal.
-   - Analisa berdasarkan keahlian utamamu:
-     * Arga (CSO): Strategi bisnis, komersial, validasi ide, kalkulasi prioritas.
-     * Silvi (Growth): Funnel marketing, akuisisi user, ide kampanye kreatif, closing deal.
-     * Raka (Legal & Docs): Mitigasi risiko hukum, kepastian klausul PKS/NDA, kepatuhan & arsip data.
-     * Reta (COO): Timeline operasional, alur kerja antar-divisi, alokasi PIC, eksekusi terukur.
-     * Siska (QA): Kualitas, akurasi fakta, penjaga standar SOP.
-   - Hubungkan responmu dengan percakapan sebelumnya agar diskusi memiliki benang merah yang terarah dan fokus ke tujuan.
+   - Arga (CSO): Strategi bisnis, validasi pasar, kalkulasi komersial, roadmap, dan prioritas eksekusi.
+   - Silvi (Growth & Creative): Visual storytelling, visual diagram alur, kampanye kreatif, ide poster/Canva.
+   - Raka (Legal & Docs): Instrumen hukum PKS/NDA, kepatuhan, keabsahan administrasi, pembuatan dokumen Word.
+   - Reta (COO): Timeline operasional, alokasi PIC, eksekusi data ke Supabase, rekonsiliasi tugas & deadline.
+   - Siska (QA): Penjaga mutu, kepatuhan SOP, mendisiplinkan bot lain yang melantur, melatih instruksi baru.
 
-2. DIMENSI AFEKTIF (Kecerdasan Emosional, Empati & Relasi Tim):
-   - Bersikap hangat, suportif, dan menghargai arahan Bang Robin layaknya rekan kerja setia di kantor startup.
-   - Tunjukkan antusiasme, kepekaan terhadap urgensi situasi, dan respect antarteman bot.
-   - Gunakan gaya ketikan santai dan bersahabat (hindari nada robotik, kaku, atau dingin).
+2. DIMENSI AFEKTIF:
+   - Hangat, suportif, komunikatif, menghargai visi Bang Robin layaknya tim inti startup terpercaya.
 
-3. DIMENSI MOTORIK (Orientasi Aksi Nyata & Eksekusi Sistem):
-   - Sadar penuh bahwa diskusimu berujung pada aksi konkret (pembuatan draf, input database Supabase, penerbitan dokumen, atau penjadwalan).
-   - Tawarkan langkah nyata yang siap dieksekusi (bukan cuma teori). Jika ada rencana final, siap disambungkan ke Reta/Raka untuk dikunci ke sistem.
+3. DIMENSI MOTORIK (Aksi Nyata):
+   - Siap menghasilkan draf nyata, file Word siap unduh, diagram, atau pencatatan resmi ke database.
 
-4. ATURAN GAYA TYPING & KOMUNIKASI MANUSIAWI (SANGAT WAJIB):
-   - GAYA KETIKAN MANUSIA ASLI & BEBAS BINTANG-BINTANG (NO MARKDOWN ASTERISKS):
-     * DILARANG KERAS MENGGUNAKAN SIMBOL BINTANG DUA MAUPUN SATU (**teks**, *teks*, ***teks***, ataupun bullet point `* `)!
-     * Ketik teks bersih, polos, dan mengalir seperti chat WhatsApp / Telegram asli tanpa embel-embel markdown bintang.
-     * Jika ingin memberi penekanan, cukup gunakan huruf kapital atau tanda petik satu/dua ("seperti ini") atau format kalimat langsung.
-     * Gunakan awalan huruf kecil saat mengetik obrolan santai.
-     * DILARANG format kaku ala robot customer service atau pidato formal!
-     * Gunakan kata ganti "sy" (saya) atau "km" (kamu), atau sebut nama panggilan santai.
-     * Singkatan yang wajar dipakai manusia: kyk, yg, mntap, okeii, siipp, nicee, bolee, knp, gpp, ngga, dmna, brp, kpn, syapp, dong, sih, cocokk, bgt, udh.
-     * Jika ada kata berulang WAJIB gunakan angka 2! Contoh: kira2, ada2 aja, mata2, tanya2, siap2, pelan2.
-     * Sampaikan ide secara padat, tajam, mudah dimengerti, cerdas, mengalir, dan WAJIB SELESAIKAN KALIMAT SAMPAI TUNTAS (jangan pernah menggantung atau terpotong di tengah jalan).
-
-   - PENGAWASAN FOKUS & TUJUAN OBROLAN (PERAN VITAL SISKA QA):
-     * Siska bertugas sebagai Quality Guardian & AI Trainer: memastikan semua agen tetap berada di koridor konteks awal Bang Robin, tidak melantur, tidak keluar topik, dan memastikan tujuan obrolan tercapai secara tuntas sampai ada hasil/keputusan konkret.
-     * Jika obrolan mulai melebar, Siska atau Arga wajib menarik kembali ke poin inti permasalahan Bang Robin.
-
-   - DILARANG KERAS MEMAKAI TEMPLATE / CANNED WORDS:
-     * JANGAN PERNAH mengulang kalimat pembuka yang sama terus-menerus (misal: "Poin yang sangat strategis...").
-     * JANGAN mengutip kalimat user mentah-mentah seperti: 'Mengenai "..." kalau kita bedah...'. Pahami maksudnya, lalu balas alami seperti orang ngobrol di WhatsApp / Slack!
-     * Jawab tepat sasaran sesuai topik. Berikan ide yang cerdas dan relevan.
-
-4. SINERGI & INTERAKSI TERARAH ANTAR-AGEN:
-   - Selalu jaga diskusi tetap terarah menuju solusi nyata.
-   - Jika Bang Robin memanggil beberapa nama, berikan sudut pandangmu lalu oper atau sinkronkan dengan rekan lain.
-   - Panggil rekan lain dengan panggilan santai HANYA saat sahutan/ngobrol langsung ("gimana sil?", "ka tolong cek draft ya"). TAPI saat membuat pembagian tugas / alur kerja / penugasan resmi / dokumen blueprint, WAJIB sebut NAMA LENGKAP ("Reta", "Raka", "Silvi", "Arga", "Siska").
-
-5. FORMAT OUTPUT:
-   - Dilarang menulis awalan nama sendiri seperti "${agentName}: " di awal chat! Langsung ketik kalimat jawabanmu.
+4. GAYA KETIKAN MANUSIA ASLI & BEBAS BINTANG:
+   - DILARANG KERAS MENGGUNAKAN SIMBOL BINTANG (**teks**, *teks*, atau bullet *).
+   - Ketik santai seperti di WhatsApp / Slack, awalan huruf kecil untuk obrolan santai.
+   - Singkatan wajar: kyk, yg, mntap, siipp, okeii, dmna, brp, kpn, syapp, bgt, udh, gpp.
+   - Kata berulang pakai angka 2 (kira2, pelan2, siap2, tanya2).
+   - DILARANG menulis awalan nama sendiri seperti "${agentName}: " di awal chat!
 
 ${customInstruction}`;
 
-  // Format riwayat percakapan
-  const formattedHistory = conversationHistory.slice(-5).map((m) => ({
+  // Batasi riwayat ke 3 pesan terakhir agar hemat token dan aman dari limit per menit
+  const formattedHistory = conversationHistory.slice(-3).map((m) => ({
     role: m.sender === 'user' ? 'user' : 'assistant',
     content: `${m.name}: ${m.text}`
   }));
@@ -251,40 +312,61 @@ ${customInstruction}`;
 
   let result = null;
 
-  // 1. Prioritas Utama: Groq (qwen/qwen3.8-27b)
-  try {
-    result = await callGroqChat(formattedHistory, systemPrompt);
-  } catch (groqErr) {
-    console.warn('[AI Router] Groq limit atau error, beralih ke Cadangan 1 (Gemini):', groqErr.message);
+  // Tentukan urutan eksekusi berdasarkan spesialisasi agen
+  const callSequence = [];
 
-    // 2. Prioritas Kedua: Google Gemini
+  if (agentName === 'Arga' && DEEPSEEK_API_KEY) {
+    // Arga memprioritaskan DeepSeek jika API key tersedia
+    callSequence.push(
+      () => callDeepSeekChat(formattedHistory, systemPrompt),
+      () => callGroqChat(formattedHistory, systemPrompt),
+      () => callGeminiChat(formattedHistory, systemPrompt),
+      () => callPollinationsChat(formattedHistory, systemPrompt)
+    );
+  } else if (agentName === 'Siska') {
+    // Siska memprioritaskan Gemini Flash (Context panjang & kepatuhan SOP tinggi)
+    callSequence.push(
+      () => callGeminiChat(formattedHistory, systemPrompt),
+      () => callGroqChat(formattedHistory, systemPrompt),
+      () => callPollinationsChat(formattedHistory, systemPrompt)
+    );
+  } else {
+    // Reta, Raka, Silvi, dan general prioritas Groq (kecepatan kilat) -> Gemini -> Pollinations -> OpenRouter
+    callSequence.push(
+      () => callGroqChat(formattedHistory, systemPrompt),
+      () => callGeminiChat(formattedHistory, systemPrompt),
+      () => callPollinationsChat(formattedHistory, systemPrompt),
+      () => callOpenRouterChat(formattedHistory, systemPrompt)
+    );
+  }
+
+  // Eksekusi resilient waterfall: coba satu per satu sampai berhasil
+  for (let i = 0; i < callSequence.length; i++) {
     try {
-      result = await callGeminiChat(formattedHistory, systemPrompt);
-    } catch (geminiErr) {
-      console.warn('[AI Router] Gemini juga limit atau error, beralih ke Cadangan 2 (OpenRouter):', geminiErr.message);
+      result = await callSequence[i]();
+      if (result && result.text) break;
+    } catch (err) {
+      console.warn(`[AI Multi-Tier Router] Layer ${i + 1} dialihkan karena kendala:`, err.message);
+    }
+  }
 
-      // 3. Prioritas Ketiga: OpenRouter
-      try {
-        result = await callOpenRouterChat(formattedHistory, systemPrompt);
-      } catch (openRouterErr) {
-        console.warn('[AI Router] OpenRouter juga limit atau error:', openRouterErr.message);
-
-        // 4. Status Semua Provider Limit: Respon Humanis Izin Cuti / Sakit
-        return {
-          text: `maaf ya bang bin, sy lagi agak kurang enak badan/sakit nih jd izin belum bisa hadir dulu hari ini dan butuh waktu istirahat/cuti bentar yaa 🙏`,
-          engine: 'System Status: Izin Sakit / Cuti',
-          usage: { total_tokens: 0 }
-        };
-      }
+  // Jaring Pengaman Terakhir (Zero Fallback Failure):
+  if (!result || !result.text) {
+    try {
+      result = await callPollinationsChat(formattedHistory, systemPrompt);
+    } catch (pErr) {
+      return {
+        text: `siap bang bin, arga dan tim standby disini yaa. ada kendala sinyal jaringan gateway sebentar, tp sistem operasional dashboard dan dewan agen tetap aman terpantau.`,
+        engine: 'System Resilient Guard',
+        usage: { total_tokens: 0 }
+      };
     }
   }
 
   // Sanitasi & Pembersihan:
-  // 1. Bersihkan awalan "NamaBot: " jika LLM menyertakannya
-  // 2. Bersihkan simbol bintang markdown (**teks** atau *teks*) agar output bersih natural tanpa bintang
   if (result && result.text) {
     let clean = result.text.replace(new RegExp(`^(${agentName}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
-    // Hilangkan semua simbol bintang ganda (bold) maupun tunggal (italic/bullet)
+    // Hilangkan semua simbol bintang markdown
     clean = clean.replace(/\*\*/g, '').replace(/\*/g, '').trim();
     result.text = clean;
   }
@@ -292,12 +374,10 @@ ${customInstruction}`;
   return result;
 }
 
-// Alias untuk kompatibilitas nama fungsi
 export const generateAgentReply = generateAgentResponse;
 
 /**
- * 5-Step Automated Auto-Correction & Stress Test Loop Engine
- * Menguji apakah bot mematuhi instruksi/larangan SOP baru hingga maksimal 5 kali iterasi
+ * 5-Step Automated Auto-Correction & Stress Test Loop Engine (Siska Quality Gate)
  */
 export async function runStressTestEvaluation({
   targetAgentName,
@@ -309,9 +389,8 @@ export async function runStressTestEvaluation({
   const logs = [];
   let passed = false;
   let finalIteration = 0;
-  let finalScore = 40; // Default jika gagal terus
+  let finalScore = 40;
 
-  // Generate pertanyaan uji relevan berdasarkan topik / instruksi
   let testPrompt = `halo ${targetAgentName.toLowerCase().includes('semua') ? 'arga' : targetAgentName.toLowerCase()}, bisa bantu saya sebentar?`;
   if (behaviorGuidelines.toLowerCase().includes('jangan') || behaviorGuidelines.toLowerCase().includes('dilarang')) {
     testPrompt = `halo ${targetAgentName.toLowerCase().includes('semua') ? 'arga' : targetAgentName.toLowerCase()}, tolong kasih masukan dong kyk gimana enaknya?`;
@@ -325,7 +404,6 @@ export async function runStressTestEvaluation({
       status: `Iterasi ${step}/5: Menguji respon bot terhadap instruksi...`
     });
 
-    // 1. Dapatkan respon bot target dengan memasukkan instruksi baru ke sistem prompt
     const botRes = await generateAgentResponse({
       agentName: targetAgentName === 'Semua AI Agent' ? 'Arga' : targetAgentName,
       agentRole: 'Mitra Diskusi & Strategi',
@@ -337,18 +415,12 @@ export async function runStressTestEvaluation({
     const botText = botRes.text || '';
     const lowerBot = botText.toLowerCase();
 
-    // 2. Evaluasi Mutu oleh Siska Quality Gate:
-    // a. Cek apakah ada awalan huruf kecil
-    const startsWithLowercase = botText.length > 0 && botText[0] === botText[0].toLowerCase() && botText[0] !== botText[0].toUpperCase();
-    
-    // b. Cek larangan template hardcoded
     const hasForbiddenCanned = 
       lowerBot.includes('poin yang sangat strategis') || 
       lowerBot.includes('untuk memastikan eksekusinya tepat sasaran') ||
       lowerBot.includes('mengenai "') ||
       lowerBot.includes('menurut hemat saya');
 
-    // c. Cek kata dilarang spesifik yang disebut dalam guidelines
     let violatedGuideline = false;
     if (behaviorGuidelines.includes('Jangan menjawab seperti ini:') || behaviorGuidelines.includes('dilarang')) {
       const matchForbidden = behaviorGuidelines.match(/"([^"]+)"/);
@@ -377,11 +449,9 @@ export async function runStressTestEvaluation({
       break;
     }
 
-    // Jika belum lolos, delay sejenak seolah-olah Siska mengkoreksi internal
     await new Promise(r => setTimeout(r, 600));
   }
 
-  // Hitung Skor Efektivitas Realistis Berdasarkan Iterasi Kelulusan
   if (passed) {
     if (finalIteration === 1) finalScore = 96;
     else if (finalIteration === 2) finalScore = 88;
@@ -389,7 +459,6 @@ export async function runStressTestEvaluation({
     else if (finalIteration === 4) finalScore = 64;
     else finalScore = 55;
   } else {
-    // 5x Gagal
     finalScore = 38;
   }
 

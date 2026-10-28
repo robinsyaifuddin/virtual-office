@@ -10,6 +10,7 @@ import {
   Check, 
   X, 
   ExternalLink,
+  Eye,
   Filter,
   MoreHorizontal,
   Edit2,
@@ -594,7 +595,7 @@ export default function NotionTable({
                         padding: '3px 0'
                       }}
                     >
-                      <span style={{ fontSize: '0.85rem' }}>📁</span>
+                      <Icon3DTag size={14} />
                       <span style={{ fontWeight: 700 }}>{catName}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -777,7 +778,7 @@ export default function NotionTable({
 
         {/* Petunjuk Bawah Popover */}
         <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.68rem', color: '#94a3b8', paddingLeft: '4px', paddingRight: '4px' }}>
-          <span>💡 Klik untuk mengisi baris otomatis</span>
+          <span>Klik untuk mengisi baris otomatis</span>
           <button
             type="button"
             onClick={() => handleTriggerAdd()}
@@ -861,26 +862,33 @@ export default function NotionTable({
             boxSizing: 'border-box'
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
-              {/* Tombol Icon Buka */}
+              {/* Tombol Icon View Mata Tanpa Shape Background */}
               <button
                 onClick={() => handleOpenRowModal(row)}
-                title="Buka Detail Data"
+                title="Lihat Detail Data"
                 className="ws-table-open-btn ws-btn-transition"
                 style={{
-                  padding: '4px',
-                  width: '26px',
+                  padding: '2px',
+                  width: '24px',
                   height: '24px',
-                  borderRadius: '6px',
-                  border: '1px solid #bfdbfe',
-                  backgroundColor: '#eff6ff',
-                  color: '#0284c7',
+                  borderRadius: '4px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: '#64748b',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#0284c7';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#64748b';
                 }}
               >
-                <ExternalLink size={13} className="ws-open-icon" />
+                <Eye size={16} className="ws-open-icon" />
               </button>
 
               {/* Tombol Aksi Titik 3 Berukuran Kecil di Bawah Tombol Icon Buka */}
@@ -1012,8 +1020,8 @@ export default function NotionTable({
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
-                    <Edit2 size={13} color="#64748b" />
-                    <span>Edit Baris</span>
+                    <Eye size={13} color="#64748b" />
+                    <span>Lihat Detail</span>
                   </button>
 
                   <button

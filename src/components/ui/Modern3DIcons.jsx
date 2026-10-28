@@ -234,7 +234,7 @@ export function Icon3DSadBlue({ size = 18, className = '' }) {
   );
 }
 
-// 12. Icon 3D Modern Salim / Gratitude Biru (🙏)
+// 12. Icon 3D Modern Salim / Gratitude Biru
 export function Icon3DPrayBlue({ size = 18, className = '' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ flexShrink: 0 }}>
@@ -260,4 +260,51 @@ export function Icon3DPrayBlue({ size = 18, className = '' }) {
     </svg>
   );
 }
+
+// 13. Icon 3D Modern Avatar / Orang Bundar Biru (Pengganti Bot/Orang 3D Elegan)
+export function Icon3DAvatarUser({ size = 32, className = '' }) {
+  const idSuffix = React.useId().replace(/:/g, '_');
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" className={className} style={{ flexShrink: 0 }}>
+      <defs>
+        <radialGradient id={`avatarBg3D_${idSuffix}`} cx="35%" cy="30%" r="65%">
+          <stop offset="0%" stopColor="#38bdf8" />
+          <stop offset="50%" stopColor="#0284c7" />
+          <stop offset="100%" stopColor="#0369a1" />
+        </radialGradient>
+        <linearGradient id={`avatarPersonHead_${idSuffix}`} x1="16" y1="9" x2="24" y2="23" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#e0f2fe" />
+        </linearGradient>
+        <linearGradient id={`avatarPersonBody_${idSuffix}`} x1="10" y1="23" x2="30" y2="38" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#bae6fd" />
+        </linearGradient>
+        <filter id={`avatarInnerGlow_${idSuffix}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#0c4a6e" floodOpacity="0.3" />
+        </filter>
+        <clipPath id={`avatarCircleClip_${idSuffix}`}>
+          <circle cx="20" cy="20" r="19" />
+        </clipPath>
+      </defs>
+      {/* Outer 3D Sphere */}
+      <circle cx="20" cy="20" r="19" fill={`url(#avatarBg3D_${idSuffix})`} filter={`url(#avatarInnerGlow_${idSuffix})`} />
+      {/* Soft Top Highlight for 3D sphere depth */}
+      <ellipse cx="20" cy="11" rx="13" ry="5.5" fill="#ffffff" fillOpacity="0.25" />
+      {/* Clipped Body & Head to stay nicely inside circle */}
+      <g clipPath={`url(#avatarCircleClip_${idSuffix})`}>
+        {/* Head */}
+        <circle cx="20" cy="15.5" r="5.5" fill={`url(#avatarPersonHead_${idSuffix})`} />
+        {/* Torso / Shoulders */}
+        <path
+          d="M10 35C10 28.5 14.5 24.5 20 24.5C25.5 24.5 30 28.5 30 35C30 37 28 38 20 38C12 38 10 37 10 35Z"
+          fill={`url(#avatarPersonBody_${idSuffix})`}
+        />
+      </g>
+      {/* Outer subtle rim */}
+      <circle cx="20" cy="20" r="18.5" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1" />
+    </svg>
+  );
+}
+
 
