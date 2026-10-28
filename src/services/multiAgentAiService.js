@@ -1,3 +1,5 @@
+import { useWorkspaceStore } from '../store/workspaceStore';
+
 // Service LLM Multi-Agent DigiBooster dengan Dynamic Tiering & Fallback Multi-Provider:
 // 1. Arga (CSO): DeepSeek / Groq Qwen 3.8 / Gemini 3.5 Flash
 // 2. Siska (QA): Google Gemini 3.5 Flash (Strict Compliance & Huge Context)
@@ -299,7 +301,19 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
 
 ${customInstruction}`;
 
-  // Batasi riwayat ke 3 pesan terakhir agar hemat token dan aman dari limit per menit
+  // Tarik Memori SOP Hasil Latihan Siska & Feedback Masa Lalu (Self-Evolving Learning Injection)
+  let injectedLearnedRules = '';
+  try {
+    const rules = useWorkspaceStore?.getState?.()?.aiTrainingRules || [];
+    const relevantRules = rules.slice(0, 3).map((r, i) => `${i + 1}. [${r.agentName || 'Umum'}]: ${r.instruction}`).join('\n');
+    if (relevantRules) {
+      injectedLearnedRules = `\n\nMEMORI SOP & PREFERENSI BANG ROBIN (WAJIB DIPATUHI - HASIL PEMBELAJARAN SISTEM):\n${relevantRules}`;
+    }
+  } catch (e) {
+    // Graceful fallback jika store belum siap
+  }
+
+  const fullPrompt = `${systemPrompt}${injectedLearnedRules}`;
   const formattedHistory = conversationHistory.slice(-3).map((m) => ({
     role: m.sender === 'user' ? 'user' : 'assistant',
     content: `${m.name}: ${m.text}`
@@ -318,25 +332,25 @@ ${customInstruction}`;
   if (agentName === 'Arga' && DEEPSEEK_API_KEY) {
     // Arga memprioritaskan DeepSeek jika API key tersedia
     callSequence.push(
-      () => callDeepSeekChat(formattedHistory, systemPrompt),
-      () => callGroqChat(formattedHistory, systemPrompt),
-      () => callGeminiChat(formattedHistory, systemPrompt),
-      () => callPollinationsChat(formattedHistory, systemPrompt)
+      () => callDeepSeekChat(formattedHistory, fullPrompt),
+      () => callGroqChat(formattedHistory, fullPrompt),
+      () => callGeminiChat(formattedHistory, fullPrompt),
+      () => callPollinationsChat(formattedHistory, fullPrompt)
     );
   } else if (agentName === 'Siska') {
     // Siska memprioritaskan Gemini Flash (Context panjang & kepatuhan SOP tinggi)
     callSequence.push(
-      () => callGeminiChat(formattedHistory, systemPrompt),
-      () => callGroqChat(formattedHistory, systemPrompt),
-      () => callPollinationsChat(formattedHistory, systemPrompt)
+      () => callGeminiChat(formattedHistory, fullPrompt),
+      () => callGroqChat(formattedHistory, fullPrompt),
+      () => callPollinationsChat(formattedHistory, fullPrompt)
     );
   } else {
     // Reta, Raka, Silvi, dan general prioritas Groq (kecepatan kilat) -> Gemini -> Pollinations -> OpenRouter
     callSequence.push(
-      () => callGroqChat(formattedHistory, systemPrompt),
-      () => callGeminiChat(formattedHistory, systemPrompt),
-      () => callPollinationsChat(formattedHistory, systemPrompt),
-      () => callOpenRouterChat(formattedHistory, systemPrompt)
+      () => callGroqChat(formattedHistory, fullPrompt),
+      () => callGeminiChat(formattedHistory, fullPrompt),
+      () => callPollinationsChat(formattedHistory, fullPrompt),
+      () => callOpenRouterChat(formattedHistory, fullPrompt)
     );
   }
 
