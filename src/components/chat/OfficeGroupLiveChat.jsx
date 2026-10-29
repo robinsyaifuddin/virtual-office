@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { generateAgentResponse, generateVisualImageUrl, generateGeminiVectorVisual } from '../../services/multiAgentAiService';
+import { extractRetaAction, executeRetaAction } from '../../services/retaActionExecutor';
 import { generateAndDownloadWordDoc } from '../../utils/exportWord';
 import { generateAndDownloadPdfDoc } from '../../utils/exportPdf';
 import { 
@@ -984,7 +985,64 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       return;
     }
 
-    // 2. Reta saja
+    // 1.8. SKENARIO AUTO-LOCK KESEPAKATAN OTONOM OLEH RETA (Autonomous Agreement Locking)
+    // Ketika Bang Robin menyetujui arah diskusi ("gas", "deal", "sepakat", "eksekusi ini", "oke jalanin")
+    const isAgreementTrigger = 
+      (/(gas|deal|sepakat|jalanin|bungkus|eksekusi)/i.test(lower) || 
+       (lower.includes('oke') && (lower.includes('jalan') || lower.includes('mulai') || lower.includes('jadwal')))) &&
+      !mentionedSilvi && !mentionedRaka && !mentionedSiska && messages.length >= 2;
+
+    if (isAgreementTrigger) {
+      setTypingAgentName('Reta');
+      const recentContext = messages.slice(-4).map(m => `${m.name}: ${m.text}`).join('\n');
+
+      const retaAgreementResponse = await generateAgentResponse({
+        agentName: 'Reta',
+        agentRole: 'Chief Operating Officer (COO)',
+        userMessage: `Bang Robin menyepakati hasil diskusi dengan instruksi: "${raw}".\nKonteks diskusi sebelumnya:\n${recentContext}`,
+        conversationHistory: messages,
+        customInstruction: `Bang Robin baru saja menyetujui/mengunci rencana kerja ("${raw}").
+Sebagai Reta (COO), tugasmu adalah:
+1. Rangkum inti rencana tindakan operasional yang disepakati secara singkat, santai, dan ceria (1-2 kalimat).
+2. Nyatakan bahwa tugas ini sudah otomatis kamu kunci dan masukkan ke database dashboard tugas.
+3. WAJIB sertakan <!--RETA_ACTION: {"action": "CREATE_TASK", "params": {"title": "...", "category": "Website & Tracking", "assignee": "Reta", "priority": "P1", "notes": "Disepakati bersama Bang Robin" }} --> di baris paling akhir.`
+      });
+
+      let { cleanText: textAfterAction, actionPayload } = extractRetaAction(retaAgreementResponse.text || '');
+      let cleanReta = textAfterAction.replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+
+      let actionExecutionResult = null;
+      if (actionPayload) {
+        actionExecutionResult = await executeRetaAction(actionPayload);
+      }
+
+      const retaMsg = {
+        id: `msg-reta-autolock-${Date.now()}`,
+        sender: 'Reta',
+        name: 'Reta',
+        role: 'Chief Operating Officer (COO)',
+        badgeColor: '#0369a1',
+        text: cleanReta,
+        retaActionResult: actionExecutionResult,
+        timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+      };
+
+      await appendMessageSequentially(retaMsg, 700);
+
+      store.recordAiTelemetryEvent({
+        agent: 'Reta (COO)',
+        action: 'Autonomous Task Lock & Sync',
+        targetModule: 'Operasional',
+        tokensUsed: retaAgreementResponse.usage?.total_tokens || 380,
+        latencyMs: 310,
+        status: 'Success'
+      });
+
+      setIsAgentsTyping(false);
+      return;
+    }
+
+    // 2. Reta saja (COO & Database Engine - Full CRUD & Export PDF Action)
     if (mentionedReta && !mentionedArga && !mentionedSilvi && !mentionedRaka) {
       setTypingAgentName('Reta');
       const retaResponse = await generateAgentResponse({
@@ -992,25 +1050,38 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
         agentRole: 'Chief Operating Officer (COO)',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: 'Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi secara langsung. Berikan respon taktis mengenai langkah operasional pertama yang paling konkret, realistis, dan tertata rapi. Jangan membuat tugas/database sebelum Bang Robin menyetujui arahannya.'
+        customInstruction: `Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi/bertindak secara langsung.
+PRINSIP PENALARAN FORMULIR RETA:
+- Jika permintaan Bang Robin masih bersifat umum (misal: "ta catat klien baru", "reta input transaksi baru", "ta ada tugas baru"), JANGAN LANGSUNG EKSEKUSI DATABASE dengan data kosong!
+- Berikan penalaran terlebih dahulu: jelaskan konteks formulirnya dan ajukan draf isian (kolom yang dibutuhkan seperti nama klien, nilai deal, layanan, kontak, PIC) agar Bang Robin tinggal melengkapi.
+- Hanya sertakan tag <!--RETA_ACTION: {...}--> jika detail informasi esensial sudah diberikan oleh Bang Robin.`
       });
 
-      let cleanReta = (retaResponse.text || '').replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+      let { cleanText: textAfterAction, actionPayload } = extractRetaAction(retaResponse.text || '');
+      let cleanReta = textAfterAction.replace(new RegExp(`^(Reta|Silvi|Arga|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
-      await appendMessageSequentially({
+      let actionExecutionResult = null;
+      if (actionPayload) {
+        actionExecutionResult = await executeRetaAction(actionPayload);
+      }
+
+      const retaMsg = {
         id: `msg-reta-${Date.now()}`,
         sender: 'Reta',
         name: 'Reta',
         role: 'Chief Operating Officer (COO)',
         badgeColor: '#0369a1',
         text: cleanReta,
+        retaActionResult: actionExecutionResult,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-      }, 700);
+      };
+
+      await appendMessageSequentially(retaMsg, 700);
 
       store.recordAiTelemetryEvent({
         agent: 'Reta (COO)',
-        action: 'Direct Discussion',
-        targetModule: 'Operasional',
+        action: actionPayload ? `Executed ${actionPayload.action}` : 'Direct Discussion',
+        targetModule: 'Operasional & Database',
         tokensUsed: retaResponse.usage?.total_tokens || 350,
         latencyMs: 310,
         status: 'Success'
@@ -1566,6 +1637,130 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                           <span>↗</span>
                         </a>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Badge Notifikasi Aksi Database / PDF dari Reta */}
+                  {msg.retaActionResult && (
+                    <div style={{
+                      marginTop: '10px',
+                      backgroundColor: msg.retaActionResult.success ? '#f0fdf4' : '#fef2f2',
+                      border: `1px solid ${msg.retaActionResult.success ? '#86efac' : '#fca5a5'}`,
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px'
+                    }}>
+                      <div style={{ minWidth: '180px' }}>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: msg.retaActionResult.success ? '#166534' : '#991b1b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{msg.retaActionResult.success ? '⚡ Database Engine:' : '⚠️ Info Eksekusi:'}</span>
+                          <span>{msg.retaActionResult.message}</span>
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>
+                          Eksekusi riil Supabase oleh Reta (COO) • Sinkronisasi instan ke Workspace
+                        </div>
+                      </div>
+                      
+                      {/* Tombol Pintas Akses Tab Modul Dashboard */}
+                      {msg.retaActionResult.success && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const act = (msg.retaActionResult.action || '').toUpperCase();
+                              if (act.includes('CLIENT')) {
+                                store.setActiveModule('crmklien');
+                              } else if (act.includes('TRANSACTION')) {
+                                store.setActiveModule('keuanganprofit');
+                              } else {
+                                store.setActiveModule('tugaskalender');
+                              }
+                            }}
+                            style={{
+                              backgroundColor: '#ffffff',
+                              color: '#0284c7',
+                              border: '1px solid #bae6fd',
+                              borderRadius: '6px',
+                              padding: '4px 10px',
+                              fontSize: '0.7rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Buka di Dashboard ↗
+                          </button>
+                        </div>
+                      )}
+                      {msg.retaActionResult.action === 'GENERATE_PDF' && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#15803d', fontWeight: 600 }}>
+                            📄 PDF Siap &amp; Otomatis Terunduh
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Tombol Konfirmasi Hapus Data Sensitif (Guardrail) */}
+                      {msg.retaActionResult.requiresConfirmation && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const confirmAction = {
+                                action: msg.retaActionResult.action,
+                                params: {
+                                  id: msg.retaActionResult.targetId,
+                                  title: msg.retaActionResult.targetTitle,
+                                  confirmed: true
+                                }
+                              };
+                              const res = await executeRetaAction(confirmAction);
+                              setMessages((prev) => prev.map(m => m.id === msg.id ? {
+                                ...m,
+                                retaActionResult: res
+                              } : m));
+                            }}
+                            style={{
+                              backgroundColor: '#dc2626',
+                              color: '#ffffff',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '5px 12px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Ya, Hapus Data
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMessages((prev) => prev.map(m => m.id === msg.id ? {
+                                ...m,
+                                retaActionResult: {
+                                  success: false,
+                                  message: 'Penghapusan dibatalkan oleh Bang Robin.'
+                                }
+                              } : m));
+                            }}
+                            style={{
+                              backgroundColor: '#f1f5f9',
+                              color: '#475569',
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '6px',
+                              padding: '5px 12px',
+                              fontSize: '0.72rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Batal
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
 

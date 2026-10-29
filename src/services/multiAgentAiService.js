@@ -491,6 +491,46 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
    - DISIPLIN KONTEKS & ANTI-SEROBOT: Jika Bang Robin sedang berbicara atau menanggapi agen lain secara spesifik, agen lain dilarang memotong atau mengklaim persetujuan sepihak ke database tugas. Database penugasan hanya boleh dikunci jika Bang Robin memberikan instruksi penugasan nyata secara eksplisit.
    - VISIBILITAS KONTEN BERSAMA (SHARED CONTEXT): Seluruh dewan agen (Arga, Silvi, Raka, Reta, Siska) memiliki akses penuh terhadap lampiran berkas dokumen Word (.docx), PDF, maupun gambar visual yang diunggah/digenerate di LiveChat. Kamu wajib memahami isi klausul, judul, dan detail visual yang telah dibuat oleh rekan agen lain agar diskusi selalu sinkron, nyambung, dan saling melengkapi tanpa data fiktif.
 
+KHUSUS UNTUK RETA (OPERASIONAL & DATABASE ENGINE):
+Jika kamu adalah Reta, kamu memiliki wewenang mengelola database (CRUD) dan export PDF. Setiap kali Bang Robin atau konteks obrolan meminta kamu menambah tugas/klien/transaksi, mengedit kolom/status/catatan, menghapus data, atau meminta rekapan PDF, kamu WAJIB menyematkan perintah aksi di bagian paling akhir pesanmu dengan format tersembunyi:
+<!--RETA_ACTION: {
+  "action": "CREATE_TASK" | "UPDATE_TASK" | "DELETE_TASK" | "CREATE_CLIENT" | "UPDATE_CLIENT" | "DELETE_CLIENT" | "CREATE_TRANSACTION" | "GENERATE_PDF",
+  "params": { ... }
+} -->
+
+Contoh Parameter Aksi Reta:
+- Tambah Tugas: {"action": "CREATE_TASK", "params": {"title": "Setup Facebook Pixel", "category": "Website & Tracking", "assignee": "Reta", "priority": "P1", "notes": "integrasi ke landing page"}}
+- Update Tugas: {"action": "UPDATE_TASK", "params": {"title": "Setup Facebook Pixel", "status": "In Progress", "outputResult": "sudah dipasang tinggal verifikasi"}}
+- Hapus Tugas: {"action": "DELETE_TASK", "params": {"title": "Setup Facebook Pixel"}}
+- Tambah Klien CRM: {"action": "CREATE_CLIENT", "params": {"name": "PT Maju Terus", "category": "Corporate", "dealValue": 25000000, "stage": "Proposal Sent", "pic": "Robin"}}
+- Update Klien CRM: {"action": "UPDATE_CLIENT", "params": {"name": "PT Maju Terus", "dealValue": 30000000, "stage": "Negosiasi"}}
+- Catat Transaksi: {"action": "CREATE_TRANSACTION", "params": {"title": "DP Proyek PT Maju", "type": "Pemasukan", "amount": 15000000, "category": "Pendapatan Jasa"}}
+- Generate & Serahkan PDF: {"action": "GENERATE_PDF", "params": {"type": "tasks", "title": "Rekap Laporan Operasional"}}
+
+PENALARAN CERDAS INPUT DATA & DRAF FORMULIR (RETA REASONING ENGINE):
+1. JIKA PERINTAH MASIH UMUM / BELUM LENGKAP:
+   - Misalnya Bang Robin hanya bilang: "ta catat klien baru", "reta input transaksi", "ta ada tugas baru nih".
+   - JANGAN LANGSUNG EKSEKUSI DATABASE dengan data kosong atau dummy!
+   - Reta WAJIB menalar dan mengajukan DRAF FORMULIR / ISIAN terlebih dahulu secara terstruktur dan santai:
+     Contoh respons Reta:
+     "syapp bang bin, mau dicatat klien baru yaa. biar rapi dan langsung masuk ke CRM, ini draf isian formulirnya:
+     - Nama Klien / Perusahaan: (misal: PT ABC)
+     - Kategori: Corporate / UMKM / Personal
+     - Layanan yg Diambil: (misal: SEO / Ads / Website)
+     - Estimasi Nilai Deal: Rp ...
+     - PIC Tim: (Robin / Arga / dll)
+     - Kontak / No WA: ...
+     kira2 detailnya mau diisi seperti apa bang?"
+   - PADA KONDISI INI, DILARANG MENYERTAKAN TAG <!--RETA_ACTION: ... --> karena data masih dalam tahap draf & meminta kelengkapan info.
+
+2. JIKA INFORMASI SUDAH CUKUP ATAU BANG ROBIN SUDAH MEMBERIKAN DETAIL:
+   - Misalnya Bang Robin bilang: "kliennya PT Sinar Abadi, deal 25jt, layanan SEO & ads, PIC Robin".
+   - Reta merangkum draf hasil tangkapannya dan langsung menyematkan tag <!--RETA_ACTION: {"action": "CREATE_CLIENT", ...} --> sehingga data tersimpan nyata ke Supabase.
+
+PENTING UNTUK RETA:
+- Jawaban chatmu tetap natural, cerdas, singkat, dan santai manusiawi (contoh: "syapp bang bin, tugasnya udh tak masukin ke sistem yaa" atau "okeii ini laporan pdfnya udh digenerate ya bang").
+- JANGAN PERNAH menampilkan format JSON kepada Bang Robin secara terang-terangan di kalimat obrolan. Simpan hanya di dalam tag <!--RETA_ACTION: ... --> di baris paling akhir saat data sudah siap dieksekusi.
+
 ${customInstruction}`;
 
   // Tarik Memori SOP Hasil Latihan Siska & Feedback Masa Lalu (Self-Evolving Learning Injection)
@@ -505,7 +545,32 @@ ${customInstruction}`;
     // Graceful fallback jika store belum siap
   }
 
-  const fullPrompt = `${systemPrompt}${injectedLearnedRules}`;
+  // 4.5. INJEKSI SNAPSHOT DATA DATABASE RIIL KHUSUS UNTUK RETA (Live Data Grounding Anti-Halu)
+  let injectedDatabaseContext = '';
+  if (agentName === 'Reta') {
+    try {
+      const storeState = useWorkspaceStore?.getState?.() || {};
+      const activeTasks = (storeState.tasks || []).slice(0, 10).map(t => `- [ID: ${t.id}] "${t.title}" (Status: ${t.status}, PIC: ${t.assignee || 'Reta'}, Deadline: ${t.dueDate || '-'})`).join('\n');
+      const activeClients = (storeState.crmClients || []).slice(0, 8).map(c => `- [ID: ${c.id}] "${c.name}" (Deal: Rp ${(Number(c.dealValue) || 0).toLocaleString('id-ID')}, Stage: ${c.stage})`).join('\n');
+      const recentTxs = (storeState.financeTransactions || []).slice(0, 5).map(tx => `- [ID: ${tx.id}] "${tx.title}" (Rp ${(Number(tx.amount) || 0).toLocaleString('id-ID')}, Status: ${tx.status})`).join('\n');
+
+      injectedDatabaseContext = `\n\nSNAPSHOT DATA RIIL SUPABASE SAAT INI (GUNAKAN UNTUK MENCOCOKKAN DATA SECARA PRESISI):
+=== DAFTAR TUGAS AKTIF TERBARU ===
+${activeTasks || '(Belum ada tugas)'}
+
+=== DAFTAR KLIEN CRM TERBARU ===
+${activeClients || '(Belum ada klien)'}
+
+=== TRANSAKSI KEUANGAN TERBARU ===
+${recentTxs || '(Belum ada transaksi)'}
+----------------------------------------------------------------------
+CATATAN INTEGRITAS: Cocokkan kata kunci Bang Robin dengan data di atas jika dia ingin mengedit atau menghapus entri.`;
+    } catch (dbErr) {
+      console.warn('[multiAgentAiService] Gagal menarik snapshot data riil untuk Reta:', dbErr);
+    }
+  }
+
+  const fullPrompt = `${systemPrompt}${injectedLearnedRules}${injectedDatabaseContext}`;
   const formattedHistory = conversationHistory.slice(-5).map((m) => {
     let contentText = `${m.name}: ${m.text}`;
     if (m.hasDocAttachment && m.docData) {
