@@ -113,39 +113,74 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       // Tentukan estimasi agen yang paling mungkin menjawab agar UI langsung menampilkan nama agen
       let expectedAgent = 'Arga';
       if (/\b(siska|sis)\b/i.test(lower)) expectedAgent = 'Siska';
-      else if (/\b(silvi|sil)\b/i.test(lower) || lower.includes('gambar') || lower.includes('desain') || lower.includes('poster')) expectedAgent = 'Silvi';
+      else if (/\b(silvi|sil)\b/i.test(lower) || (lower.includes('gambar') && (lower.includes('buat') || lower.includes('bikin') || lower.includes('desain')))) expectedAgent = 'Silvi';
       else if (/\b(reta|ret|ta)\b/i.test(lower)) expectedAgent = 'Reta';
-      else if (/\b(raka|ka)\b/i.test(lower) || lower.includes('word') || lower.includes('dokumen') || lower.includes('pdf')) expectedAgent = 'Raka';
+      else if (/\b(raka|ka)\b/i.test(lower) || ((lower.includes('word') || lower.includes('dokumen') || lower.includes('pdf')) && (lower.includes('buat') || lower.includes('bikin') || lower.includes('unduh')))) expectedAgent = 'Raka';
 
       setTypingAgentName(expectedAgent);
       setIsAgentsTyping(true);
 
     // JIKA USER MEMINTA GAMBAR / VISUAL (Silvi Visual Engine):
+    // Wajib ada kata kerja perintah (buat/bikin/generate/minta/unduh) agar tidak salah paham saat diskusi ide
     const isImageCommand = 
-      (lower.includes('gambar') || 
-       lower.includes('desain') || 
-       lower.includes('poster') || 
-       lower.includes('visual') || 
-       lower.includes('banner') || 
-       lower.includes('foto') ||
-       lower.includes('canva')) && 
+      (lower.includes('buatkan gambar') || 
+       lower.includes('bikin gambar') || 
+       lower.includes('buat gambar') || 
+       lower.includes('bikin desain') || 
+       lower.includes('buatkan desain') || 
+       lower.includes('buat poster') || 
+       lower.includes('buatkan poster') || 
+       lower.includes('bikin poster') || 
+       lower.includes('buat banner') || 
+       lower.includes('buatkan banner') || 
+       lower.includes('bikin banner') || 
+       lower.includes('generate visual') || 
+       lower.includes('generate gambar') ||
+       (lower.includes('gambar') && (lower.includes('unduh') || lower.includes('download')))) && 
       !lower.includes('dokumen') &&
       !lower.includes('pdf') &&
       !lower.includes('word');
 
     // JIKA USER MEMINTA DOKUMEN (WORD / PDF / BERKAS):
+    // Wajib ada kata kerja perintah pembuatan / penerbitan / download dokumen resmi
     const isDocumentCommand = 
-      lower.includes('word') || 
-      lower.includes('doc') || 
-      lower.includes('docx') || 
-      lower.includes('pdf') || 
-      lower.includes('file') || 
-      lower.includes('berkas') || 
-      lower.includes('kontrak') || 
-      lower.includes('pks') || 
-      lower.includes('nda') ||
-      lower.includes('surat') ||
-      lower.includes('unduh');
+      (lower.includes('buatkan dokumen') ||
+       lower.includes('buat dokumen') ||
+       lower.includes('bikin dokumen') ||
+       lower.includes('buatkan file') ||
+       lower.includes('buat file') ||
+       lower.includes('bikin file') ||
+       lower.includes('buatkan word') ||
+       lower.includes('buat word') ||
+       lower.includes('bikin word') ||
+       lower.includes('format word') ||
+       lower.includes('file word') ||
+       lower.includes('buatkan doc') ||
+       lower.includes('buat docx') ||
+       lower.includes('buatkan docx') ||
+       lower.includes('buatkan pdf') ||
+       lower.includes('buat pdf') ||
+       lower.includes('bikin pdf') ||
+       lower.includes('terbitkan berkas') ||
+       lower.includes('siapkan berkas') ||
+       lower.includes('buatkan berkas') ||
+       lower.includes('bikin berkas') ||
+       lower.includes('terbitkan kontrak') ||
+       lower.includes('buatkan kontrak') ||
+       lower.includes('bikin kontrak') ||
+       lower.includes('buatkan pks') ||
+       lower.includes('terbitkan pks') ||
+       lower.includes('buatkan nda') ||
+       lower.includes('terbitkan nda') ||
+       lower.includes('terbitkan surat') ||
+       lower.includes('buatkan surat') ||
+       lower.includes('unduh dokumen') ||
+       lower.includes('unduh file') ||
+       lower.includes('download dokumen') ||
+       lower.includes('download file')) &&
+      !lower.includes('bahas') &&
+      !lower.includes('diskusi') &&
+      !lower.includes('rapat');
 
     // SKENARIO PERINTAH TEGAS & EKSPLISIT BUAT DATA / DRAFT KE SISTEM (Strict Tool Calling)
     const isExplicitToolCall = 
@@ -495,7 +530,7 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
     // Deteksi panggilan agen spesifik
     const mentionedSilvi = /\b(silvi|sil)\b/i.test(lower);
     const mentionedReta = /\b(reta|ret|ta)\b/i.test(lower);
-    const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || (lower.includes('berkas') && lower.includes('siapkan'));
+    const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || ((lower.includes('berkas') || lower.includes('dokumen')) && (lower.includes('siapkan') || lower.includes('buatkan') || lower.includes('bikin')));
     const mentionedSiska = /\b(siska|sis)\b/i.test(lower);
     const mentionedArga = /\b(arga|ga)\b/i.test(lower);
 
@@ -971,17 +1006,43 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
     if (mentionedRaka && !mentionedArga && !mentionedSilvi && !mentionedReta) {
       setTypingAgentName('Raka');
       const isWordDocRequested = 
-        lower.includes('word') || 
-        lower.includes('doc') || 
-        lower.includes('docx') || 
-        lower.includes('pdf') || 
-        lower.includes('file') || 
-        lower.includes('berkas') || 
-        lower.includes('kontrak') || 
-        lower.includes('pks') || 
-        lower.includes('nda') ||
-        lower.includes('surat') ||
-        lower.includes('unduh');
+        (lower.includes('buatkan dokumen') ||
+         lower.includes('buat dokumen') ||
+         lower.includes('bikin dokumen') ||
+         lower.includes('buatkan file') ||
+         lower.includes('buat file') ||
+         lower.includes('bikin file') ||
+         lower.includes('buatkan word') ||
+         lower.includes('buat word') ||
+         lower.includes('bikin word') ||
+         lower.includes('format word') ||
+         lower.includes('file word') ||
+         lower.includes('buatkan doc') ||
+         lower.includes('buat docx') ||
+         lower.includes('buatkan docx') ||
+         lower.includes('buatkan pdf') ||
+         lower.includes('buat pdf') ||
+         lower.includes('bikin pdf') ||
+         lower.includes('terbitkan berkas') ||
+         lower.includes('siapkan berkas') ||
+         lower.includes('buatkan berkas') ||
+         lower.includes('bikin berkas') ||
+         lower.includes('terbitkan kontrak') ||
+         lower.includes('buatkan kontrak') ||
+         lower.includes('bikin kontrak') ||
+         lower.includes('buatkan pks') ||
+         lower.includes('terbitkan pks') ||
+         lower.includes('buatkan nda') ||
+         lower.includes('terbitkan nda') ||
+         lower.includes('terbitkan surat') ||
+         lower.includes('buatkan surat') ||
+         lower.includes('unduh dokumen') ||
+         lower.includes('unduh file') ||
+         lower.includes('download dokumen') ||
+         lower.includes('download file')) &&
+        !lower.includes('bahas') &&
+        !lower.includes('diskusi') &&
+        !lower.includes('rapat');
 
       const rakaResponse = await generateAgentResponse({
         agentName: 'Raka',
