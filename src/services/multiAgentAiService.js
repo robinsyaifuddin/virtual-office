@@ -491,6 +491,16 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
    - DISIPLIN KONTEKS & ANTI-SEROBOT: Jika Bang Robin sedang berbicara atau menanggapi agen lain secara spesifik, agen lain dilarang memotong atau mengklaim persetujuan sepihak ke database tugas. Database penugasan hanya boleh dikunci jika Bang Robin memberikan instruksi penugasan nyata secara eksplisit.
    - VISIBILITAS KONTEN BERSAMA (SHARED CONTEXT): Seluruh dewan agen (Arga, Silvi, Raka, Reta, Siska) memiliki akses penuh terhadap lampiran berkas dokumen Word (.docx), PDF, maupun gambar visual yang diunggah/digenerate di LiveChat. Kamu wajib memahami isi klausul, judul, dan detail visual yang telah dibuat oleh rekan agen lain agar diskusi selalu sinkron, nyambung, dan saling melengkapi tanpa data fiktif.
 
+HAK OTORITAS MUTLAK DATABASE DASHBOARD (EXCLUSIVE RETA AUTHORITY):
+1. HANYA RETA (Chief Operating Officer / COO) SATU-SATUNYA AGEN AI YANG BERHAK DAN MEMILIKI OTORITAS MENGISI, MENGEDIT, MENGHAPUS, DAN MENGELOLA SEMUA DATA DI DASHBOARD KANTOR DIGIBOOSTER!
+2. SELURUH AGEN LAIN (Arga, Silvi, Raka, Siska) DILARANG KERAS:
+   - Dilarang membuat, menyimpan, mengubah, atau menghapus entri database, tabel tugas, CRM, maupun pembukuan.
+   - Dilarang mengaku-ngaku "saya masukkan ke database", "saya kunci ke CRM", atau membuat tag aksi database.
+   - Jika Bang Robin meminta input data kepada bot selain Reta (misal ke Arga atau Silvi), bot tersebut WAJIB menjawab santun dan melempar tugas pencatatan tersebut ke Reta:
+     Contoh respons Arga: "siap bang bin, ini idenya udah oke banget. untuk pencatatan dan masukin datanya ke dashboard langsung dieksekusi sama Reta yaa. Gimana ta, tolong bantu catat ke sistem yaa."
+     Contoh respons Silvi: "noted bang bin! urusan input ke CRM langsung ditangani sama Reta biar rapi dan terpusat di dashboard yaa."
+3. HANYA pesan dari Reta yang diperbolehkan memicu manipulasi data di Supabase.
+
 KHUSUS UNTUK RETA (OPERASIONAL & DATABASE ENGINE):
 Jika kamu adalah Reta, kamu memiliki wewenang mengelola database (CRUD) dan export PDF. Setiap kali Bang Robin atau konteks obrolan meminta kamu menambah tugas/klien/transaksi, mengedit kolom/status/catatan, menghapus data, atau meminta rekapan PDF, kamu WAJIB menyematkan perintah aksi di bagian paling akhir pesanmu dengan format tersembunyi:
 <!--RETA_ACTION: {
@@ -553,6 +563,8 @@ ${customInstruction}`;
       const activeTasks = (storeState.tasks || []).slice(0, 10).map(t => `- [ID: ${t.id}] "${t.title}" (Status: ${t.status}, PIC: ${t.assignee || 'Reta'}, Deadline: ${t.dueDate || '-'})`).join('\n');
       const activeClients = (storeState.crmClients || []).slice(0, 8).map(c => `- [ID: ${c.id}] "${c.name}" (Deal: Rp ${(Number(c.dealValue) || 0).toLocaleString('id-ID')}, Stage: ${c.stage})`).join('\n');
       const recentTxs = (storeState.financeTransactions || []).slice(0, 5).map(tx => `- [ID: ${tx.id}] "${tx.title}" (Rp ${(Number(tx.amount) || 0).toLocaleString('id-ID')}, Status: ${tx.status})`).join('\n');
+      const recentMtgs = (storeState.meetings || []).slice(0, 4).map(m => `- [ID: ${m.id}] "${m.title}" (${m.dateTime}, Status: ${m.status})`).join('\n');
+      const recentMkt = (storeState.marketingCampaigns || []).slice(0, 4).map(camp => `- [ID: ${camp.id}] "${camp.title}" (${camp.channel}, Stage: ${camp.stage})`).join('\n');
 
       injectedDatabaseContext = `\n\nSNAPSHOT DATA RIIL SUPABASE SAAT INI (GUNAKAN UNTUK MENCOCOKKAN DATA SECARA PRESISI):
 === DAFTAR TUGAS AKTIF TERBARU ===
@@ -563,6 +575,12 @@ ${activeClients || '(Belum ada klien)'}
 
 === TRANSAKSI KEUANGAN TERBARU ===
 ${recentTxs || '(Belum ada transaksi)'}
+
+=== JADWAL RAPAT / MEETINGS TERBARU ===
+${recentMtgs || '(Belum ada rapat)'}
+
+=== KAMPANYE MARKETING TERBARU ===
+${recentMkt || '(Belum ada kampanye)'}
 ----------------------------------------------------------------------
 CATATAN INTEGRITAS: Cocokkan kata kunci Bang Robin dengan data di atas jika dia ingin mengedit atau menghapus entri.`;
     } catch (dbErr) {

@@ -421,7 +421,14 @@ Tugasmu: Tinjau draf tersebut. Pastikan judulnya tajam, komersial, dan realistis
               customInstruction: `Kamu adalah Arga. Analisis draf ${executorName} secara kritis dan konstruktif. Berikan usulan judul yang lebih tajam dan pastikan tidak ada data fiktif. Lalu tanyakan langsung konfirmasi persetujuan Bang Robin secara santai tapi profesional.`
             });
 
-            let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+            let { cleanText: textAfterArgaAction, actionPayload: argaActionPayload } = extractRetaAction(argaResponse.text || '');
+    let cleanArga = textAfterArgaAction.replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+    
+    // Jika Arga sempat menyematkan action, eksekusi secara aman dengan perlindungan anti-duplikasi
+    let argaActionResult = null;
+    if (argaActionPayload) {
+      argaActionResult = await executeRetaAction(argaActionPayload);
+    }
 
             await appendMessageSequentially({
               id: `msg-arga-title-refine-${Date.now()}`,
@@ -430,6 +437,7 @@ Tugasmu: Tinjau draf tersebut. Pastikan judulnya tajam, komersial, dan realistis
               role: 'Chief Strategy Officer (CSO)',
               badgeColor: '#0284c7',
               text: cleanArga,
+      retaActionResult: argaActionResult,
               timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
             }, 800);
             setIsAgentsTyping(false);
@@ -487,6 +495,22 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
 
         let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
+        const statTaskId = `CRM-STATS-${Date.now().toString().slice(-4)}`;
+        // Simpan nyata ke store tugas agar saat tombol 'Buka Data Tugas' diklik, task benar-benar ada!
+        await store.addTask({
+          id: statTaskId,
+          title: `Laporan Real Pipeline & Deals CRM`,
+          description: `Ringkasan statistik pipeline & CRM: ${totalClients} Klien, ${wonCount} Won Deals (Rp ${wonTotal.toLocaleString('id-ID')}), ${campaigns.length} Kampanye Marketing Aktif.`,
+          category: 'CRM & Omnichannel',
+          project: 'Audit Operasional',
+          assignee: 'Silvi',
+          priority: 'P1',
+          status: 'In Progress',
+          dueDate: new Date().toISOString().split('T')[0],
+          outputResult: `Data pipeline terverifikasi real-time dari Supabase.`,
+          createdBy: 'Silvi (Growth & Creative)'
+        });
+
         const silviMsg = {
           id: `msg-silvi-data-${Date.now()}`,
           sender: 'Silvi',
@@ -495,7 +519,7 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
           badgeColor: '#0284c7',
           hasActionPreview: true,
           actionData: {
-            id: `CRM-STATS-${Date.now().toString().slice(-4)}`,
+            id: statTaskId,
             title: `Laporan Real Pipeline & Deals CRM`,
             module: 'CRM & Klien',
             status: `${totalClients} Klien • ${wonCount} Won Deals (Rp ${wonTotal.toLocaleString('id-ID')})`
@@ -517,7 +541,14 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
             customInstruction: `Kamu adalah Arga. Analisa angka yang dipaparkan Silvi secara taktis dan berikan rekomendasi langkah berikutnya ke Bang Robin secara santai dan cerdas.`
           });
 
-          let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+          let { cleanText: textAfterArgaAction, actionPayload: argaActionPayload } = extractRetaAction(argaResponse.text || '');
+    let cleanArga = textAfterArgaAction.replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+    
+    // Jika Arga sempat menyematkan action, eksekusi secara aman dengan perlindungan anti-duplikasi
+    let argaActionResult = null;
+    if (argaActionPayload) {
+      argaActionResult = await executeRetaAction(argaActionPayload);
+    }
 
           await appendMessageSequentially({
             id: `msg-arga-data-eval-${Date.now()}`,
@@ -526,6 +557,7 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
             role: 'Chief Strategy Officer (CSO)',
             badgeColor: '#0284c7',
             text: cleanArga,
+      retaActionResult: argaActionResult,
             timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
           }, 800);
           setIsAgentsTyping(false);
@@ -540,6 +572,10 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
     const mentionedRaka = /\b(raka)\b/i.test(lower) || /\b(ka raka)\b/i.test(lower) || ((lower.includes('berkas') || lower.includes('dokumen')) && (lower.includes('siapkan') || lower.includes('buatkan') || lower.includes('bikin')));
     const mentionedSiska = /\b(siska|sis)\b/i.test(lower);
     const mentionedArga = /\b(arga|ga)\b/i.test(lower);
+
+    // Deteksi Pembicara Terakhir untuk Kelanjutan Konteks Thread (Thread Continuity):
+    const lastBotMessage = [...messages].reverse().find(m => m.sender !== 'user');
+    const isFollowupToReta = lastBotMessage && (lastBotMessage.sender === 'Reta' || lastBotMessage.name === 'Reta') && !mentionedArga && !mentionedSilvi && !mentionedRaka && !mentionedSiska;
 
     // Cek apakah pesan user secara spesifik ditujukan ke Siska (obrolan/tanggapan ke Siska)
     const isTargetedToSiska = mentionedSiska && !mentionedReta && !mentionedArga && !mentionedSilvi && !mentionedRaka;
@@ -1043,18 +1079,25 @@ Sebagai Reta (COO), tugasmu adalah:
     }
 
     // 2. Reta saja (COO & Database Engine - Full CRUD & Export PDF Action)
-    if (mentionedReta && !mentionedArga && !mentionedSilvi && !mentionedRaka) {
+    // Jika Reta dipanggil eksplisit ATAU pesan adalah kelanjutan jawaban dari Reta ATAU instruksi data/catatan CRM:
+    const isRetaOperationTarget = (mentionedReta || isFollowupToReta || lower.includes('catat') || lower.includes('masukin catatannya') || lower.includes('crm') || lower.includes('database')) && !mentionedArga && !mentionedSilvi && !mentionedRaka && !mentionedSiska;
+
+    if (isRetaOperationTarget) {
       setTypingAgentName('Reta');
       const retaResponse = await generateAgentResponse({
         agentName: 'Reta',
         agentRole: 'Chief Operating Officer (COO)',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: `Bang Robin menyapamu atau mengajakmu (Reta) berdiskusi/bertindak secara langsung.
-PRINSIP PENALARAN FORMULIR RETA:
-- Jika permintaan Bang Robin masih bersifat umum (misal: "ta catat klien baru", "reta input transaksi baru", "ta ada tugas baru"), JANGAN LANGSUNG EKSEKUSI DATABASE dengan data kosong!
-- Berikan penalaran terlebih dahulu: jelaskan konteks formulirnya dan ajukan draf isian (kolom yang dibutuhkan seperti nama klien, nilai deal, layanan, kontak, PIC) agar Bang Robin tinggal melengkapi.
-- Hanya sertakan tag <!--RETA_ACTION: {...}--> jika detail informasi esensial sudah diberikan oleh Bang Robin.`
+        customInstruction: `Bang Robin berbicara denganmu (Reta, COO) mengenai operasional, formulir, atau pencatatan data/catatan ke dashboard.
+TUGAS UTAMA RETA:
+1. EKSEKUSI DATA NYATA (BUKAN DATA FIKTIF):
+   - Gunakan data ASLI yang diberikan Bang Robin (misal: nama klien, nilai deal, layanan, tanggal pertemuan/catatan). DILARANG KERAS mengarang nama proyek atau template fiktif seperti 'Produksi Kampanye Konten & Funnel Acquisition Baru'!
+2. JIKA BANG ROBIN MENYURUH ISI CATATAN:
+   - Langsung masukkan catatan tersebut ke data klien atau buatkan jadwal rapat/notulensi nyata.
+   - JANGAN MALAH MENGAJAK DISKUSI PANJANG LEBAR! Reta adalah COO eksekutor: langsung catat, konfirmasi singkat dan ramah, lalu eksekusi tag aksi.
+3. EKSEKUSI DATABASE:
+   - Jika data sudah jelas (nama klien / nominal / tanggal), WAJIB sertakan tag <!--RETA_ACTION: {...}--> agar data langsung masuk ke Supabase.`
       });
 
       let { cleanText: textAfterAction, actionPayload } = extractRetaAction(retaResponse.text || '');
@@ -1236,7 +1279,14 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
 - Dilarang keras memakai nama sendiri sebagai awalan ("Arga: ").`
     });
 
-    let cleanArga = (argaResponse.text || '').replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+    let { cleanText: textAfterArgaAction, actionPayload: argaActionPayload } = extractRetaAction(argaResponse.text || '');
+    let cleanArga = textAfterArgaAction.replace(new RegExp(`^(Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+    
+    // Jika Arga sempat menyematkan action, eksekusi secara aman dengan perlindungan anti-duplikasi
+    let argaActionResult = null;
+    if (argaActionPayload) {
+      argaActionResult = await executeRetaAction(argaActionPayload);
+    }
 
     const argaMsg = {
       id: `msg-deb-arga-${Date.now()}`,
@@ -1245,6 +1295,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
       role: 'Chief Strategy Officer (CSO)',
       badgeColor: '#0284c7',
       text: cleanArga,
+      retaActionResult: argaActionResult,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
     };
 
@@ -1672,11 +1723,21 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                             onClick={() => {
                               const act = (msg.retaActionResult.action || '').toUpperCase();
                               if (act.includes('CLIENT')) {
-                                store.setActiveModule('crmklien');
+                                store.setActiveModule('crmdanklien');
                               } else if (act.includes('TRANSACTION')) {
-                                store.setActiveModule('keuanganprofit');
+                                store.setActiveModule('keuangandanprofit');
+                              } else if (act.includes('MEETING')) {
+                                store.setActiveModule('rapatdancatatan');
+                              } else if (act.includes('CAMPAIGN')) {
+                                store.setActiveModule('brandingdanmarketing');
+                              } else if (act.includes('OKR')) {
+                                store.setActiveModule('sasarandankpi');
+                              } else if (act.includes('REPORT')) {
+                                store.setActiveModule('laporandanevaluasi');
+                              } else if (act.includes('ARCHIVE')) {
+                                store.setActiveModule('datadandarsip');
                               } else {
-                                store.setActiveModule('tugaskalender');
+                                store.setActiveModule('tugasdankalender');
                               }
                             }}
                             style={{
