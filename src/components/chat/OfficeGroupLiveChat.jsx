@@ -1369,15 +1369,14 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                   <span style={{ fontWeight: 700, color: '#0f172a' }}>{msg.name}</span>
                   <span style={{
                     color: isUser ? '#64748b' : (msg.badgeColor || '#0284c7'),
-                    fontWeight: 600,
-                    fontSize: '0.68rem',
-                    backgroundColor: isUser ? '#e2e8f0' : '#e0f2fe',
-                    padding: '1px 6px',
-                    borderRadius: '4px'
+                    fontWeight: 400,
+                    fontSize: '0.68rem'
                   }}>
                     {msg.role}
                   </span>
-                  <span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>{msg.timestamp}</span>
+                  {isUser && (
+                    <span style={{ color: '#94a3b8', fontSize: '0.68rem' }}>{msg.timestamp}</span>
+                  )}
                 </div>
 
                 {/* Bubble Chat */}
@@ -1664,103 +1663,116 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                       paddingTop: '6px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '8px'
                     }}>
-                      <button
-                        title="Respon Bagus! Pertahankan & Tingkatkan (Thumbs Up)"
-                        onClick={() => {
-                          const agent = msg.name || 'Bot';
-                          setMessages((prev) => [
-                            ...prev,
-                            {
-                              id: `msg-feed-${Date.now()}`,
-                              sender: agent,
-                              name: agent,
-                              role: msg.role,
-                              badgeColor: '#0284c7',
-                              text: `makasih banyak bang bin! sy seneng bgt respon sy dinilai pas. sy bakal terus pertahanin gaya obrolan kyk gini ke depannya yaa!`,
-                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                            }
-                          ]);
-                        }}
-                        style={{
-                          border: '1px solid #bae6fd',
-                          background: '#f0f9ff',
-                          padding: '4px 6px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <Icon3DThumbUpBlue size={16} />
-                      </button>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <button
+                          title="Respon Bagus! Pertahankan & Tingkatkan (Thumbs Up)"
+                          onClick={() => {
+                            const agent = msg.name || 'Bot';
+                            setMessages((prev) => [
+                              ...prev,
+                              {
+                                id: `msg-feed-${Date.now()}`,
+                                sender: agent,
+                                name: agent,
+                                role: msg.role,
+                                badgeColor: '#0284c7',
+                                text: `makasih banyak bang bin! sy seneng bgt respon sy dinilai pas. sy bakal terus pertahanin gaya obrolan kyk gini ke depannya yaa!`,
+                                timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                              }
+                            ]);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0.85,
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.85'}
+                        >
+                          <Icon3DThumbUpBlue size={16} />
+                        </button>
 
-                      <button
-                        title="Respon Kurang Pas! Perbaiki & Jangan Diulang (Sad)"
-                        onClick={() => {
-                          const agent = msg.name || 'Bot';
-                          setMessages((prev) => [
-                            ...prev,
-                            {
-                              id: `msg-feed-${Date.now()}`,
-                              sender: agent,
-                              name: agent,
-                              role: msg.role,
-                              badgeColor: '#0284c7',
-                              text: `maaf ya bang bin, sy catat koreksinya dan janji ga bakal ngulangin respon yg kurang pas kyk tadi. sy bakal perbaiki sekarang juga!`,
-                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                            }
-                          ]);
-                        }}
-                        style={{
-                          border: '1px solid #bae6fd',
-                          background: '#f0f9ff',
-                          padding: '4px 6px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <Icon3DSadBlue size={16} />
-                      </button>
+                        <button
+                          title="Respon Kurang Pas! Perbaiki & Jangan Diulang (Sad)"
+                          onClick={() => {
+                            const agent = msg.name || 'Bot';
+                            setMessages((prev) => [
+                              ...prev,
+                              {
+                                id: `msg-feed-${Date.now()}`,
+                                sender: agent,
+                                name: agent,
+                                role: msg.role,
+                                badgeColor: '#0284c7',
+                                text: `maaf ya bang bin, sy catat koreksinya dan janji ga bakal ngulangin respon yg kurang pas kyk tadi. sy bakal perbaiki sekarang juga!`,
+                                timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                              }
+                            ]);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0.85,
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.85'}
+                        >
+                          <Icon3DSadBlue size={16} />
+                        </button>
 
-                      <button
-                        title="Terima Kasih Banyak! Jawaban Sangat Mantap & Membantu (Salim / Gratitude)"
-                        onClick={() => {
-                          const agent = msg.name || 'Bot';
-                          setMessages((prev) => [
-                            ...prev,
-                            {
-                              id: `msg-feed-${Date.now()}`,
-                              sender: agent,
-                              name: agent,
-                              role: msg.role,
-                              badgeColor: '#0284c7',
-                              text: `wah sama2 bang bin! berkah & semangat bgt dengernya, senang bgt bisa ngebantu bang bin dengan maksimal hari ini! yuk kita gas lagi!`,
-                              timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
-                            }
-                          ]);
-                        }}
-                        style={{
-                          border: '1px solid #bae6fd',
-                          background: '#f0f9ff',
-                          padding: '4px 6px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <Icon3DPrayBlue size={16} />
-                      </button>
+                        <button
+                          title="Terima Kasih Banyak! Jawaban Sangat Mantap & Membantu (Salim / Gratitude)"
+                          onClick={() => {
+                            const agent = msg.name || 'Bot';
+                            setMessages((prev) => [
+                              ...prev,
+                              {
+                                id: `msg-feed-${Date.now()}`,
+                                sender: agent,
+                                name: agent,
+                                role: msg.role,
+                                badgeColor: '#0284c7',
+                                text: `wah sama2 bang bin! berkah & semangat bgt dengernya, senang bgt bisa ngebantu bang bin dengan maksimal hari ini! yuk kita gas lagi!`,
+                                timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
+                              }
+                            ]);
+                          }}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0.85,
+                            transition: 'all 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={(e) => e.currentTarget.style.opacity = '0.85'}
+                        >
+                          <Icon3DPrayBlue size={16} />
+                        </button>
+                      </div>
+
+                      {/* Info waktu chat di sebelah kanan emot */}
+                      <span style={{ color: '#94a3b8', fontSize: '0.68rem', marginLeft: 'auto' }}>
+                        {msg.timestamp}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1815,7 +1827,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                 handleSendMessage();
               }
             }}
-            placeholder="Tulis Pesan... (Tekan Enter untuk kirim, Shift+Enter untuk baris baru)"
+            placeholder="Tulis Pesan..."
             style={{
               flex: 1,
               padding: '10px 14px',
