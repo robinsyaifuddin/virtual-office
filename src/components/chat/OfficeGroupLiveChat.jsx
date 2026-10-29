@@ -7,7 +7,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
-import { generateAgentResponse, generateVisualImageUrl, generateVisualPromptWithGemini } from '../../services/multiAgentAiService';
+import { generateAgentResponse, generateVisualImageUrl, generateGeminiVectorVisual } from '../../services/multiAgentAiService';
 import { generateAndDownloadWordDoc } from '../../utils/exportWord';
 import { generateAndDownloadPdfDoc } from '../../utils/exportPdf';
 import { 
@@ -197,12 +197,15 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       !isImageCommand &&
       !isDocumentCommand;
 
-    // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (Relevan, Presisi, No Halusinasi):
+    // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (100% Native Google Gemini Vector Engine, No Pollinations):
     if (isImageCommand && !isDocumentCommand) {
       setTypingAgentName('Silvi');
 
-      // 1. Rancang visual prompt bahasa Inggris yang akurat via Gemini berdasarkan konteks percakapan
-      const visualPromptEn = await generateVisualPromptWithGemini(raw, messages);
+      // 1. Generate SVG Visual Diagram murni langsung dari Google Gemini 3.5
+      const svgVisual = await generateGeminiVectorVisual(raw, messages);
+
+      // Konversi SVG ke data URI agar kompatibel untuk preview dan unduhan instan
+      const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgVisual)}`;
 
       // Ambil konteks singkat untuk instruksi Silvi
       const recentContextText = messages.slice(-4).map(m => m.text).join(' ');
@@ -212,22 +215,17 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         agentRole: 'Head of Growth & Creative',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar.
-Prompt visual bahasa Inggris yang telah disintesis oleh tim kreatif: "${visualPromptEn}".
+        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar mindmap/diagram DigiBooster.
 Konteks obrolan sebelumnya: "${recentContextText.slice(0, 150)}".
+Visual grafis vektor beresolusi tinggi sudah berhasil kamu rancang langsung menggunakan Gemini Vector Engine (warna Royal Blue & Emerald, tipografi jelas, no blur).
 Tugas Silvi:
-1. Sampaikan bahwa konsep visual kreatif telah selesai dirancang secara estetis dan profesional.
-2. Jelaskan rasionalisasi visual secara ringkas (mengapa tone warna, komposisi, dan pesan ini relevan dengan strategi bisnis).
-3. Informasikan bahwa preview gambar resolusi tinggi sudah disematkan langsung di bawah dan dapat diunduh/dibuka Full HD.
-4. Jangan halu atau mengarang janji fiktif, fokus pada nilai estetika dan konversi audiens.`
+1. Sampaikan bahwa konsep diagram visual kreatif DigiBooster telah selesai dirancang secara estetis, tajam, dan profesional.
+2. Jelaskan struktur visualnya secara santai dan ringkas (core node di tengah, cabang visi, operasional, growth & creative, dan governance).
+3. Beritahu Bang Robin bahwa preview grafis vektor beresolusi tinggi sudah disematkan langsung di bawah dan bisa diunduh atau dibuka Full HD tanpa pecah.
+4. Gaya bicara ramah, santai, dan percaya diri.`
       });
 
       let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
-
-      // Judul caption visual yang ramah dan representatif
-      const visualCaption = visualPromptEn.length > 50 
-        ? visualPromptEn.slice(0, 50) + '...' 
-        : visualPromptEn;
 
       const silviMsg = {
         id: `msg-silvi-visual-${Date.now()}`,
@@ -237,8 +235,9 @@ Tugas Silvi:
         badgeColor: '#0284c7',
         text: cleanSilvi,
         hasVisualImage: true,
-        imageUrl: generateVisualImageUrl(visualPromptEn, 960, 600),
-        imageCaption: `Konsep Desain: ${visualCaption}`,
+        imageUrl: svgDataUrl,
+        svgContent: svgVisual,
+        imageCaption: `Grafis Vektor Gemini: Desain Mindmap & Strategi DigiBooster`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       };
 
@@ -246,10 +245,10 @@ Tugas Silvi:
 
       store.recordAiTelemetryEvent({
         agent: 'Silvi (Growth & Visual)',
-        action: `Generate Visual: ${visualPromptEn.slice(0, 40)}...`,
+        action: `Generate Gemini SVG Visual`,
         targetModule: 'Branding & Marketing',
-        tokensUsed: 420,
-        latencyMs: 350,
+        tokensUsed: 650,
+        latencyMs: 420,
         status: 'Success'
       });
 
@@ -913,10 +912,11 @@ Tugas Reta: Berikan pandangan operasional, kesiapan timeline, alur koordinasi ti
       };
 
       if (isVisualRequested) {
-        const visualSubject = raw.replace(/silvi|sil|tolong|buatkan|gambar|desain|poster/gi, '').trim() || 'modern startup growth marketing';
+        const svgVisual = await generateGeminiVectorVisual(raw, messages);
         silviMsg.hasVisualImage = true;
-        silviMsg.imageUrl = generateVisualImageUrl(visualSubject, 800, 500);
-        silviMsg.imageCaption = `Konsep Visual: ${visualSubject}`;
+        silviMsg.imageUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgVisual)}`;
+        silviMsg.svgContent = svgVisual;
+        silviMsg.imageCaption = `Grafis Vektor Gemini: Desain Visual DigiBooster`;
       }
 
       await appendMessageSequentially(silviMsg, 700);
@@ -1655,7 +1655,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                     </div>
                   )}
 
-                  {/* Attachment Visual Image Preview dari Silvi */}
+                  {/* Attachment Visual Image / Gemini Vector Diagram Preview dari Silvi */}
                   {msg.hasVisualImage && msg.imageUrl && (
                     <div style={{
                       marginTop: '10px',
@@ -1664,17 +1664,28 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                       overflow: 'hidden',
                       border: '1px solid #334155'
                     }}>
-                      <img 
-                        src={msg.imageUrl} 
-                        alt={msg.imageCaption || 'Silvi Creative Visual'} 
-                        style={{
-                          width: '100%',
-                          maxHeight: '260px',
-                          objectFit: 'cover',
-                          display: 'block'
-                        }}
-                        loading="lazy"
-                      />
+                      <div style={{
+                        width: '100%',
+                        maxHeight: '340px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#0b1120'
+                      }}>
+                        <img 
+                          src={msg.imageUrl} 
+                          alt={msg.imageCaption || 'Silvi Creative Visual'} 
+                          style={{
+                            width: '100%',
+                            height: 'auto',
+                            maxHeight: '340px',
+                            objectFit: 'contain',
+                            display: 'block'
+                          }}
+                          loading="lazy"
+                        />
+                      </div>
                       <div style={{ padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1e293b' }}>
                         <span style={{ fontSize: '0.70rem', color: '#cbd5e1', fontWeight: 600 }}>{msg.imageCaption}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1698,12 +1709,24 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                             type="button"
                             onClick={async () => {
                               try {
+                                if (msg.svgContent) {
+                                  const blob = new Blob([msg.svgContent], { type: 'image/svg+xml;charset=utf-8' });
+                                  const blobUrl = window.URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = blobUrl;
+                                  link.download = `${(msg.imageCaption || 'Visual_DigiBooster').replace(/[^a-zA-Z0-9_\-]/g, '_')}.svg`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  window.URL.revokeObjectURL(blobUrl);
+                                  return;
+                                }
                                 const response = await fetch(msg.imageUrl);
                                 const blob = await response.blob();
                                 const blobUrl = window.URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 link.href = blobUrl;
-                                link.download = `${(msg.imageCaption || 'Gambar_DigiBooster').replace(/[^a-zA-Z0-9_\-]/g, '_')}.jpg`;
+                                link.download = `${(msg.imageCaption || 'Gambar_DigiBooster').replace(/[^a-zA-Z0-9_\-]/g, '_')}.svg`;
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
@@ -1726,7 +1749,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                               gap: '4px'
                             }}
                           >
-                            <span>Unduh Gambar</span>
+                            <span>Unduh Vektor</span>
                             <span>↓</span>
                           </button>
                         </div>

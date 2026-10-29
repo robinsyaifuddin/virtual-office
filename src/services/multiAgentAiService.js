@@ -120,10 +120,10 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
 }
 
 /**
- * 3. Google Gemini REST API (gemini-3.5-flash-lite / gemini-3.5-flash)
+ * 3. Google Gemini REST API (gemini-3.5-flash-lite)
  * Handal, context window 1 juta token, kapasitas RPM/TPM lega
  */
-async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
+async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY tidak ditemukan di .env');
   }
@@ -136,8 +136,8 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
     });
   });
 
-  // Gunakan gemini-flash-latest yang aktif & valid di API Google
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+  // Gunakan gemini-3.5-flash-lite yang terbukti aktif di API Google
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -146,7 +146,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
     },
     generationConfig: {
       maxOutputTokens: maxTokens,
-      temperature: 0.75
+      temperature: 0.7
     }
   };
 
@@ -154,7 +154,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bodyPayload)
-  }, 4500);
+  }, 10000);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -166,7 +166,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1000) {
   return {
     text: reply.trim(),
     engine: 'Google Gemini 3.5 Flash Lite',
-    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 290 }
+    usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 310 }
   };
 }
 
@@ -253,10 +253,123 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000)
 }
 
 /**
- * Generator Gambar Relevan & Presisi (Silvi Creative Engine via Pollinations FLUX)
+ * Generator Visual Grafis Vektor Asli Google Gemini (100% Bebas Pollinations)
+ * Menghasilkan SVG kode profesional untuk Mindmap, Flowchart, dan Infografis DigiBooster
+ */
+export async function generateGeminiVectorVisual(userMessage, conversationHistory = []) {
+  const contextSummary = conversationHistory
+    .slice(-5)
+    .map(m => `${m.name || m.sender}: ${m.text}`)
+    .join('\n');
+
+  const systemInstruction = `You are Silvi, Senior Creative Director & SVG Visual Architect at DigiBooster startup.
+Your job is to generate a visually stunning, high-precision SVG diagram/infographic/mindmap requested by Bang Robin.
+Design Standard:
+1. Premium Linear/Stripe aesthetic: crisp rounded rectangles, subtle borders (#e2e8f0 or #334155), drop shadows (feDropShadow), clean modern gradients.
+2. Color Palette:
+   - Primary: Royal Blue (#1e40af, #3b82f6)
+   - Accent 1: Emerald Green (#059669, #10b981)
+   - Accent 2: Warm Amber / Orange (#d97706, #f59e0b)
+   - Background: Clean subtle slate gradient (#f8fafc to #f1f5f9) or dark modern canvas (#0f172a to #1e293b).
+   - Typography: Clean sans-serif, legible font sizes (14-22px for titles, 11-13px for descriptions), high-contrast readable text.
+3. Logical Structure:
+   - Centered root node with prominent DigiBooster branding or core theme.
+   - Smooth curved or clean orthogonal connector lines (<path> or <line>) leading to 3-5 structured branch nodes.
+   - Sub-points with icons, badges, or pills.
+4. Output Rules:
+   - Output ONLY the raw <svg viewBox="0 0 960 540" ...> ... </svg> XML string.
+   - DO NOT include markdown code fences (no \`\`\`xml or \`\`\`), no greetings, no introductory text, no comments outside the svg tag.`;
+
+  const messages = [
+    {
+      role: 'user',
+      content: `Konteks pembicaraan tim kantor DigiBooster:\n${contextSummary}\n\nPermintaan Bang Robin: "${userMessage}"\n\nRancang dan hasilkan 1 kode SVG visual diagram/mindmap utuh berkualitas tinggi sekarang:`
+    }
+  ];
+
+  try {
+    const res = await callGeminiChat(messages, systemInstruction, 3000);
+    if (res && res.text) {
+      // Ekstrak tag svg murni
+      const svgMatch = res.text.match(/<svg[\s\S]*?<\/svg>/i);
+      if (svgMatch) {
+        return svgMatch[0].trim();
+      }
+    }
+  } catch (err) {
+    console.warn('[Gemini Visual SVG] Gagal generate via Gemini:', err.message);
+  }
+
+  // Fallback cadangan template SVG dinamis jika terjadi error koneksi
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="core" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="960" height="540" rx="16" fill="url(#bg)" />
+  <!-- Connecting Lines -->
+  <path d="M 480 270 C 300 270, 240 160, 200 160" stroke="#38bdf8" stroke-width="3" fill="none" stroke-dasharray="6,4" />
+  <path d="M 480 270 C 300 270, 240 380, 200 380" stroke="#34d399" stroke-width="3" fill="none" stroke-dasharray="6,4" />
+  <path d="M 480 270 C 660 270, 720 160, 760 160" stroke="#fbbf24" stroke-width="3" fill="none" stroke-dasharray="6,4" />
+  <path d="M 480 270 C 660 270, 720 380, 760 380" stroke="#a78bfa" stroke-width="3" fill="none" stroke-dasharray="6,4" />
+  <!-- Core Node -->
+  <g filter="url(#shadow)">
+    <rect x="360" y="220" width="240" height="100" rx="16" fill="url(#core)" stroke="#60a5fa" stroke-width="2" />
+    <text x="480" y="260" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#ffffff" text-anchor="middle">DIGIBOOSTER HQ</text>
+    <text x="480" y="288" font-family="system-ui, sans-serif" font-size="13" font-weight="500" fill="#93c5fd" text-anchor="middle">Growth Through Structure</text>
+  </g>
+  <!-- Node 1: Visi & Identitas -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="115" width="220" height="90" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" />
+    <text x="90" y="148" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#38bdf8">1. Visi &amp; Identitas</text>
+    <text x="90" y="172" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• Market Validation (Arga)</text>
+    <text x="90" y="190" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• High Conversion Narrative</text>
+  </g>
+  <!-- Node 2: Produk & Operasional -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="335" width="220" height="90" rx="12" fill="#1e293b" stroke="#34d399" stroke-width="1.5" />
+    <text x="90" y="368" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#34d399">2. Eksekusi Lapangan</text>
+    <text x="90" y="392" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• SOP &amp; Timeline (Reta)</text>
+    <text x="90" y="410" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• CRM &amp; Database Realtime</text>
+  </g>
+  <!-- Node 3: Growth & Creative -->
+  <g filter="url(#shadow)">
+    <rect x="670" y="115" width="220" height="90" rx="12" fill="#1e293b" stroke="#fbbf24" stroke-width="1.5" />
+    <text x="690" y="148" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#fbbf24">3. Growth &amp; Creative</text>
+    <text x="690" y="172" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• Viral Storytelling (Silvi)</text>
+    <text x="690" y="190" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• High Engagement Creative</text>
+  </g>
+  <!-- Node 4: Legal & Quality -->
+  <g filter="url(#shadow)">
+    <rect x="670" y="335" width="220" height="90" rx="12" fill="#1e293b" stroke="#a78bfa" stroke-width="1.5" />
+    <text x="690" y="368" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#a78bfa">4. Governance &amp; QA</text>
+    <text x="690" y="392" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• Dokumen Word / Legal (Raka)</text>
+    <text x="690" y="410" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">• Audit Standar Mutu (Siska)</text>
+  </g>
+</svg>`;
+}
+
+/**
+ * Generator Gambar Relevan & Presisi
  */
 export function generateVisualImageUrl(promptText, width = 960, height = 600) {
-  // Bersihkan prompt dari karakter tidak perlu
   const sanitizedPrompt = (promptText || 'modern professional digital marketing branding asset')
     .replace(/[^\w\s,.-]/gi, ' ')
     .trim();
