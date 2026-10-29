@@ -4,7 +4,8 @@ import {
   Send, 
   RefreshCw,
   ShieldCheck,
-  Cpu
+  Cpu,
+  ChevronDown
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
 import { generateAgentResponse, generateVisualImageUrl, generateGeminiVectorVisual } from '../../services/multiAgentAiService';
@@ -45,6 +46,8 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
   const [inputText, setInputText] = useState('');
   const [isAgentsTyping, setIsAgentsTyping] = useState(false);
   const [typingAgentName, setTypingAgentName] = useState('');
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const isUserScrolledUpRef = useRef(false);
   const chatScrollRef = useRef(null);
 
   const textareaRef = useRef(null);
@@ -58,9 +61,32 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
     }
   };
 
-  // Auto-scroll ke pesan terbaru
-  useEffect(() => {
+  // Scroll handler untuk mendeteksi posisi baca user
+  const handleScroll = () => {
+    if (!chatScrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatScrollRef.current;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    // Jika jarak ke bawah lebih dari 120px, tandai user sedang membaca chat atas
+    const isUp = distanceFromBottom > 120;
+    isUserScrolledUpRef.current = isUp;
+    setShowScrollBottom(isUp);
+  };
+
+  // Fungsi scroll mulus ke pesan paling bawah
+  const scrollToBottom = () => {
     if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTo({
+        top: chatScrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+      setShowScrollBottom(false);
+      isUserScrolledUpRef.current = false;
+    }
+  };
+
+  // Smart Auto-scroll: HANYA scroll ke bawah jika user TIDAK sedang membaca chat di atas
+  useEffect(() => {
+    if (chatScrollRef.current && !isUserScrolledUpRef.current) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
   }, [messages, isAgentsTyping]);
@@ -1097,7 +1123,12 @@ TUGAS UTAMA RETA:
    - Langsung masukkan catatan tersebut ke data klien atau buatkan jadwal rapat/notulensi nyata.
    - JANGAN MALAH MENGAJAK DISKUSI PANJANG LEBAR! Reta adalah COO eksekutor: langsung catat, konfirmasi singkat dan ramah, lalu eksekusi tag aksi.
 3. EKSEKUSI DATABASE:
-   - Jika data sudah jelas (nama klien / nominal / tanggal), WAJIB sertakan tag <!--RETA_ACTION: {...}--> agar data langsung masuk ke Supabase.`
+   - Jika data sudah jelas (nama klien / nominal / tanggal), WAJIB sertakan tag <!--RETA_ACTION: {...}--> agar data langsung masuk ke Supabase.
+4. RANGKUMAN DISKUSI & NOTULENSI RAPAT BERBOBOT:
+   - Jika Bang Robin meminta rangkuman diskusi atau menanyakan hal-hal yang akan dilakukan ke depan:
+     Reta telaah riwayat obrolan di atas, rangkum: (1) Inti topik yang dibahas, (2) Action items / langkah ke depan yang konkret per orang/PIC.
+   - Setelah rangkuman selesai, tawarkan secara santai untuk memasukkannya ke database Rapat & Catatan Dashboard:
+     "kalau poin-poinnya udah pas, mau langsung tak simpan ke catatan rapat dan notulensi hari ini bang bin?"`
       });
 
       let { cleanText: textAfterAction, actionPayload } = extractRetaAction(retaResponse.text || '');
@@ -1437,6 +1468,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
         boxShadow: '0 25px 50px -12px rgba(2, 132, 199, 0.25)',
         border: '1px solid #bae6fd',
         overflow: 'hidden',
+        position: 'relative',
         fontFamily: "'Poppins', sans-serif",
         transform: 'translateZ(0)',
         willChange: 'transform'
@@ -1512,6 +1544,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
         {/* Message Feed Container */}
         <div
           ref={chatScrollRef}
+          onScroll={handleScroll}
           style={{
             flex: 1,
             overflowY: 'auto',
@@ -2141,27 +2174,70 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
           {/* Animasi Berpikir Sejenak (Typing Indicator ...) */}
           {isAgentsTyping && (
             <div style={{
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
+              gap: '10px',
+              padding: '8px 14px',
               backgroundColor: '#ffffff',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              border: '1px solid #bae6fd',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)',
               width: 'fit-content',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+              animation: 'fadeIn 0.25s ease'
             }}>
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
-                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.15s' }} />
-                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.3s' }} />
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
+                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.2s' }} />
+                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.4s' }} />
               </div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontStyle: 'italic' }}>
-                {typingAgentName} sedang berpikir...
-              </span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#0369a1' }}>
+                  {typingAgentName} sedang menganalisis &amp; menimbang langkah...
+                </span>
+                <span style={{ fontSize: '0.64rem', color: '#94a3b8' }}>
+                  Membedah konteks operasional agar jawaban bijak &amp; presisi
+                </span>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Tombol Pintas Scroll ke Pesan Terbaru (Muncul saat user membaca di atas) */}
+        {showScrollBottom && (
+          <div style={{
+            position: 'absolute',
+            bottom: '72px',
+            right: '20px',
+            zIndex: 30
+          }}>
+            <button
+              type="button"
+              onClick={scrollToBottom}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: '#0284c7',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '6px 14px',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                animation: 'bounce 1.5s infinite'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0369a1'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0284c7'}
+              title="Lihat pesan terbaru di bawah"
+            >
+              <ChevronDown size={14} />
+              <span>Pesan Baru</span>
+            </button>
+          </div>
+        )}
 
         {/* Input Bar Form Responsif & Auto-Expand */}
         <div style={{
