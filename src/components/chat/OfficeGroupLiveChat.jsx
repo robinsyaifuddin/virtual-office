@@ -224,15 +224,29 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       !isImageCommand &&
       !isDocumentCommand;
 
-    // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (100% Native Google Gemini Vector Engine, No Pollinations):
+    // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (Real AI Generation - Sesuai Instruksi Bang Robin):
     if (isImageCommand && !isDocumentCommand) {
       setTypingAgentName('Silvi');
 
-      // 1. Generate SVG Visual Diagram murni langsung dari Google Gemini 3.5
-      const svgVisual = await generateGeminiVectorVisual(raw, messages);
+      // Deteksi apakah user meminta Diagram/Mindmap/Struktur ATAU Gambar Promosi/Banner/Poster Asli
+      const isDiagramRequest = lower.includes('diagram') || lower.includes('mindmap') || lower.includes('bagan') || lower.includes('struktur');
 
-      // Konversi SVG ke data URI agar kompatibel untuk preview dan unduhan instan
-      const svgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgVisual)}`;
+      let finalImageUrl = '';
+      let svgVisual = null;
+      let visualCaption = '';
+
+      if (isDiagramRequest) {
+        // Generate SVG Dinamis via Gemini / Groq Engine
+        svgVisual = await generateGeminiVectorVisual(raw, messages);
+        finalImageUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svgVisual)}`;
+        visualCaption = `Grafis Vektor Dinamis: ${raw.slice(0, 40)}`;
+      } else {
+        // Generate Gambar Asli & Nyata via FLUX Engine beresolusi tinggi (Bukan Template SVG Mindmap!)
+        const promptSeed = raw.replace(/silvi|sil|buatkan|bikin|gambar|desain|tolong|coba/gi, '').trim() || 'modern high converting website promotion creative';
+        const creativePrompt = `${promptSeed}, high quality digital advertising creative, sleek UI showcase, commercial photography, 8k resolution, photorealistic, professional lighting, modern startup branding, trending on behance`;
+        finalImageUrl = generateVisualImageUrl(creativePrompt, 1024, 640);
+        visualCaption = `Desain Visual Promosi Nyata: ${promptSeed || 'Website DigiBooster'}`;
+      }
 
       // Ambil konteks singkat untuk instruksi Silvi
       const recentContextText = messages.slice(-4).map(m => m.text).join(' ');
@@ -242,14 +256,14 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
         agentRole: 'Head of Growth & Creative',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar mindmap/diagram DigiBooster.
-Konteks obrolan sebelumnya: "${recentContextText.slice(0, 150)}".
-Visual grafis vektor beresolusi tinggi sudah berhasil kamu rancang langsung menggunakan Gemini Vector Engine (warna Royal Blue & Emerald, tipografi jelas, no blur).
+        customInstruction: `Bang Robin meminta dibuatkan desain visual asli: "${raw}".
+Konteks obrolan: "${recentContextText.slice(0, 150)}".
+Gambar visual resolusi tinggi telah selesai dirancang oleh engine visual Silvi secara presisi sesuai instruksi Bang Robin.
 Tugas Silvi:
-1. Sampaikan bahwa konsep diagram visual kreatif DigiBooster telah selesai dirancang secara estetis, tajam, dan profesional.
-2. Jelaskan struktur visualnya secara santai dan ringkas (core node di tengah, cabang visi, operasional, growth & creative, dan governance).
-3. Beritahu Bang Robin bahwa preview grafis vektor beresolusi tinggi sudah disematkan langsung di bawah dan bisa diunduh atau dibuka Full HD tanpa pecah.
-4. Gaya bicara ramah, santai, dan percaya diri.`
+1. Sampaikan bahwa desain promosi kreatif yang diminta Bang Robin sudah selesai dirender secara nyata dan bukan sekadar template bawaan.
+2. Jelaskan konsep visualnya secara santai, segar, dan estetis (pencahayaan, komposisi, dan daya tarik visual ke calon klien).
+3. Beritahu Bang Robin bahwa pratinjau gambar asli sudah disematkan langsung di bawah dan siap diunduh Full HD.
+4. JANGAN menutup pesan dengan pertanyaan basa-basi ping-pong.`
       });
 
       let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
@@ -262,9 +276,9 @@ Tugas Silvi:
         badgeColor: '#0284c7',
         text: cleanSilvi,
         hasVisualImage: true,
-        imageUrl: svgDataUrl,
+        imageUrl: finalImageUrl,
         svgContent: svgVisual,
-        imageCaption: `Grafis Vektor Gemini: Desain Mindmap & Strategi DigiBooster`,
+        imageCaption: visualCaption,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       };
 

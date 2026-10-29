@@ -137,7 +137,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
   });
 
   // Gunakan gemini-3.5-flash-lite yang terbukti aktif di API Google
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
     contents,
@@ -288,16 +288,25 @@ Design Standard:
   ];
 
   try {
+    // 1. Coba generate SVG dinamis via Gemini
     const res = await callGeminiChat(messages, systemInstruction, 3000);
     if (res && res.text) {
-      // Ekstrak tag svg murni
       const svgMatch = res.text.match(/<svg[\s\S]*?<\/svg>/i);
-      if (svgMatch) {
-        return svgMatch[0].trim();
-      }
+      if (svgMatch) return svgMatch[0].trim();
     }
   } catch (err) {
-    console.warn('[Gemini Visual SVG] Gagal generate via Gemini:', err.message);
+    console.warn('[Gemini Visual SVG] Gagal via Gemini, mencoba Groq Qwen:', err.message);
+  }
+
+  try {
+    // 2. Fallback Groq Qwen (High Speed) untuk generate SVG dinamis
+    const groqRes = await callGroqChat(messages, systemInstruction, 2500);
+    if (groqRes && groqRes.text) {
+      const svgMatch = groqRes.text.match(/<svg[\s\S]*?<\/svg>/i);
+      if (svgMatch) return svgMatch[0].trim();
+    }
+  } catch (gErr) {
+    console.warn('[Groq SVG] Gagal via Groq:', gErr.message);
   }
 
   // Fallback cadangan template SVG dinamis jika terjadi error koneksi
