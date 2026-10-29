@@ -82,7 +82,7 @@ async function callDeepSeekChat(messages, systemInstruction, maxTokens = 800) {
  * 2. Groq API Multi-Model Fallback (Qwen 3.8 27B -> GPT-OSS 120B -> GPT-OSS 20B)
  * Sangat Cepat 300+ token/detik, gratis dan aktif di Groq API
  */
-async function callGroqChat(messages, systemInstruction, maxTokens = 650, temperature = 0.75) {
+async function callGroqChat(messages, systemInstruction, maxTokens = 2048, temperature = 0.75) {
   if (!GROQ_API_KEY) {
     throw new Error('GROQ_API_KEY tidak ditemukan di .env');
   }
@@ -113,7 +113,7 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
           temperature,
           max_tokens: maxTokens
         })
-      }, 6500);
+      }, 12000);
 
       if (!response.ok) {
         const errText = await response.text();
@@ -121,10 +121,12 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
       }
 
       const data = await response.json();
-      const reply = data?.choices?.[0]?.message?.content || '';
+      const choice = data?.choices?.[0];
+      const reply = choice?.message?.content || '';
       if (reply && reply.trim()) {
         return {
           text: reply.trim(),
+          finishReason: choice?.finish_reason,
           engine: `Groq (${model})`,
           usage: data?.usage || { total_tokens: 280 }
         };
@@ -139,10 +141,10 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
 }
 
 /**
- * 3. Google Gemini REST API (gemini-3.5-flash-lite)
+ * 3. Google Gemini REST API (gemini-3.8-flash)
  * Handal, context window 1 juta token, kapasitas RPM/TPM lega
  */
-async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
+async function callGeminiChat(messages, systemInstruction, maxTokens = 2500) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY tidak ditemukan di .env');
   }
@@ -155,7 +157,6 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
     });
   });
 
-  // Gunakan gemini-3.5-flash-lite yang terbukti aktif di API Google
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
   
   const bodyPayload = {
@@ -184,7 +185,7 @@ async function callGeminiChat(messages, systemInstruction, maxTokens = 1200) {
   const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   return {
     text: reply.trim(),
-    engine: 'Google Gemini 3.5 Flash Lite',
+    engine: 'Google Gemini 3.8 Flash',
     usage: { total_tokens: data?.usageMetadata?.totalTokenCount || 310 }
   };
 }
@@ -231,7 +232,7 @@ async function callPollinationsChat(messages, systemInstruction) {
 /**
  * 5. OpenRouter Free Fallback (NVIDIA Nemotron 3.5 Lightning)
  */
-async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000) {
+async function callOpenRouterChat(messages, systemInstruction, maxTokens = 2048) {
   if (!OPENROUTER_API_KEY) {
     throw new Error('OPENROUTER_API_KEY tidak ditemukan di .env');
   }
@@ -254,7 +255,7 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000)
       messages: payloadMessages,
       max_tokens: maxTokens
     })
-  }, 4500);
+  }, 10000);
 
   if (!response.ok) {
     const errText = await response.text();
@@ -494,17 +495,20 @@ DAFTAR LENGKAP BOT & ATURAN PENYEBUTAN NAMA:
    - KONTEKS FORMAL / PENUGASAN / DOKUMEN / STRUKTUR:
      * WAJIB menggunakan NAMA LENGKAP: "Arga", "Silvi", "Raka", "Reta", "Siska".
 
-PROSES BERPIKIR MENDALAM & BIJAK SEBELUM MENJAWAB (DELIBERATE REASONING PROTOCOL):
-Saat indikator 'sedang berpikir' menyala, gunakan momen jeda ini untuk melakukan penalaran kritis 3 langkah di dalam pikiranmu sebelum mengeluarkan kalimat:
-1. LANGKAH 1 (MEMBEDAH MAKSUD & KONTEKS BANG ROBIN):
-   - Pahami apa tujuan sebenarnya dari Bang Robin. Jangan langsung merespons secara reaktif atau tergesa-gesa.
-   - Periksa seluruh riwayat obrolan di atas agar pemikiranmu utuh, relevan, dan tidak mengulang hal yang sudah dibahas.
-2. LANGKAH 2 (PENYARINGAN KUALITAS & ANTI-HALUSINASI):
-   - Buang semua kata klise, basa-basi kosong, atau template robotik.
-   - Pastikan tidak ada data fiktif (nama proyek palsu, nominal karangan). Gunakan fakta yang sudah nyata di database atau dari obrolan Bang Robin.
-   - Saring apakah perlu melempar pertanyaan atau tidak. Jika tidak krusial, JANGAN BERTANYA. Sampaikan solusi dengan lugas dan bijak.
-3. LANGKAH 3 (SINTESIS EKSEKUTIF BIJAKSANA):
-   - Tulis jawaban yang bernas, padat, berwawasan luas, namun santai manusiawi layaknya direktur/tim inti startup yang cerdas dan tenang.
+PROSES BERPIKIR MENDALAM, BIJAK & ALAMI (DELIBERATE HUMAN-LIKE REASONING PROTOCOL):
+Saat indikator 'sedang berpikir' menyala, lakukan penalaran kritis di dalam pikiranmu sebelum mengeluarkan jawaban:
+1. PRINSIP NATURAL & MINIM BASA-BASI (HUMAN-LIKE & TO THE POINT):
+   - Bersikaplah cerdas, natural, dan santai seperti manusia profesional/rekan kerja sungguhan.
+   - JANGAN BANYAK BASA-BASI atau pembukaan bertele-tele jika tidak ditanyakan secara mendalam.
+   - Jawab yang penting, jelas, lugas, dan padat.
+   - Jika nanti Bang Robin meminta detail atau topik memang butuh rincian, berikan detail secukupnya yang relevan dan solutif.
+2. VALIDITAS TINGGI & ANTI-HALUSINASI (100% STRICT FACTUAL ACCURACY):
+   - DILARANG KERAS berhalusinasi, mengarang fakta, atau membuat data fiktif (nama proyek palsu, nominal karangan, statistik buatan).
+   - Seluruh jawaban WAJIB tepat, valid, rasional, dan sesuai fakta nyata (baik dari database riil, riwayat obrolan, maupun fakta objektif).
+   - Jika ada hal yang belum diketahui atau belum ada datanya, katakan apa adanya secara jujur dan rasional layaknya manusia, jangan mereka-reka data.
+3. KEMAMPUAN BERPIKIR RASIONAL & POWERFUL:
+   - Saring apakah perlu melempar pertanyaan atau tidak. Jangan melempar pertanyaan klise/basa-basi di akhir kalimat.
+   - Berikan pandangan yang berbobot, logis, praktis, dan dapat dieksekusi tanpa kesan robotik atau formal kaku.
 
 TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
 1. DIMENSI KOGNITIF (Otak Analitis & Penalaran Tajam):
@@ -525,7 +529,8 @@ TRIPOD KECERDASAN AGEN (KOGNITIF, AFEKTIF, MOTORIK):
    - Ketik santai seperti di WhatsApp / Slack, awalan huruf kecil untuk obrolan santai.
    - Singkatan wajar: kyk, yg, mntap, siipp, okeii, dmna, brp, kpn, syapp, bgt, udh, gpp.
    - Kata berulang pakai angka 2 (kira2, pelan2, siap2, tanya2).
-   - DILARANG menulis awalan nama sendiri seperti "${agentName}: " di awal chat!
+   - DILARANG menulis awalan nama sendiri seperti "${agentName}: ", "ga: ", "Arga, ", atau "ga, " di awal balasan chat!
+   - JIKA BANG ROBIN MENYEBUT NAMAMU (misal: "oke gmna ga", "raka lagi apa"), JANGAN mengulang namanya kembali seperti "ga, inovasinya..." atau "raka, lagi...". Langsung jawab intinya kepada Bang Robin ("siap bang bin...", "lagi ngecek...", "arah inovasinya fokus ke...").
    - DILARANG KERAS MENGGUNAKAN HURUF ATAU KARAKTER ASING/CINA/MANDARIN (seperti 溯源, 中文, dll). WAJIB 100% menggunakan Bahasa Indonesia yang bersih atau istilah teknis/bisnis umum dalam Bahasa Inggris/Indonesia saja!
    - DILARANG MEMBOCORKAN JARGON TEKNIS AI / BACKEND: Jangan pernah menyebut istilah "memori vektor", "vektor kerja bot", "prompt injection", "token LLM", atau "log engine" ke Bang Robin. Gunakan selalu bahasa operasional kantor manusiawi (seperti "SOP tim", "catatan koordinasi", "evaluasi kerja tim", "panduan devisi").
    - DISIPLIN KONTEKS & ANTI-SEROBOT: Jika Bang Robin sedang berbicara atau menanggapi agen lain secara spesifik, agen lain dilarang memotong atau mengklaim persetujuan sepihak ke database tugas. Database penugasan hanya boleh dikunci jika Bang Robin memberikan instruksi penugasan nyata secara eksplisit.
@@ -670,36 +675,41 @@ CATATAN INTEGRITAS: Cocokkan kata kunci Bang Robin dengan data di atas jika dia 
   const callSequence = [
     () => callGroqChat(formattedHistory, fullPrompt),
     () => callGeminiChat(formattedHistory, fullPrompt),
-    () => callPollinationsChat(formattedHistory, fullPrompt),
-    () => callOpenRouterChat(formattedHistory, fullPrompt)
+    () => callPollinationsChat(formattedHistory, fullPrompt)
   ];
 
   // Eksekusi resilient waterfall: coba satu per satu sampai berhasil
   for (let i = 0; i < callSequence.length; i++) {
     try {
       result = await callSequence[i]();
-      if (result && result.text) break;
+      if (result && result.text && result.text.trim()) break;
     } catch (err) {
       console.warn(`[AI Multi-Tier Router] Layer ${i + 1} dialihkan karena kendala:`, err.message);
     }
   }
 
-  // Jaring Pengaman Terakhir (Zero Fallback Failure):
-  if (!result || !result.text) {
+  // Jaring Pengaman Terakhir: Jika provider gagal, coba sekali lagi langsung ke Groq dengan payload minimal
+  if (!result || !result.text || !result.text.trim()) {
     try {
-      result = await callPollinationsChat(formattedHistory, systemPrompt);
-    } catch (pErr) {
-      return {
-        text: `siap bang bin, arga dan tim standby disini yaa. ada kendala sinyal jaringan gateway sebentar, tp sistem operasional dashboard dan dewan agen tetap aman terpantau.`,
-        engine: 'System Resilient Guard',
-        usage: { total_tokens: 0 }
-      };
+      result = await callGroqChat(
+        [{ role: 'user', content: `Sebagai ${agentName} (${agentRole}), jawab pesan Bang Robin ini dengan santai, cerdas, dan lugas: "${userMessage}"` }],
+        systemPrompt,
+        1500
+      );
+    } catch (gErr) {
+      console.warn('[AI Multi-Tier Router] Groq rescue retry gagal:', gErr.message);
     }
   }
 
   // Sanitasi & Pembersihan:
   if (result && result.text) {
-    let clean = result.text.replace(new RegExp(`^(${agentName}|Arga|Silvi|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
+    let clean = result.text.trim();
+
+    // Hapus awalan bot nama sendiri atau nama orang yang diajak bicara
+    // contoh: "ga:", "arga:", "ga, inovasinya...", "Raka:", "Bang:"
+    clean = clean.replace(new RegExp(`^(${agentName}|Arga|ga|Silvi|sil|Reta|ta|ret|Raka|ka|Siska|sis)\\s*:\\s*`, 'i'), '');
+    clean = clean.replace(new RegExp(`^(${agentName}|Arga|ga|Silvi|sil|Reta|ta|ret|Raka|ka|Siska|sis)\\s*,\\s*`, 'i'), '');
+
     // Hilangkan semua simbol bintang markdown
     clean = clean.replace(/\*\*/g, '').replace(/\*/g, '').trim();
     // Bersihkan karakter Cina / Hanzi / aksara Asia Timur yang bocor dari LLM (Qwen/DeepSeek/dll)

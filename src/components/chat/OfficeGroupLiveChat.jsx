@@ -616,7 +616,9 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
 
     // Deteksi Pembicara Terakhir untuk Kelanjutan Konteks Thread (Thread Continuity):
     const lastBotMessage = [...messages].reverse().find(m => m.sender !== 'user');
-    const isFollowupToReta = lastBotMessage && (lastBotMessage.sender === 'Reta' || lastBotMessage.name === 'Reta') && !mentionedArga && !mentionedSilvi && !mentionedRaka && !mentionedSiska;
+    // Followup ke Reta HANYA jika pesan secara spesifik berkaitan dengan database/CRM/tugas operasional, BUKAN diskusi umum seperti "kita bahas sop yuk"
+    const isExplicitOperationalDiscussion = lower.includes('catat') || lower.includes('masukin') || lower.includes('crm') || lower.includes('database') || lower.includes('tabel') || lower.includes('operasional');
+    const isFollowupToReta = lastBotMessage && (lastBotMessage.sender === 'Reta' || lastBotMessage.name === 'Reta') && isExplicitOperationalDiscussion && !mentionedArga && !mentionedSilvi && !mentionedRaka && !mentionedSiska;
 
     // Cek apakah pesan user secara spesifik ditujukan ke Siska (obrolan/tanggapan ke Siska)
     const isTargetedToSiska = mentionedSiska && !mentionedReta && !mentionedArga && !mentionedSilvi && !mentionedRaka;
@@ -2296,7 +2298,7 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                 }
               }
             }}
-            placeholder="Ketik pesan untuk dewan agen (Enter untuk baris baru)..."
+            placeholder="Ketik pesan..."
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             style={{
