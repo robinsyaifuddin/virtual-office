@@ -1463,32 +1463,38 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
   };
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(9, 19, 34, 0.85)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 99999,
-      padding: window.innerWidth <= 640 ? '0' : 'clamp(8px, 2vw, 16px)',
-      fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    }}>
-      <div style={{
-        backgroundColor: '#f0f2f5',
-        borderRadius: window.innerWidth <= 640 ? '0' : 'clamp(14px, 2.5vw, 20px)',
-        width: '100%',
-        maxWidth: '880px',
-        height: window.innerWidth <= 640 ? '100dvh' : 'min(92vh, 860px)',
+    <div
+      className="livechat-backdrop-animate"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(9, 19, 34, 0.75)',
         display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '0 25px 50px -12px rgba(2, 132, 199, 0.25)',
-        border: window.innerWidth <= 640 ? 'none' : '1px solid #bae6fd',
-        overflow: 'hidden',
-        position: 'relative',
-        transform: 'translateZ(0)',
-        willChange: 'transform'
-      }}>
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 99999,
+        padding: window.innerWidth <= 640 ? '0' : 'clamp(8px, 2vw, 16px)',
+        fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+      }}
+    >
+      <div
+        className="livechat-dialog-animate"
+        style={{
+          backgroundColor: '#f0f2f5',
+          borderRadius: window.innerWidth <= 640 ? '0' : 'clamp(14px, 2.5vw, 20px)',
+          width: '100%',
+          maxWidth: '880px',
+          height: window.innerWidth <= 640 ? '100dvh' : 'min(92vh, 860px)',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 25px 50px -12px rgba(2, 132, 199, 0.25)',
+          border: window.innerWidth <= 640 ? 'none' : '1px solid #bae6fd',
+          overflow: 'hidden',
+          position: 'relative',
+          transform: 'translateZ(0)',
+          willChange: 'transform, opacity'
+        }}
+      >
         {/* Header Modal Chat Bersih */}
         <div style={{
           background: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0284c7 100%)',
@@ -1642,7 +1648,10 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                   boxShadow: '0 1px 1.5px rgba(11,20,26,0.13)',
                   fontSize: '0.84rem',
                   lineHeight: 1.45,
-                  whiteSpace: 'pre-line',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'break-word',
+                  wordWrap: 'break-word',
                   userSelect: 'text',
                   WebkitUserSelect: 'text',
                   cursor: 'text',
@@ -2195,28 +2204,23 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '8px 14px',
+              gap: '8px',
+              padding: '6px 12px',
               backgroundColor: '#ffffff',
               borderRadius: '16px',
-              border: '1px solid #bae6fd',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.08)',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 1px 2px rgba(11,20,26,0.08)',
               width: 'fit-content',
               animation: 'fadeIn 0.25s ease'
             }}>
-              <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
-                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.2s' }} />
-                <span className="animate-bounce" style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.4s' }} />
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
+                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.15s' }} />
+                <span className="animate-bounce" style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#0284c7', animationDelay: '0.3s' }} />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '0.73rem', fontWeight: 600, color: '#0369a1' }}>
-                  {typingAgentName} sedang menganalisis &amp; menimbang langkah...
-                </span>
-                <span style={{ fontSize: '0.64rem', color: '#94a3b8' }}>
-                  Membedah konteks operasional agar jawaban bijak &amp; presisi
-                </span>
-              </div>
+              <span style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 500 }}>
+                {typingAgentName} sedang mengetik...
+              </span>
             </div>
           )}
         </div>
@@ -2275,12 +2279,24 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
             autoComplete="off"
             spellCheck={false}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
+              if (e.key === 'Enter') {
+                if (e.ctrlKey || (e.shiftKey && (e.metaKey || e.altKey))) {
+                  // Alternatif shortcut bila ingin kirim via Ctrl+Enter
+                  e.preventDefault();
+                  handleSendMessage();
+                } else {
+                  // Enter standar: membuat baris baru ke bawah seperti aplikasi chat/teks umumnya
+                  // Memastikan textarea membesar secara proporsional mengikuti baris baru
+                  setTimeout(() => {
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 130) + 'px';
+                    }
+                  }, 0);
+                }
               }
             }}
-            placeholder="Ketik pesan untuk dewan agen..."
+            placeholder="Ketik pesan untuk dewan agen (Enter untuk baris baru)..."
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             style={{

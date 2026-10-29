@@ -79,7 +79,8 @@ async function callDeepSeekChat(messages, systemInstruction, maxTokens = 800) {
 }
 
 /**
- * 2. Groq API (Qwen 3.8 27B) - Super Cepat 300+ token/detik
+ * 2. Groq API Multi-Model Fallback (Qwen 3.8 27B -> GPT-OSS 120B -> GPT-OSS 20B)
+ * Sangat Cepat 300+ token/detik, gratis dan aktif di Groq API
  */
 async function callGroqChat(messages, systemInstruction, maxTokens = 650, temperature = 0.75) {
   if (!GROQ_API_KEY) {
@@ -91,32 +92,50 @@ async function callGroqChat(messages, systemInstruction, maxTokens = 650, temper
     ...messages
   ];
 
-  const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'qwen/qwen3.8-27b',
-      messages: payloadMessages,
-      temperature,
-      max_tokens: maxTokens
-    })
-  }, 5000);
+  const groqModels = [
+    'qwen/qwen3.8-27b',
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b'
+  ];
 
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Groq API error ${response.status}: ${errText}`);
+  let lastError = null;
+  for (const model of groqModels) {
+    try {
+      const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: payloadMessages,
+          temperature,
+          max_tokens: maxTokens
+        })
+      }, 6500);
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Groq ${model} error ${response.status}: ${errText}`);
+      }
+
+      const data = await response.json();
+      const reply = data?.choices?.[0]?.message?.content || '';
+      if (reply && reply.trim()) {
+        return {
+          text: reply.trim(),
+          engine: `Groq (${model})`,
+          usage: data?.usage || { total_tokens: 280 }
+        };
+      }
+    } catch (err) {
+      lastError = err;
+      console.warn(`[Groq Failover] Model ${model} gagal, beralih ke model berikutnya:`, err.message);
+    }
   }
 
-  const data = await response.json();
-  const reply = data?.choices?.[0]?.message?.content || '';
-  return {
-    text: reply.trim(),
-    engine: 'Groq Qwen 3.8 27B',
-    usage: data?.usage || { total_tokens: 280 }
-  };
+  throw lastError || new Error('Semua model Groq gagal merespon.');
 }
 
 /**

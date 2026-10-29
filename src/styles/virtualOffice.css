@@ -544,6 +544,35 @@
   }
 }
 
+/* Modal Chat Animation: Cepat, Halus, GPU Accelerated */
+.livechat-backdrop-animate {
+  animation: livechatFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.livechat-dialog-animate {
+  animation: livechatScaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes livechatFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes livechatScaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* WhatsApp Command Simulator (Chatbot UI Modern - Putih Bersih Tidak Transparan) */
 .wa-command-box {
   position: absolute;

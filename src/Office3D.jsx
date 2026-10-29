@@ -145,37 +145,32 @@ export default function Office3D() {
           right: '24px',
           zIndex: 40,
           background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-          border: '2px solid rgba(255, 255, 255, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
           borderRadius: '50px',
-          padding: '12px 20px',
+          padding: '12px 22px',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
           color: '#ffffff',
-          fontWeight: 800,
-          fontSize: '13px',
+          fontWeight: 700,
+          fontSize: '13.5px',
           cursor: 'pointer',
-          boxShadow: '0 8px 30px rgba(2, 132, 199, 0.45)',
-          backdropFilter: 'blur(10px)',
-          transition: 'all 0.2s ease',
-          animation: 'pulse 3s infinite'
+          boxShadow: '0 8px 24px rgba(2, 132, 199, 0.4)',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+          willChange: 'transform'
         }}
-        title="Buka HQ Group LiveChat DigiBooster (Chat Semua Agen)"
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 12px 28px rgba(2, 132, 199, 0.5)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(2, 132, 199, 0.4)';
+        }}
+        title="Buka LiveChat"
       >
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <MessageSquare size={18} color="#ffffff" />
-          <span style={{
-            position: 'absolute',
-            top: '-6px',
-            right: '-6px',
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#22c55e',
-            boxShadow: '0 0 6px #22c55e'
-          }} />
-        </div>
-        <span>LiveChat Dewan Agen (5)</span>
+        <MessageSquare size={18} color="#ffffff" />
+        <span>LiveChat</span>
       </button>
 
       {/* Modal Full LiveChat Group Multi-Agent */}
