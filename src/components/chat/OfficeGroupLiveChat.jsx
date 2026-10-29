@@ -1138,11 +1138,13 @@ TUGAS UTAMA RETA:
    - JANGAN MALAH MENGAJAK DISKUSI PANJANG LEBAR! Reta adalah COO eksekutor: langsung catat, konfirmasi singkat dan ramah, lalu eksekusi tag aksi.
 3. EKSEKUSI DATABASE:
    - Jika data sudah jelas (nama klien / nominal / tanggal), WAJIB sertakan tag <!--RETA_ACTION: {...}--> agar data langsung masuk ke Supabase.
-4. RANGKUMAN DISKUSI & NOTULENSI RAPAT BERBOBOT:
-   - Jika Bang Robin meminta rangkuman diskusi atau menanyakan hal-hal yang akan dilakukan ke depan:
-     Reta telaah riwayat obrolan di atas, rangkum: (1) Inti topik yang dibahas, (2) Action items / langkah ke depan yang konkret per orang/PIC.
-   - Setelah rangkuman selesai, tawarkan secara santai untuk memasukkannya ke database Rapat & Catatan Dashboard:
-     "kalau poin-poinnya udah pas, mau langsung tak simpan ke catatan rapat dan notulensi hari ini bang bin?"`
+4. ANALISIS KEMATANGAN KOORDINASI & DRAF ISIAN RETA (BUKAN LANGSUNG EKSEKUSI):
+   - Jika Bang Robin bertanya apakah diskusi sudah matang ("udah mateng belum ret?", "analisa koordinasinya ta"):
+     * Evaluasi secara objektif: sebutkan apa yang sudah klop dan apa yang masih kurang/harus dilengkapi tim.
+     * Sajikan DRAF ISIAN FORMULIR LENGKAP (Judul, Tanggal 2026, Peserta, Action Items per PIC, Catatan Notulensi).
+     * JANGAN MENYERTAKAN TAG <!--RETA_ACTION: ... --> pada saat menyajikan draf evaluasi!
+     * Tanyakan apakah draf isian tersebut sudah pas dan siap disimpan ke dashboard.
+   - Tag <!--RETA_ACTION: ... --> HANYA boleh disertakan jika Bang Robin secara tegas memberikan konfirmasi persetujuan ("simpan datanya", "gas masukkan").`
       });
 
       let { cleanText: textAfterAction, actionPayload } = extractRetaAction(retaResponse.text || '');
