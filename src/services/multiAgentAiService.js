@@ -253,11 +253,64 @@ async function callOpenRouterChat(messages, systemInstruction, maxTokens = 1000)
 }
 
 /**
- * Generator Gambar Relevan & Fotorealistik (Silvi Creative Engine via Pollinations FLUX)
+ * Generator Gambar Relevan & Presisi (Silvi Creative Engine via Pollinations FLUX)
  */
-export function generateVisualImageUrl(promptText, width = 800, height = 600) {
-  const cleanPrompt = encodeURIComponent(`${promptText}, highly detailed, modern minimalist startup aesthetic, professional photography, clean lighting, 8k resolution, no blur, no abstract distortion`);
+export function generateVisualImageUrl(promptText, width = 960, height = 600) {
+  // Bersihkan prompt dari karakter tidak perlu
+  const sanitizedPrompt = (promptText || 'modern professional digital marketing branding asset')
+    .replace(/[^\w\s,.-]/gi, ' ')
+    .trim();
+  const fullPrompt = `${sanitizedPrompt}, highly detailed, modern minimalist startup aesthetic, premium graphic design, clean lighting, 8k resolution, crisp vector elements, no blur, high fidelity`;
+  const cleanPrompt = encodeURIComponent(fullPrompt);
   return `https://image.pollinations.ai/prompt/${cleanPrompt}?width=${width}&height=${height}&model=flux&nologo=true`;
+}
+
+/**
+ * Spesialis Pembuat Prompt Visual Presisi via Gemini / AI Engine
+ * Menganalisis riwayat obrolan & instruksi pengguna untuk menghasilkan deskripsi visual bahasa Inggris yang tajam & akurat.
+ */
+export async function generateVisualPromptWithGemini(userMessage, conversationHistory = []) {
+  const contextSummary = conversationHistory
+    .slice(-5)
+    .map(m => `${m.name || m.sender}: ${m.text}`)
+    .join('\n');
+
+  const systemInstruction = `You are Silvi's Visual Art Director at DigiBooster startup.
+Your task is to analyze the user's request and conversation context, then write an ultra-precise, vivid, English text-to-image prompt suitable for high-end image models (FLUX / Midjourney).
+Rules:
+1. Output ONLY the English visual description (1-2 sentences). Do NOT include labels, tags, markdown, or commentary.
+2. Focus on clear visual subjects (e.g., "A clean modern infographic mindmap diagram for DigiBooster startup growth strategy, royal blue and emerald color scheme, white clean background, elegant typography, professional vector style").
+3. Avoid generic room/office stock photos unless explicitly asked for office interiors. If the user discusses mindmap/flowchart/diagram/campaign/poster, describe a graphic design / poster / infographic layout.`;
+
+  const messages = [
+    {
+      role: 'user',
+      content: `Context obrolan tim:\n${contextSummary}\n\nPermintaan Bang Robin: "${userMessage}"\nTolong buatkan 1 prompt visual bahasa Inggris yang presisi dan relevan dengan topik di atas:`
+    }
+  ];
+
+  try {
+    // 1. Coba lewat Gemini API terlebih dahulu
+    const geminiRes = await callGeminiChat(messages, systemInstruction, 150);
+    if (geminiRes && geminiRes.text && geminiRes.text.length > 10) {
+      return geminiRes.text.replace(/["\n\r]/g, ' ').trim();
+    }
+  } catch (err) {
+    console.warn('[Silvi Visual Prompt] Gemini prompt synthesis gagal, mencoba Groq fallback:', err.message);
+  }
+
+  try {
+    // 2. Fallback ke Groq jika Gemini ada kendala kuota/timeout
+    const groqRes = await callGroqChat(messages, systemInstruction, 150);
+    if (groqRes && groqRes.text && groqRes.text.length > 10) {
+      return groqRes.text.replace(/["\n\r]/g, ' ').trim();
+    }
+  } catch (err) {
+    console.warn('[Silvi Visual Prompt] Groq fallback gagal:', err.message);
+  }
+
+  // Fallback darurat jika kedua LLM timeout
+  return 'clean modern corporate digital marketing growth mindmap infographic, vector graphic, white background';
 }
 
 /**

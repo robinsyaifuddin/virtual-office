@@ -7,7 +7,7 @@ import {
   Cpu
 } from 'lucide-react';
 import { useWorkspaceStore } from '../../store/workspaceStore';
-import { generateAgentResponse, generateVisualImageUrl } from '../../services/multiAgentAiService';
+import { generateAgentResponse, generateVisualImageUrl, generateVisualPromptWithGemini } from '../../services/multiAgentAiService';
 import { generateAndDownloadWordDoc } from '../../utils/exportWord';
 import { generateAndDownloadPdfDoc } from '../../utils/exportPdf';
 import { 
@@ -201,18 +201,20 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
     if (isImageCommand && !isDocumentCommand) {
       setTypingAgentName('Silvi');
 
-      // Ambil konteks diskusi terakhir agar gambar 100% selaras dengan topik bisnis saat ini
+      // 1. Rancang visual prompt bahasa Inggris yang akurat via Gemini berdasarkan konteks percakapan
+      const visualPromptEn = await generateVisualPromptWithGemini(raw, messages);
+
+      // Ambil konteks singkat untuk instruksi Silvi
       const recentContextText = messages.slice(-4).map(m => m.text).join(' ');
-      const visualTopicRaw = raw.replace(/silvi|sil|buatkan|bikin|tolong|minta|gambar|desain|poster|visual|foto|banner/gi, '').trim();
-      const actualSubject = visualTopicRaw.length > 3 ? visualTopicRaw : (recentContextText.slice(0, 60) || 'modern startup marketing tech');
 
       const silviResponse = await generateAgentResponse({
         agentName: 'Silvi',
         agentRole: 'Head of Growth & Creative',
         userMessage: raw,
         conversationHistory: messages,
-        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar dengan tema: "${actualSubject}".
-Konteks diskusi terakhir: "${recentContextText.slice(0, 150)}".
+        customInstruction: `Bang Robin meminta dibuatkan aset visual/desain/gambar.
+Prompt visual bahasa Inggris yang telah disintesis oleh tim kreatif: "${visualPromptEn}".
+Konteks obrolan sebelumnya: "${recentContextText.slice(0, 150)}".
 Tugas Silvi:
 1. Sampaikan bahwa konsep visual kreatif telah selesai dirancang secara estetis dan profesional.
 2. Jelaskan rasionalisasi visual secara ringkas (mengapa tone warna, komposisi, dan pesan ini relevan dengan strategi bisnis).
@@ -222,6 +224,11 @@ Tugas Silvi:
 
       let cleanSilvi = (silviResponse.text || '').replace(new RegExp(`^(Silvi|Arga|Reta|Raka|Siska)\\s*:\\s*`, 'i'), '').trim();
 
+      // Judul caption visual yang ramah dan representatif
+      const visualCaption = visualPromptEn.length > 50 
+        ? visualPromptEn.slice(0, 50) + '...' 
+        : visualPromptEn;
+
       const silviMsg = {
         id: `msg-silvi-visual-${Date.now()}`,
         sender: 'Silvi',
@@ -230,8 +237,8 @@ Tugas Silvi:
         badgeColor: '#0284c7',
         text: cleanSilvi,
         hasVisualImage: true,
-        imageUrl: generateVisualImageUrl(actualSubject, 960, 600),
-        imageCaption: `Aset Visual Kreatif: ${actualSubject}`,
+        imageUrl: generateVisualImageUrl(visualPromptEn, 960, 600),
+        imageCaption: `Konsep Desain: ${visualCaption}`,
         timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB'
       };
 
@@ -239,7 +246,7 @@ Tugas Silvi:
 
       store.recordAiTelemetryEvent({
         agent: 'Silvi (Growth & Visual)',
-        action: `Generate Visual: ${actualSubject}`,
+        action: `Generate Visual: ${visualPromptEn.slice(0, 40)}...`,
         targetModule: 'Branding & Marketing',
         tokensUsed: 420,
         latencyMs: 350,
