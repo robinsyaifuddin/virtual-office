@@ -664,20 +664,31 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       return;
     }
 
-    // 3. SKENARIO SAPAAN GENERAL HANYA JIKA OBROLAN BARU DIMULAI (Maksimal 2 pesan di riwayat)
-    const isPureGreeting = (
+    // 3. SKENARIO SAPAAN GENERAL: SEMUA ANGGOTA DEWAN MENJAWAB
+    const isPureGreeting = 
       lower === 'halo' ||
       lower === 'hai' ||
+      lower === 'hi' ||
+      lower === 'halo semua' ||
+      lower === 'hallo semua' ||
+      lower === 'hai semua' ||
+      lower === 'hi semua' ||
       lower === 'pagi' ||
       lower === 'selamat pagi' ||
       lower === 'pagi semua' ||
       lower === 'pagi semuaa' ||
       lower === 'siang' ||
+      lower === 'siang semua' ||
       lower === 'sore' ||
+      lower === 'sore semua' ||
       lower === 'malam' ||
+      lower === 'malem' ||
+      lower === 'malem gaiss' ||
+      lower === 'malam semua' ||
+      lower === 'malem semua' ||
       lower.startsWith('hallo') ||
-      lower.startsWith('assalamu')
-    ) && messages.length <= 3;
+      lower.startsWith('assalamu') ||
+      (lower.includes('semua') && (lower.includes('halo') || lower.includes('hallo') || lower.includes('hai') || lower.includes('hi') || lower.includes('malem') || lower.includes('malam')));
 
     if (isPureGreeting) {
       setTypingAgentName('Arga');
@@ -728,7 +739,7 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
 
     // Siska HANYA bersuara jika:
     // 1. Bang Robin eksplisit memanggil Siska ("sis", "siska")
-    // 2. ATAU pesan user merupakan tindak lanjut dari tanggapan Siska sebelumnya
+    // 2. ATAU pesan user merupakan arahan/tindak lanjut langsung kepada Siska ("tolong catat ya sis", "siska evaluasi")
     // 3. ATAU Bang Robin eksplisit meminta koreksi/evaluasi ("tegur", "koreksi", "bot salah", "blunder")
     const isExplicitCorrection = 
       lower.includes('tegur') || 
@@ -737,9 +748,9 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       lower.includes('salah jawab') ||
       lower.includes('blunder');
 
-    const isDirectSiskaFollowup = isFollowupToSiska && !mentionedArga && !mentionedSilvi && !mentionedReta && !mentionedRaka;
+    const isDirectSiskaFollowup = mentionedSiska && isFollowupToSiska && !mentionedArga && !mentionedSilvi && !mentionedReta && !mentionedRaka;
 
-    // JIKA ADA KOREKSI BLUNDER ATAU SISKA DIPANGGIL EKSPLISIT ATAU USER MEMBALAS SISKA
+    // JIKA ADA KOREKSI BLUNDER ATAU SISKA DIPANGGIL EKSPLISIT
     if (isExplicitCorrection || isDirectSiskaFollowup || (mentionedSiska && explicitlyMentionedAgents.length <= 1)) {
       setTypingAgentName('Siska');
 
