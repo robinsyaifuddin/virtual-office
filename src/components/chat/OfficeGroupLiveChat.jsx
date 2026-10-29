@@ -47,6 +47,7 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
   const [isAgentsTyping, setIsAgentsTyping] = useState(false);
   const [typingAgentName, setTypingAgentName] = useState('');
   const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const isUserScrolledUpRef = useRef(false);
   const chatScrollRef = useRef(null);
 
@@ -1470,22 +1471,21 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 99999,
-      padding: 'clamp(0px, 2vw, 16px)',
-      fontFamily: "'Poppins', sans-serif"
+      padding: window.innerWidth <= 640 ? '0' : 'clamp(8px, 2vw, 16px)',
+      fontFamily: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
       <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: 'clamp(14px, 3vw, 20px)',
+        backgroundColor: '#f0f2f5',
+        borderRadius: window.innerWidth <= 640 ? '0' : 'clamp(14px, 2.5vw, 20px)',
         width: '100%',
-        maxWidth: '860px',
-        height: 'clamp(92vh, 96vh, 88vh)',
+        maxWidth: '880px',
+        height: window.innerWidth <= 640 ? '100dvh' : 'min(92vh, 860px)',
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 25px 50px -12px rgba(2, 132, 199, 0.25)',
-        border: '1px solid #bae6fd',
+        border: window.innerWidth <= 640 ? 'none' : '1px solid #bae6fd',
         overflow: 'hidden',
         position: 'relative',
-        fontFamily: "'Poppins', sans-serif",
         transform: 'translateZ(0)',
         willChange: 'transform'
       }}>
@@ -1564,11 +1564,13 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '16px',
+            padding: '12px 14px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
-            backgroundColor: '#f8fafc',
+            gap: '8px',
+            backgroundColor: '#efeae2',
+            backgroundImage: 'radial-gradient(#dfd7cc 0.8px, transparent 0.8px)',
+            backgroundSize: '16px 16px',
             userSelect: 'text',
             WebkitUserSelect: 'text'
           }}
@@ -1631,19 +1633,20 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
 
                 {/* Bubble Chat */}
                 <div style={{
-                  maxWidth: '88%',
-                  backgroundColor: isUser ? '#0284c7' : (isSiskaDirective ? '#f0fdf4' : '#ffffff'),
-                  color: isUser ? '#ffffff' : '#0f172a',
-                  padding: '10px 14px',
-                  borderRadius: isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px',
-                  border: isUser ? 'none' : (isSiskaDirective ? '1px solid #bbf7d0' : '1px solid #e2e8f0'),
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                  fontSize: '0.82rem',
-                  lineHeight: 1.5,
+                  maxWidth: '86%',
+                  backgroundColor: isUser ? '#d9fdd3' : (isSiskaDirective ? '#f0fdf4' : '#ffffff'),
+                  color: '#111b21',
+                  padding: '8px 12px 6px 12px',
+                  borderRadius: isUser ? '8px 0px 8px 8px' : '0px 8px 8px 8px',
+                  border: 'none',
+                  boxShadow: '0 1px 1.5px rgba(11,20,26,0.13)',
+                  fontSize: '0.84rem',
+                  lineHeight: 1.45,
                   whiteSpace: 'pre-line',
                   userSelect: 'text',
                   WebkitUserSelect: 'text',
-                  cursor: 'text'
+                  cursor: 'text',
+                  position: 'relative'
                 }}>
                   {isSiskaDirective && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#166534', fontWeight: 700, marginBottom: '6px', fontSize: '0.74rem' }}>
@@ -2218,8 +2221,8 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
           )}
         </div>
 
-        {/* Tombol Pintas Scroll ke Pesan Terbaru (Muncul saat user membaca di atas) */}
-        {showScrollBottom && (
+        {/* Tombol Pintas Scroll ke Pesan Terbaru (HANYA muncul saat user membaca di atas & TIDAK sedang mengetik) */}
+        {showScrollBottom && !isInputFocused && !inputText.trim() && (
           <div style={{
             position: 'absolute',
             bottom: '72px',
@@ -2277,7 +2280,9 @@ TANGKAP MAKSUD DAN INTI DARI PESAN BANG ROBIN: "${raw}".
                 handleSendMessage();
               }
             }}
-            placeholder="Tulis Pesan..."
+            placeholder="Ketik pesan untuk dewan agen..."
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => setIsInputFocused(false)}
             style={{
               flex: 1,
               padding: '10px 14px',
