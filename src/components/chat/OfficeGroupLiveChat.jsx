@@ -147,6 +147,21 @@ export default function OfficeGroupLiveChat({ isOpen, onClose }) {
       lower.includes('surat') ||
       lower.includes('unduh');
 
+    // SKENARIO PERINTAH TEGAS & EKSPLISIT BUAT DATA / DRAFT KE SISTEM (Strict Tool Calling)
+    const isExplicitToolCall = 
+      (lower.includes('buatkan') || 
+       lower.includes('tolong buat') || 
+       lower.includes('masukkan ke tabel') || 
+       lower.includes('simpan ke tabel') || 
+       lower.includes('inputkan') || 
+       lower.includes('terbitkan faktur') ||
+       lower.includes('terbitkan invoice')) && 
+      !lower.includes('bahas') && 
+      !lower.includes('diskusi') && 
+      !lower.includes('ngobrol') &&
+      !isImageCommand &&
+      !isDocumentCommand;
+
     // 1. EKSEKUSI PERMINTAAN GAMBAR / VISUAL OLEH SILVI (Relevan, Presisi, No Halusinasi):
     if (isImageCommand && !isDocumentCommand) {
       setTypingAgentName('Silvi');
@@ -625,6 +640,7 @@ Lalu lempar ke Arga (ga) untuk minta masukan strateginya.`
       lower === 'siang' ||
       lower === 'sore' ||
       lower === 'malam' ||
+      lower.startsWith('hallo') ||
       lower.startsWith('assalamu')
     ) && messages.length <= 3;
 
